@@ -1,0 +1,17 @@
+{
+  "presets": ["next/babel"],
+  "env": {
+    "test": {
+      "plugins": [
+        ["@babel/plugin-transform-runtime"],
+        ["babel-plugin-istanbul", {
+          "exclude": [
+            "**/*.test.{js,jsx,ts,tsx}",
+            "**/__tests__/**",
+            "**/node_modules/**"
+          ]
+        }]
+      ]
+    }
+  }
+} 
