@@ -58,4 +58,25 @@ service-account.json
 
 # Cache directories
 .swc/
-.eslintcache 
+.eslintcache
+
+# RAG documents and knowledge base
+src/rag/documents/
+**/rag/documents/
+*.pdf
+*.docx
+*.txt
+
+# Visitor tracking
+visitor_count.json
+**/visitor_count.json
+
+# Docker volumes and data
+data/
+volumes/
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db 
