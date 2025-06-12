@@ -137,6 +137,11 @@ export default function AiToolsLab() {
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
           🧪 AI Tools Lab
         </h2>
+        <p className="text-gray-700 dark:text-gray-300 max-w-4xl mb-8">
+          Experimental AI-powered tools and applications showcasing the integration of machine learning, natural language processing, 
+          and generative AI technologies. These projects demonstrate hands-on experience with LLMs, RAG systems, text-to-speech, 
+          image generation, and document processing pipelines.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {tools.map((tool, index) => (
             <motion.div

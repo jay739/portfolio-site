@@ -46,7 +46,12 @@ describe('Hero', () => {
     // Mock window.fetch
     global.fetch = jest.fn(() =>
       Promise.resolve({
-        json: () => Promise.resolve({ activeUsers: 10 }),
+        json: () => Promise.resolve({ 
+          totalVisitors: 10,
+          ordinalText: "10th",
+          message: "You're the 10th visitor!",
+          lastUpdated: mockDate.toISOString()
+        }),
       })
     ) as jest.Mock;
 
@@ -118,7 +123,7 @@ describe('Hero', () => {
 
     // Check for main action buttons
     expect(screen.getByRole('link', { name: /access home server/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /download resume/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /view resume/i })).toBeInTheDocument();
   });
 
   it('fetches and displays visitor count', async () => {
@@ -126,8 +131,8 @@ describe('Hero', () => {
       render(<Hero />);
     });
     
-    // Wait for the visitor count to be fetched and displayed
-    expect(await screen.findByText(/10 VISITORS/)).toBeInTheDocument();
+    // Wait for the visitor count message to be fetched and displayed above the name
+    expect(await screen.findByText(/✨ You're the 10th visitor! ✨/)).toBeInTheDocument();
   });
 
   it('displays current time', async () => {
@@ -162,8 +167,8 @@ describe('Hero', () => {
       render(<Hero />);
     });
     
-    // Should show 0 visitors when fetch fails
-    expect(await screen.findByText(/0 VISITORS/)).toBeInTheDocument();
+    // Should show welcome message when fetch fails
+    expect(await screen.findByText(/✨ Welcome! ✨/)).toBeInTheDocument();
   });
 
   it('handles reduced motion preference', async () => {

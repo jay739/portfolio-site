@@ -1,30 +1,28 @@
 import { z } from 'zod';
 
-const envSchema = z.object({
-  // Node environment
+// Schema for environment variables that are available on both client and server
+const commonEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  
-  // API URLs and Keys
   NETDATA_URL: z.string().url(),
-  NETDATA_API_KEY: z.string().min(32), // Require a strong API key
-  NEXTAUTH_SECRET: z.string().min(32), // Require a strong secret for JWT
+});
+
+// Schema for environment variables that are only available on the server
+const serverEnvSchema = commonEnvSchema.extend({
+  // Next Auth
   NEXTAUTH_URL: z.string().url().optional(),
-  
-  // Security
-  LOG_SERVICE_URL: z.string().url().optional(),
-  LOG_SERVICE_KEY: z.string().optional(),
-  ALERT_WEBHOOK_URL: z.string().url().optional(),
-  
-  // Redis (for rate limiting)
-  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
-  
-  // Google Analytics (if used)
+  NEXTAUTH_SECRET: z.string(),
+
+  // API Keys
+  NETDATA_API_KEY: z.string().min(1),
+  NEWS_API_KEY: z.string(),
   GOOGLE_ANALYTICS_ID: z.string().optional(),
-  GOOGLE_SERVICE_ACCOUNT_KEY: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
+
+  // Google Analytics
+  GA4_PROPERTY_ID: z.string(),
+  GA_SERVICE_ACCOUNT_KEY_PATH: z.string().default('./service-account.json'),
   
   // Sentry
-  SENTRY_DSN: z.string().url().optional(),
   SENTRY_AUTH_TOKEN: z.string().optional(),
   SENTRY_PROJECT: z.string().optional(),
   SENTRY_ORG: z.string().optional(),
@@ -32,6 +30,7 @@ const envSchema = z.object({
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
   LOG_FILE_PATH: z.string().optional(),
+  LOG_SERVICE_URL: z.string().optional(),
   
   // Other optional configurations
   CORS_ORIGINS: z.string().optional(),
@@ -39,39 +38,35 @@ const envSchema = z.object({
   SESSION_MAX_AGE: z.string().transform(Number).default('86400'), // 24 hours in seconds
 });
 
-function validateEnv() {
-  try {
-    const parsed = envSchema.parse(process.env);
-    return parsed;
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const missingVars = error.errors
-        .filter(err => err.code === 'invalid_type' && err.received === 'undefined')
-        .map(err => err.path.join('.'));
-      
-      const invalidVars = error.errors
-        .filter(err => err.code !== 'invalid_type' || err.received !== 'undefined')
-        .map(err => `${err.path.join('.')}: ${err.message}`);
-      
-      console.error('❌ Invalid environment variables:');
-      
-      if (missingVars.length > 0) {
-        console.error('\nMissing required variables:');
-        missingVars.forEach(variable => console.error(`  - ${variable}`));
-      }
-      
-      if (invalidVars.length > 0) {
-        console.error('\nInvalid variables:');
-        invalidVars.forEach(variable => console.error(`  - ${variable}`));
-      }
-      
-      console.error('\nPlease check your .env file and ensure all required variables are set correctly.');
-    } else {
-      console.error('❌ Unexpected error validating environment variables:', error);
-    }
-    
-    process.exit(1);
-  }
+function formatErrors(errors: z.ZodError) {
+  return Object.entries(errors.flatten().fieldErrors)
+    .map(([field, errors]) => `${field}: ${errors?.join(', ')}`)
+    .join('\n');
 }
 
-export const env = validateEnv(); 
+const processEnv = {
+  NODE_ENV: process.env.NODE_ENV,
+  NETDATA_URL: process.env.NETDATA_URL || 'https://metrics.jay739.dev',
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+  NETDATA_API_KEY: process.env.NETDATA_API_KEY,
+  NEWS_API_KEY: process.env.NEWS_API_KEY,
+  GOOGLE_ANALYTICS_ID: process.env.GOOGLE_ANALYTICS_ID,
+  SENTRY_DSN: process.env.SENTRY_DSN,
+  GA4_PROPERTY_ID: process.env.GA4_PROPERTY_ID,
+  GA_SERVICE_ACCOUNT_KEY_PATH: process.env.GA_SERVICE_ACCOUNT_KEY_PATH,
+  SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+  SENTRY_PROJECT: process.env.SENTRY_PROJECT,
+  SENTRY_ORG: process.env.SENTRY_ORG,
+  LOG_LEVEL: process.env.LOG_LEVEL,
+  LOG_FILE_PATH: process.env.LOG_FILE_PATH,
+  LOG_SERVICE_URL: process.env.LOG_SERVICE_URL,
+  CORS_ORIGINS: process.env.CORS_ORIGINS,
+  MAX_REQUESTS_PER_MINUTE: process.env.MAX_REQUESTS_PER_MINUTE,
+  SESSION_MAX_AGE: process.env.SESSION_MAX_AGE,
+};
+
+// Use different schemas based on whether we're on the client or server
+export const env = typeof window === 'undefined' 
+  ? serverEnvSchema.parse(processEnv)
+  : commonEnvSchema.parse(processEnv); 

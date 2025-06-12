@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/rate-limit';
 import { handleAPIError, Errors } from '@/lib/error-handling';
-import { env } from '@/lib/env';
-import { validateToken } from '@/lib/csrf';
+import { validateCsrfToken } from '@/lib/csrf';
+import { cookies } from 'next/headers';
 
-const NETDATA_URL = process.env.NETDATA_URL || 'https://metrics.jay739.dev';
 const CACHE_DURATION = 30000; // 30 seconds
 const MAX_POINTS = 100;
 
@@ -32,6 +31,11 @@ function filterChartData(data: any, dimensions?: string[]) {
 async function getAvailableCharts() {
   // Skip chart validation since the /charts endpoint is not reliable
     return { charts: {} };
+}
+
+// Helper function to create basic auth header
+function createBasicAuthHeader(username: string, password: string) {
+  return 'Basic ' + Buffer.from(username + ':' + password).toString('base64');
 }
 
 // Map of service names to their corresponding Netdata charts
@@ -122,121 +126,153 @@ const SERVICE_CHARTS: Record<string, { chart: string; dimensions?: string[] }> =
   }
 };
 
-// Helper function to create Basic Auth header
-function createBasicAuthHeader(username: string, password: string): string {
-  const credentials = Buffer.from(`${username}:${password}`).toString('base64');
-  return `Basic ${credentials}`;
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { service: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { service: string } }) {
   try {
-    // Rate limiting
-    const limiter = rateLimit({
-      interval: 60 * 1000, // 1 minute
-      uniqueTokenPerInterval: 500
+    const { service } = params;
+    const { searchParams } = new URL(request.url);
+    const points = searchParams.get('points') || '1';
+    const dimension = searchParams.get('dimension');
+    const after = searchParams.get('after');
+    const before = searchParams.get('before');
+
+    // Get chart info for the requested service
+    const chartInfo = SERVICE_CHARTS[service];
+    if (!chartInfo) {
+      return NextResponse.json({ error: `Invalid service: ${service}` }, { status: 400 });
+    }
+
+    // Build Netdata API URL using v3
+    const netdataUrl = process.env.NETDATA_URL || 'https://metrics.jay739.dev';
+    const url = new URL(`${netdataUrl}/api/v3/data`);
+    
+    // Add query parameters matching the successful request
+    url.searchParams.append('format', 'json2');
+    url.searchParams.append('points', points);
+    url.searchParams.append('time_group', 'average');
+    url.searchParams.append('time_resampling', '0');
+    url.searchParams.append('options', 'jsonwrap|nonzero|ms');
+    
+    // Add chart-specific parameters
+    url.searchParams.append('contexts', '*');
+    url.searchParams.append('nodes', '*');
+    url.searchParams.append('instances', '*');
+    url.searchParams.append('scope_contexts', chartInfo.chart);
+    
+    if (dimension) {
+      url.searchParams.append('dimensions', dimension);
+    }
+    
+    if (after) {
+      url.searchParams.append('after', after);
+    }
+    
+    if (before) {
+      url.searchParams.append('before', before);
+    }
+
+    // Try to get auth from cookie first
+    const cookieStore = cookies();
+    let authHeader = cookieStore.get('netdata_auth')?.value;
+
+    // If no cookie, try env variables
+    if (!authHeader) {
+      const netdataApiKey = process.env.NETDATA_API_KEY;
+      if (!netdataApiKey) {
+        throw Errors.Internal('NETDATA_API_KEY not set');
+      }
+      const [username, password] = netdataApiKey.split(':');
+      if (!username || !password) {
+        throw Errors.Internal('Invalid NETDATA_API_KEY format. Expected "username:password"');
+      }
+      authHeader = Buffer.from(`${username}:${password}`).toString('base64');
+    }
+
+    // Log request details (without sensitive info)
+    console.log('Netdata Request:', {
+      url: url.toString(),
+      service,
+      chart: chartInfo.chart,
+      points,
+      dimension,
+      hasAuth: !!authHeader,
+      cookies: request.cookies.getAll().map(c => c.name)
     });
-    
-    try {
-      await limiter.check(5, 'NETDATA_API'); // 5 requests per minute
-    } catch {
-      throw Errors.TooManyRequests();
-    }
 
-    const service = params.service;
-    const searchParams = request.nextUrl.searchParams;
-    
-    // Validate and sanitize input
-    let points = parseInt(searchParams.get('points') || '1', 10);
-    if (isNaN(points) || points < 1) {
-      throw Errors.BadRequest('Invalid points parameter');
-    }
-    points = Math.min(points, MAX_POINTS); // Clamp to max
-    
-    const after = searchParams.get('after') || '-600';
-    if (!/^-?\d+$/.test(after)) {
-      throw Errors.BadRequest('Invalid after parameter');
-    }
-
-    // Validate service
-    if (!SERVICE_CHARTS[service as keyof typeof SERVICE_CHARTS]) {
-      throw Errors.NotFound(`Service not found: ${service}`);
-    }
-
-    const { chart, dimensions } = SERVICE_CHARTS[service as keyof typeof SERVICE_CHARTS];
-
-    // Construct URL with minimal parameters
-    const url = new URL(`${env.NETDATA_URL}/api/v1/data`);
-    url.searchParams.set('chart', chart);
-    url.searchParams.set('points', points.toString());
-    url.searchParams.set('after', after);
-    url.searchParams.set('format', 'json');
-
-    // Prepare headers for Netdata request
-    const headers: HeadersInit = {
-      'Accept': 'application/json',
-    };
-
-    // Add Basic Auth if API key is configured
-    if (env.NETDATA_API_KEY) {
-      // For now, we'll use the API key as both username and password
-      // This can be changed later to use different credentials
-      headers['Authorization'] = createBasicAuthHeader('netdata', env.NETDATA_API_KEY);
-    }
-
+    // Make the request with exact headers from browser
     const response = await fetch(url.toString(), {
-      headers,
-      next: { revalidate: 5 } // Cache for 5 seconds
+      headers: {
+        'Accept': '*/*',
+        'Authorization': `Basic ${authHeader}`,
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'User-Agent': 'Netdata/v3',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Cookie': request.headers.get('cookie') || ''
+      },
+      credentials: 'include'
+    });
+
+    // Log response details
+    console.log('Netdata Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw Errors.Unauthorized('Failed to authenticate with Netdata server');
+      const errorText = await response.text();
+      console.error('Authentication failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+
+      // If auth failed and we were using cookie, try env variables
+      if (response.status === 401 && cookieStore.get('netdata_auth')) {
+        cookieStore.delete('netdata_auth');
+        const netdataApiKey = process.env.NETDATA_API_KEY;
+        if (netdataApiKey) {
+          const [username, password] = netdataApiKey.split(':');
+          if (username && password) {
+            const retryAuth = Buffer.from(`${username}:${password}`).toString('base64');
+            const retryResponse = await fetch(url.toString(), {
+            headers: {
+              'Accept': '*/*',
+              'Authorization': `Basic ${retryAuth}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'User-Agent': 'Netdata/v3',
+              'Accept-Encoding': 'gzip, deflate, br'
+            }
+          });
+
+          if (retryResponse.ok) {
+            const data = await retryResponse.json();
+            return NextResponse.json(data, {
+              headers: {
+                'Cache-Control': 'no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Access-Control-Allow-Credentials': 'true',
+                'Access-Control-Allow-Origin': '*'
+              }
+            });
+          }
+        }
       }
-      throw Errors.Internal(`Netdata API responded with status: ${response.status}`);
+    }
+
+      throw Errors.Internal(`Failed to authenticate with Netdata: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    
-    // Transform the data to match the expected format
-    if (!data.labels || !data.data) {
-      return NextResponse.json({ data: { result: [] } });
-    }
-
-    // Convert the data format to match what the frontend expects
-    const result = data.labels.slice(1).map((dimension: string, index: number) => {
-      // Skip the first label (time) and map the rest to dimensions
-      const values = data.data.map((row: any[]) => ({
-        timestamp: row[0],
-        value: row[index + 1] // +1 because first column is timestamp
-      }));
-
-      return {
-        dimension,
-        values
-      };
-    });
-
-    // Filter by dimensions if specified
-    const filteredResult = dimensions 
-      ? result.filter((item: any) => dimensions.includes(item.dimension))
-      : result;
-
-    // Flatten the result for the frontend
-    const flatResult = [];
-    for (const entry of filteredResult) {
-      for (const v of entry.values) {
-        flatResult.push({
-          dimension: entry.dimension,
-          timestamp: v.timestamp,
-          value: v.value,
-        });
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Origin': '*'
       }
-    }
-
-    return NextResponse.json({ data: { result: flatResult } });
+    });
   } catch (error) {
     return handleAPIError(error);
   }
@@ -244,34 +280,36 @@ export async function GET(
 
 export async function POST(request: NextRequest) {
   try {
-    // CSRF validation for POST requests
-    const token = request.headers.get('x-csrf-token');
-    if (!token) {
-      throw Errors.Forbidden('CSRF token missing');
-    }
-    if (!validateToken(token)) {
-      throw Errors.Forbidden('Invalid CSRF token');
+    // Get credentials from request body
+    const { username, password } = await request.json();
+    
+    // Create auth header
+    const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
+    
+    // Test credentials against Netdata
+    const netdataUrl = process.env.NETDATA_URL || 'https://metrics.jay739.dev';
+    const testUrl = new URL(`${netdataUrl}/api/v3/info`);
+    const response = await fetch(testUrl.toString(), {
+      headers: {
+        'Authorization': `Basic ${basicAuth}`,
+        'Accept': '*/*'
+      }
+    });
+
+    if (!response.ok) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Rate limiting
-    const limiter = rateLimit({
-      interval: 60 * 1000,
-      uniqueTokenPerInterval: 500
+    // If successful, set a session cookie
+    const cookieStore = cookies();
+    cookieStore.set('netdata_auth', basicAuth, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 // 24 hours
     });
-    
-    try {
-      await limiter.check(5, 'NETDATA_POST');
-    } catch {
-      throw Errors.TooManyRequests();
-    }
 
-    // Handle POST-specific logic here
-    const data = await request.json();
-    
-    return NextResponse.json({ 
-      success: true,
-      message: 'Netdata configuration updated'
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     return handleAPIError(error);
   }
@@ -284,7 +322,7 @@ export async function PUT(request: NextRequest) {
     if (!token) {
       throw Errors.Forbidden('CSRF token missing');
     }
-    if (!validateToken(token)) {
+    if (!validateCsrfToken(token)) {
       throw Errors.Forbidden('Invalid CSRF token');
     }
 
@@ -319,7 +357,7 @@ export async function DELETE(request: NextRequest) {
     if (!token) {
       throw Errors.Forbidden('CSRF token missing');
     }
-    if (!validateToken(token)) {
+    if (!validateCsrfToken(token)) {
       throw Errors.Forbidden('Invalid CSRF token');
     }
 

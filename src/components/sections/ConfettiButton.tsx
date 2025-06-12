@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ANIMATION } from '@/lib/constants';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { useClickSound } from '@/lib/hooks/useClickSound';
 
 declare global {
   interface Window {
@@ -15,6 +16,7 @@ export default function ConfettiButton() {
   const [isConfettiLoaded, setIsConfettiLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const { playClick } = useClickSound();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !window.confetti) {
@@ -38,9 +40,14 @@ export default function ConfettiButton() {
   }, []);
 
   const handleClick = async (e: React.MouseEvent) => {
-    if (prefersReducedMotion) return;
-    
     e.preventDefault();
+    playClick();
+    
+    if (prefersReducedMotion) {
+      window.location.href = 'https://homarr.jay739.dev';
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -72,7 +79,7 @@ export default function ConfettiButton() {
       href="https://homarr.jay739.dev"
       onClick={handleClick}
       className={`
-        px-6 py-3 bg-blue-600 rounded transition
+        px-6 py-3 bg-blue-600 rounded-full transition
         ${isLoading ? 'opacity-75 cursor-wait' : 'hover:bg-blue-700 hover:scale-105'}
         shadow-md focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none
         ${prefersReducedMotion ? 'hover:scale-100' : ''}

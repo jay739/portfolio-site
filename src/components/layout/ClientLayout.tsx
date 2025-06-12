@@ -8,6 +8,8 @@ import SmartScrollButton from '@/components/SmartScrollButton';
 import ThemeAwareBackground from '@/components/ThemeAwareBackground';
 import NavBar from '@/components/layout/NavBar';
 import CustomCursor from '../CustomCursor';
+import InfiniteLoopScroll from '../InfiniteLoopScroll';
+import FloatingTimeWidget from '../FloatingTimeWidget';
 
 interface ClientLayoutProps {
   children: ReactNode;
@@ -18,6 +20,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     <>
       <ThemeAwareBackground />
       <CustomCursor />
+      <InfiniteLoopScroll />
+      <FloatingTimeWidget />
       <Providers>
         <ChatbotWidget />
         <SmartScrollButton />

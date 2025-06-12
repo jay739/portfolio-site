@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateToken } from '@/lib/csrf';
+import { validateCsrfToken } from '@/lib/csrf';
 import { rateLimit } from '@/lib/rate-limit';
 import { handleAPIError, Errors } from '@/lib/error-handling';
 
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     if (!token) {
       throw Errors.Forbidden('CSRF token missing');
     }
-    if (!validateToken(token)) {
+    if (!validateCsrfToken(token)) {
       throw Errors.Forbidden('Invalid CSRF token');
     }
 

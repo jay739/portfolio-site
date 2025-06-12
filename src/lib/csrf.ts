@@ -1,4 +1,4 @@
-import { Tokens } from 'csrf';
+import Tokens from 'csrf';
 import { GetServerSidePropsContext } from 'next';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -8,11 +8,27 @@ const tokens = new Tokens();
 const SECRET = process.env.CSRF_SECRET || 'your-csrf-secret';
 
 export function generateToken() {
-  return tokens.create(SECRET);
+  return tokens.create(process.env.NEXTAUTH_SECRET!);
 }
 
-export function validateToken(token: string) {
-  return tokens.verify(SECRET, token);
+export function verifyToken(token: string) {
+  return tokens.verify(process.env.NEXTAUTH_SECRET!, token);
+}
+
+export function getTokenFromRequest(req: NextApiRequest | GetServerSidePropsContext['req']) {
+  return req.headers['csrf-token'] as string;
+}
+
+export function setTokenInResponse(res: NextApiResponse | GetServerSidePropsContext['res'], token: string) {
+  res.setHeader('csrf-token', token);
+}
+
+export function validateCsrfToken(token: string): boolean {
+  try {
+    return verifyToken(token);
+  } catch (error) {
+    return false;
+  }
 }
 
 // Middleware for API routes
@@ -30,7 +46,7 @@ export function csrfProtection(handler: any) {
         return res.status(403).json({ error: 'CSRF token missing' });
       }
 
-      if (!validateToken(token)) {
+      if (!verifyToken(token)) {
         return res.status(403).json({ error: 'Invalid CSRF token' });
       }
 

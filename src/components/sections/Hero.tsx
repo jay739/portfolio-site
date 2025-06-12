@@ -6,6 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { ANIMATION } from '@/lib/constants';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { useClickSound } from '@/lib/hooks/useClickSound';
 import ContactButton from '@/components/ContactButton';
 import { useTypewriter } from '@/lib/effects';
 
@@ -15,7 +16,7 @@ const ConfettiButton = dynamic(() => import('./ConfettiButton'), {
   loading: () => (
     <Link
       href="https://homarr.jay739.dev"
-      className="px-6 py-3 bg-blue-600 rounded hover:bg-blue-700 transition hover:scale-105 shadow-md focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+      className="px-6 py-3 bg-blue-600 rounded-full hover:bg-blue-700 transition hover:scale-105 shadow-md focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
       aria-label="Access Home Server"
     >
       🏠 Access Home Server
@@ -33,10 +34,10 @@ const taglines = [
 ];
 const links = {
   server: "https://homarr.jay739.dev",
-  resume: "/resume.pdf",
+  resume: "/documents/Jayakrishna_Konda_Resume.pdf",
   github: "https://github.com/jay739",
   linkedin: "https://www.linkedin.com/in/jaya-krishna-konda/",
-  email: "mailto:jayakrishnakonda@jay739.dev"
+  email: "mailto:contact@jay739.dev"
 };
 
 export default function Hero() {
@@ -48,8 +49,9 @@ export default function Hero() {
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number>(0);
-  const [time, setTime] = useState<string | null>(null);
-  
+  const [visitorMessage, setVisitorMessage] = useState<string>('');
+
+  const { playClick } = useClickSound();
   const prefersReducedMotion = useReducedMotion();
   const framerReducedMotion = useFramerReducedMotion();
 
@@ -60,25 +62,21 @@ export default function Hero() {
   useEffect(() => {
     async function fetchVisitors() {
       try {
-        const res = await fetch('/api/active-users');
+        const res = await fetch('/api/total-visitors');
         const data = await res.json();
-        setVisitorCount(data.activeUsers || 0);
+        setVisitorCount(data.totalVisitors || 0);
+        setVisitorMessage(data.message || `You're the ${data.totalVisitors}th visitor!`);
       } catch {
         setVisitorCount(0);
+        setVisitorMessage('Welcome visitor!');
       }
     }
+    
+    // Only fetch once when component mounts - don't want to increment on every refresh
     fetchVisitors();
-    const interval = setInterval(fetchVisitors, 30000);
-    return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    setTime(new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-    const interval = setInterval(() => {
-      setTime(new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+
 
   const handleTypewriter = useCallback(() => {
     if (!mounted || isPaused) return;
@@ -119,31 +117,11 @@ export default function Hero() {
     setIsPaused(prev => !prev);
   };
 
-  if (!mounted || !time) return null;
+  if (!mounted) return null;
 
-  // Decorative info overlay
-  const now = new Date();
-  const day = now.toLocaleDateString(undefined, { weekday: 'short' });
-  const date = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  const visitorsString = `${visitorCount} VISITORS`;
-  const infoOverlay = (
-    <>
-    <div className="flex flex-col items-center justify-center w-full h-full">
-      <span className="text-6xl md:text-8xl font-extrabold text-gray-400 dark:text-gray-600 opacity-5 whitespace-nowrap uppercase">{visitorsString}</span>
-    </div>
-    <div className="flex flex-col items-center justify-center w-full h-full">
-      <span className="text-4xl md:text-6xl font-extrabold text-gray-400 dark:text-gray-600 opacity-5 whitespace-nowrap mt-2">{date}, {day}</span>
-    </div>
-    </>
-  );
+  // Decorative info overlay removed - date now shown in floating time widget
 
-  const timeOverlay = (
-    <div className="absolute left-1/16 top-3/4 -translate-y-1/2 z-0 flex items-center" style={{height: '100%'}}>
-      <span className="origin-left text-7xl md:text-9xl font-extrabold text-gray-400 dark:text-gray-600 opacity-10 whitespace-nowrap select-none">
-        {time}
-      </span>
-    </div>
-  );
+
 
   const motionProps = prefersReducedMotion || framerReducedMotion
     ? { initial: false, animate: { opacity: 1, y: 0 } }
@@ -156,14 +134,7 @@ export default function Hero() {
       aria-label="Hero section"
       id="welcome"
     >
-      {/* Decorative info overlay */}
-      <div 
-        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0"
-        aria-hidden="true"
-      >
-        {infoOverlay}
-        {timeOverlay}
-      </div>
+      {/* Decorative info overlay removed - date now shown in floating time widget */}
       {/* Animated SVG Waves at the bottom */}
       <svg
         className="absolute left-0 bottom-0 w-full h-40 -z-10"
@@ -210,6 +181,18 @@ export default function Hero() {
         {...motionProps}
         className="relative z-10 w-full py-16 fade-in-up"
       >
+        {/* Visitor Count Display - Above Name */}
+        <motion.div 
+          className="mb-6"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <p className="text-lg md:text-xl font-medium text-blue-600 dark:text-blue-400 opacity-90 dark:opacity-100 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-full inline-block border border-blue-200 dark:border-blue-800">
+            ✨ {visitorMessage || 'Welcome!'} ✨
+          </p>
+        </motion.div>
+        
         <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-gray-900 dark:text-white drop-shadow-lg">
           {name}
         </h1>
@@ -229,16 +212,19 @@ export default function Hero() {
           <ConfettiButton />
           <Link
             href={links.resume}
-            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded transition hover:scale-105 shadow-md focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none text-white"
-            aria-label="Download Resume"
-            download
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => playClick()}
+            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-full transition hover:scale-105 shadow-md focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none text-white"
+            aria-label="View Resume"
           >
-            📄 Download Resume
+            📄 View Resume
           </Link>
         </div>
         <div className="mt-8 flex justify-center">
           <button
             onClick={() => {
+              playClick();
               const el = document.getElementById('contact');
               if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }}
@@ -248,33 +234,110 @@ export default function Hero() {
             Contact Me
           </button>
         </div>
-        <nav className="flex gap-4 mt-6 justify-center text-blue-600 dark:text-blue-300" aria-label="Social links">
-          <a 
-            href={links.github} 
-            target="_blank" 
-            aria-label="Visit my GitHub profile" 
-            rel="noopener noreferrer"
-            className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-          >
-            💻 GitHub
-          </a>
-          <a 
-            href={links.linkedin} 
-            target="_blank" 
-            aria-label="Visit my LinkedIn profile" 
-            rel="noopener noreferrer"
-            className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-          >
-            👤 LinkedIn
-          </a>
-          <a 
-            href={links.email} 
-            aria-label="Send me an email"
-            className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-          >
-            📧 Email
-          </a>
-        </nav>
+        {/* Modern Social Links */}
+        <motion.nav 
+          className="flex gap-6 mt-8 justify-center" 
+          aria-label="Social links"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+        >
+          {[
+            {
+              href: links.github,
+              icon: "🚀",
+              label: "GitHub",
+              color: "from-gray-600 to-gray-800 dark:from-gray-400 dark:to-gray-600",
+              hoverColor: "hover:from-gray-700 hover:to-gray-900 dark:hover:from-gray-300 dark:hover:to-gray-500"
+            },
+            {
+              href: links.linkedin,
+              icon: "💼",
+              label: "LinkedIn", 
+              color: "from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-600",
+              hoverColor: "hover:from-blue-700 hover:to-blue-900 dark:hover:from-blue-300 dark:hover:to-blue-500"
+            },
+            {
+              href: links.email,
+              icon: "✉️",
+              label: "Email",
+              color: "from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-600", 
+              hoverColor: "hover:from-purple-700 hover:to-purple-900 dark:hover:from-purple-300 dark:hover:to-purple-500"
+            }
+          ].map((social, index) => (
+            <motion.a
+              key={social.label}
+              href={social.href}
+              target={social.label !== "Email" ? "_blank" : undefined}
+              rel={social.label !== "Email" ? "noopener noreferrer" : undefined}
+              aria-label={`${social.label === "Email" ? "Send me an email" : `Visit my ${social.label} profile`}`}
+              onClick={() => playClick()}
+              className={`
+                group relative overflow-hidden rounded-full px-6 py-3 transition-all duration-300
+                bg-gradient-to-br ${social.color} ${social.hoverColor}
+                hover:scale-110 hover:shadow-2xl
+                focus:outline-none focus:ring-4 focus:ring-blue-500/50 focus:ring-offset-2
+                transform-gpu will-change-transform
+              `}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                delay: 0.9 + (index * 0.1), 
+                duration: 0.5,
+                type: "spring",
+                stiffness: 100
+              }}
+              whileHover={{ 
+                scale: 1.1,
+                transition: { duration: 0.2 }
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {/* Background glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              {/* Icon container */}
+              <motion.div 
+                className="relative flex items-center gap-2 text-white"
+                whileHover={{ y: -1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.span 
+                  className="text-lg"
+                  whileHover={{ 
+                    scale: 1.2,
+                    rotate: 360 
+                  }}
+                  transition={{ 
+                    duration: 0.5,
+                    type: "spring"
+                  }}
+                >
+                  {social.icon}
+                </motion.span>
+                <span className="text-sm font-medium tracking-wide">
+                  {social.label}
+                </span>
+              </motion.div>
+
+              {/* Animated border */}
+              <motion.div 
+                className="absolute inset-0 rounded-full border-2 border-white/20 opacity-0 group-hover:opacity-100"
+                initial={false}
+                whileHover={{
+                  opacity: 1,
+                  transition: { duration: 0.3 }
+                }}
+              />
+
+              {/* Ripple effect on click */}
+              <motion.div 
+                className="absolute inset-0 rounded-full bg-white/10 scale-0 group-active:scale-100"
+                transition={{ duration: 0.2 }}
+              />
+            </motion.a>
+          ))}
+        </motion.nav>
       </motion.div>
     </section>
   );

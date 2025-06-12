@@ -31,10 +31,40 @@ const stats: Stat[] = [
     description: "Lines of code contributed to open-source and personal projects"
   },
   {
+    title: "Coffees Consumed",
+    value: "2.4K+",
+    icon: "☕",
+    description: "Cups of coffee fueling late-night coding sessions and problem-solving marathons"
+  },
+  {
     title: "Docker Services",
     value: "10+",
     icon: "🐳",
     description: "Self-hosted services and automation (stats via Netdata, no sensitive info shown)"
+  },
+  {
+    title: "Certifications",
+    value: "5+",
+    icon: "🏆",
+    description: "Professional certifications in cloud, AI/ML, and software development"
+  },
+  {
+    title: "Technologies",
+    value: "30+",
+    icon: "⚡",
+    description: "Different technologies and frameworks used in production"
+  },
+  {
+    title: "Data Science Projects",
+    value: "12+",
+    icon: "📊",
+    description: "End-to-end ML, NLP, and analytics projects deployed to production"
+  },
+  {
+    title: "Bugs Fixed",
+    value: "500+",
+    icon: "🐛",
+    description: "Issues debugged and resolved across personal and professional projects"
   }
 ];
 
@@ -105,55 +135,56 @@ export default function ImpactStats() {
 
   return (
     <section className="relative py-16 px-2 sm:px-6 w-full overflow-hidden">
-      <svg
-        ref={svgRef}
-        className="absolute left-1/2 top-0 -translate-x-1/2 -z-10 w-[700px] h-[300px] opacity-15 pointer-events-none"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="impact-gradient-dark" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#a21caf" />
-            <stop offset="100%" stopColor="#f472b6" />
-          </linearGradient>
-          <linearGradient id="impact-gradient-light" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#fbbf24" />
-            <stop offset="100%" stopColor="#f472b6" />
-          </linearGradient>
-        </defs>
-        <path
-          ref={pathRef}
-          d={morphPaths[0]}
-          fill={`url(#impact-gradient-${theme === 'dark' ? 'dark' : 'light'})`}
-        />
-      </svg>
-
-      <div className="w-full bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-4 sm:p-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          🚀 Impact Stats
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.2 }}
-              whileHover={{ scale: 1.05 }}
-              className="transform transition-all duration-300 bg-white/10 dark:bg-slate-700/40 rounded-2xl p-6 flex flex-col items-center fade-in tilt glow-hover"
-              aria-label={stat.title}
-            >
-              <span className="text-4xl mb-2">{stat.icon}</span>
-              <h3 className="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">
-                {stat.value}
-              </h3>
-              <span className="text-gray-700 dark:text-gray-300 text-center">
-                {stat.title}
-              </span>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
-                {stat.description}
-              </p>
-            </motion.div>
-          ))}
+      <div className="w-full relative">
+        <svg
+          ref={svgRef}
+          className="absolute left-1/2 top-0 -translate-x-1/2 -z-10 w-[700px] h-[300px] opacity-15 pointer-events-none rounded-2xl"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="impact-gradient-dark" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#a21caf" />
+              <stop offset="100%" stopColor="#f472b6" />
+            </linearGradient>
+            <linearGradient id="impact-gradient-light" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#fbbf24" />
+              <stop offset="100%" stopColor="#f472b6" />
+            </linearGradient>
+          </defs>
+          <path
+            ref={pathRef}
+            d={morphPaths[0]}
+            fill={`url(#impact-gradient-${theme === 'dark' ? 'dark' : 'light'})`}
+          />
+        </svg>
+        <div className="relative w-full bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-4 sm:p-8">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            🚀 Impact Stats
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.2 }}
+                whileHover={{ scale: 1.05, transition: { duration: 0.15, delay: 0 } }}
+                className="transform transition-all duration-300 bg-white dark:bg-slate-700 rounded-2xl p-6 flex flex-col items-center fade-in tilt glow-hover border border-gray-200 dark:border-slate-700"
+                aria-label={stat.title}
+              >
+                <span className="text-4xl mb-2">{stat.icon}</span>
+                <h3 className="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">
+                  {stat.value}
+                </h3>
+                <span className="text-gray-700 dark:text-gray-300 text-center">
+                  {stat.title}
+                </span>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
+                  {stat.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

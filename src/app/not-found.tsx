@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FaHome, FaTachometerAlt, FaRobot } from 'react-icons/fa';
+import { DynamicIcon } from '@/lib/icons';
 
 export default function NotFound() {
   return (
@@ -15,17 +15,17 @@ export default function NotFound() {
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <Link href="/">
           <span className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-            <FaHome /> Home
+            <DynamicIcon name="home" /> Home
           </span>
         </Link>
         <Link href="/#dashboard">
           <span className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition">
-            <FaTachometerAlt /> Dashboard
+            <DynamicIcon name="tachometer-alt" /> Dashboard
           </span>
         </Link>
         <Link href="/#ai-news">
           <span className="inline-flex items-center gap-2 px-5 py-3 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 transition">
-            <FaRobot /> AI News
+            <DynamicIcon name="robot" /> AI News
           </span>
         </Link>
       </div>

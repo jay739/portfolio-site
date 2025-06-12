@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaAws, FaChartBar, FaCogs, FaDatabase, FaDocker, FaGithub, FaHtml5, FaJava, FaJs, FaLinux, FaNodeJs, FaPython, FaReact, FaRegFileCode, FaRegQuestionCircle, FaRobot, FaServer } from 'react-icons/fa';
-import { SiAstro, SiDjango, SiFastapi, SiHomeassistant, SiKubernetes, SiLangchain, SiMongodb, SiMysql, SiNextdotjs, SiOllama, SiPandas, SiPostgresql, SiPytorch, SiQbittorrent, SiScikitlearn, SiStreamlit, SiTailwindcss, SiTensorflow, SiTypescript, SiUptimekuma, SiVault, SiWatchtower } from 'react-icons/si';
+import { DynamicIcon } from '@/lib/icons';
 import type { Project } from '@/types/project';
+import { GitHubIcon, ExternalLinkIcon } from '@/components/icons/icons';
 
 interface ProjectsProps {
   projects: Project[];
@@ -32,86 +32,87 @@ const itemVariants = {
 };
 
 const techIconMap: Record<string, { icon: JSX.Element, url: string, label: string }> = {
-  'Python': { icon: <FaPython />, url: 'https://www.python.org/', label: 'Python' },
-  'JavaScript': { icon: <FaJs />, url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript', label: 'JavaScript' },
-  'TypeScript': { icon: <SiTypescript />, url: 'https://www.typescriptlang.org/', label: 'TypeScript' },
-  'React': { icon: <FaReact />, url: 'https://react.dev/', label: 'React' },
-  'Next.js': { icon: <SiNextdotjs />, url: 'https://nextjs.org/', label: 'Next.js' },
-  'Astro': { icon: <SiAstro />, url: 'https://astro.build/', label: 'Astro' },
-  'Node.js': { icon: <FaNodeJs />, url: 'https://nodejs.org/', label: 'Node.js' },
-  'Docker': { icon: <FaDocker />, url: 'https://www.docker.com/', label: 'Docker' },
-  'Kubernetes': { icon: <SiKubernetes />, url: 'https://kubernetes.io/', label: 'Kubernetes' },
-  'Linux': { icon: <FaLinux />, url: 'https://www.linux.org/', label: 'Linux' },
-  'CI/CD': { icon: <FaCogs />, url: 'https://en.wikipedia.org/wiki/CI/CD', label: 'CI/CD' },
-  'Portainer': { icon: <FaServer />, url: 'https://www.portainer.io/', label: 'Portainer' },
-  'Nginx': { icon: <FaServer />, url: 'https://nginx.org', label: 'Nginx' },
-  'Uptime Kuma': { icon: <SiUptimekuma />, url: 'https://github.com/louislam/uptime-kuma', label: 'Uptime Kuma' },
-  'TensorFlow': { icon: <SiTensorflow />, url: 'https://www.tensorflow.org/', label: 'TensorFlow' },
-  'PyTorch': { icon: <SiPytorch />, url: 'https://pytorch.org/', label: 'PyTorch' },
-  'NLP': { icon: <FaRobot />, url: 'https://en.wikipedia.org/wiki/Natural_language_processing', label: 'NLP' },
-  'Computer Vision': { icon: <FaRegFileCode />, url: 'https://en.wikipedia.org/wiki/Computer_vision', label: 'Computer Vision' },
-  'MLOps': { icon: <FaCogs />, url: 'https://en.wikipedia.org/wiki/MLOps', label: 'MLOps' },
-  'Pandas': { icon: <SiPandas />, url: 'https://pandas.pydata.org/', label: 'Pandas' },
-  'Scikit-learn': { icon: <SiScikitlearn />, url: 'https://scikit-learn.org/', label: 'Scikit-learn' },
-  'LangChain': { icon: <SiLangchain />, url: 'https://www.langchain.com/', label: 'LangChain' },
-  'Ollama': { icon: <SiOllama />, url: 'https://ollama.com/', label: 'Ollama' },
-  'AWS': { icon: <FaAws />, url: 'https://aws.amazon.com/', label: 'AWS' },
-  'GCP': { icon: <FaAws />, url: 'https://cloud.google.com/', label: 'GCP' },
-  'GitHub Actions': { icon: <FaGithub />, url: 'https://github.com/features/actions', label: 'GitHub Actions' },
-  'Watchtower': { icon: <SiWatchtower />, url: 'https://containrrr.dev/watchtower/', label: 'Watchtower' },
-  'Vaultwarden': { icon: <SiVault />, url: 'https://vaultwarden.dev/', label: 'Vaultwarden' },
-  'HTML/CSS': { icon: <FaHtml5 />, url: 'https://developer.mozilla.org/en-US/docs/Web/HTML', label: 'HTML/CSS' },
-  'Tailwind CSS': { icon: <SiTailwindcss />, url: 'https://tailwindcss.com/', label: 'Tailwind CSS' },
-  'Tkinter': { icon: <FaPython />, url: 'https://wiki.python.org/moin/TkInter', label: 'Tkinter' },
-  'Django': { icon: <SiDjango />, url: 'https://www.djangoproject.com/', label: 'Django' },
-  'FastAPI': { icon: <SiFastapi />, url: 'https://fastapi.tiangolo.com/', label: 'FastAPI' },
-  'REST APIs': { icon: <FaRegFileCode />, url: 'https://restfulapi.net/', label: 'REST APIs' },
-  'Express': { icon: <FaNodeJs />, url: 'https://expressjs.com/', label: 'Express' },
-  'Java': { icon: <FaJava />, url: 'https://www.java.com/', label: 'Java' },
-  'Go': { icon: <FaRegFileCode />, url: 'https://go.dev/', label: 'Go' },
-  'Bash': { icon: <FaLinux />, url: 'https://www.gnu.org/software/bash/', label: 'Bash' },
-  'SQL': { icon: <FaDatabase />, url: 'https://en.wikipedia.org/wiki/SQL', label: 'SQL' },
-  'MySQL': { icon: <SiMysql />, url: 'https://www.mysql.com/', label: 'MySQL' },
-  'PostgreSQL': { icon: <SiPostgresql />, url: 'https://www.postgresql.org/', label: 'PostgreSQL' },
-  'MongoDB': { icon: <SiMongodb />, url: 'https://www.mongodb.com/', label: 'MongoDB' },
-  'Azure': { icon: <FaAws />, url: 'https://azure.microsoft.com', label: 'Azure' },
-  'Power BI': { icon: <FaChartBar />, url: 'https://powerbi.microsoft.com/', label: 'Power BI' },
-  'Streamlit': { icon: <SiStreamlit />, url: 'https://streamlit.io/', label: 'Streamlit' },
-  'XGBoost': { icon: <FaChartBar />, url: 'https://xgboost.readthedocs.io', label: 'XGBoost' },
-  'Home Assistant': { icon: <SiHomeassistant />, url: 'https://www.home-assistant.io/', label: 'Home Assistant' },
-  'qBittorrent': { icon: <SiQbittorrent />, url: 'https://www.qbittorrent.org/', label: 'qBittorrent' },
+  'Python': { icon: <DynamicIcon name="python" />, url: 'https://www.python.org/', label: 'Python' },
+  'JavaScript': { icon: <DynamicIcon name="javascript" />, url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript', label: 'JavaScript' },
+  'TypeScript': { icon: <DynamicIcon name="typescript" />, url: 'https://www.typescriptlang.org/', label: 'TypeScript' },
+  'React': { icon: <DynamicIcon name="react" />, url: 'https://react.dev/', label: 'React' },
+  'Next.js': { icon: <DynamicIcon name="next.js" />, url: 'https://nextjs.org/', label: 'Next.js' },
+  'Astro': { icon: <DynamicIcon name="astro" />, url: 'https://astro.build/', label: 'Astro' },
+  'Node.js': { icon: <DynamicIcon name="node.js" />, url: 'https://nodejs.org/', label: 'Node.js' },
+  'Docker': { icon: <DynamicIcon name="docker" />, url: 'https://www.docker.com/', label: 'Docker' },
+  'Kubernetes': { icon: <DynamicIcon name="kubernetes" />, url: 'https://kubernetes.io/', label: 'Kubernetes' },
+  'Linux': { icon: <DynamicIcon name="linux" />, url: 'https://www.linux.org/', label: 'Linux' },
+  'CI/CD': { icon: <DynamicIcon name="ci/cd" />, url: 'https://en.wikipedia.org/wiki/CI/CD', label: 'CI/CD' },
+  'Portainer': { icon: <DynamicIcon name="portainer" />, url: 'https://www.portainer.io/', label: 'Portainer' },
+  'Nginx': { icon: <DynamicIcon name="nginx" />, url: 'https://nginx.org', label: 'Nginx' },
+  'Uptime Kuma': { icon: <DynamicIcon name="uptime kuma" />, url: 'https://github.com/louislam/uptime-kuma', label: 'Uptime Kuma' },
+  'TensorFlow': { icon: <DynamicIcon name="tensorflow" />, url: 'https://www.tensorflow.org/', label: 'TensorFlow' },
+  'PyTorch': { icon: <DynamicIcon name="pytorch" />, url: 'https://pytorch.org/', label: 'PyTorch' },
+  'NLP': { icon: <DynamicIcon name="nlp" />, url: 'https://en.wikipedia.org/wiki/Natural_language_processing', label: 'NLP' },
+  'Computer Vision': { icon: <DynamicIcon name="computer vision" />, url: 'https://en.wikipedia.org/wiki/Computer_vision', label: 'Computer Vision' },
+  'MLOps': { icon: <DynamicIcon name="mlops" />, url: 'https://en.wikipedia.org/wiki/MLOps', label: 'MLOps' },
+  'Pandas': { icon: <DynamicIcon name="pandas" />, url: 'https://pandas.pydata.org/', label: 'Pandas' },
+  'Scikit-learn': { icon: <DynamicIcon name="scikit-learn" />, url: 'https://scikit-learn.org/', label: 'Scikit-learn' },
+  'LangChain': { icon: <DynamicIcon name="langchain" />, url: 'https://www.langchain.com/', label: 'LangChain' },
+  'Ollama': { icon: <DynamicIcon name="ollama" />, url: 'https://ollama.com/', label: 'Ollama' },
+  'AWS': { icon: <DynamicIcon name="aws" />, url: 'https://aws.amazon.com/', label: 'AWS' },
+  'GCP': { icon: <DynamicIcon name="gcp" />, url: 'https://cloud.google.com/', label: 'GCP' },
+  'GitHub Actions': { icon: <DynamicIcon name="github actions" />, url: 'https://github.com/features/actions', label: 'GitHub Actions' },
+  'Watchtower': { icon: <DynamicIcon name="watchtower" />, url: 'https://containrrr.dev/watchtower/', label: 'Watchtower' },
+  'Vaultwarden': { icon: <DynamicIcon name="vaultwarden" />, url: 'https://vaultwarden.dev/', label: 'Vaultwarden' },
+  'HTML/CSS': { icon: <DynamicIcon name="html/css" />, url: 'https://developer.mozilla.org/en-US/docs/Web/HTML', label: 'HTML/CSS' },
+  'Tailwind CSS': { icon: <DynamicIcon name="tailwind css" />, url: 'https://tailwindcss.com/', label: 'Tailwind CSS' },
+  'Tkinter': { icon: <DynamicIcon name="tkinter" />, url: 'https://wiki.python.org/moin/TkInter', label: 'Tkinter' },
+  'Django': { icon: <DynamicIcon name="django" />, url: 'https://www.djangoproject.com/', label: 'Django' },
+  'FastAPI': { icon: <DynamicIcon name="fastapi" />, url: 'https://fastapi.tiangolo.com/', label: 'FastAPI' },
+  'REST APIs': { icon: <DynamicIcon name="rest apis" />, url: 'https://restfulapi.net/', label: 'REST APIs' },
+  'Express': { icon: <DynamicIcon name="express" />, url: 'https://expressjs.com/', label: 'Express' },
+  'Java': { icon: <DynamicIcon name="java" />, url: 'https://www.java.com/', label: 'Java' },
+  'Go': { icon: <DynamicIcon name="go" />, url: 'https://go.dev/', label: 'Go' },
+  'Bash': { icon: <DynamicIcon name="bash" />, url: 'https://www.gnu.org/software/bash/', label: 'Bash' },
+  'SQL': { icon: <DynamicIcon name="sql" />, url: 'https://en.wikipedia.org/wiki/SQL', label: 'SQL' },
+  'MySQL': { icon: <DynamicIcon name="mysql" />, url: 'https://www.mysql.com/', label: 'MySQL' },
+  'PostgreSQL': { icon: <DynamicIcon name="postgresql" />, url: 'https://www.postgresql.org/', label: 'PostgreSQL' },
+  'MongoDB': { icon: <DynamicIcon name="mongodb" />, url: 'https://www.mongodb.com/', label: 'MongoDB' },
+  'Azure': { icon: <DynamicIcon name="azure" />, url: 'https://azure.microsoft.com', label: 'Azure' },
+  'Power BI': { icon: <DynamicIcon name="power bi" />, url: 'https://powerbi.microsoft.com/', label: 'Power BI' },
+  'Streamlit': { icon: <DynamicIcon name="streamlit" />, url: 'https://streamlit.io/', label: 'Streamlit' },
+  'XGBoost': { icon: <DynamicIcon name="xgboost" />, url: 'https://xgboost.readthedocs.io', label: 'XGBoost' },
+  'Home Assistant': { icon: <DynamicIcon name="home assistant" />, url: 'https://www.home-assistant.io/', label: 'Home Assistant' },
+  'qBittorrent': { icon: <DynamicIcon name="qbittorrent" />, url: 'https://www.qbittorrent.org/', label: 'qBittorrent' }
 };
 
 export default function Projects({ projects, className = '' }: ProjectsProps) {
   return (
-    <section className={`relative py-16 px-6 bg-background overflow-hidden ${className}`}>
+    <section className={`relative py-16 px-2 sm:px-6 w-full overflow-hidden ${className}`}>
       {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-background to-background" />
       </div>
 
-      <div className="container mx-auto relative">
-        <div className="text-center mb-12">
+      <div className="w-full bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-4 sm:p-8">
+        <div className="flex items-center gap-2 mb-8">
+          <span className="text-2xl">💼</span>
           <motion.h2 
-            className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+            className="text-3xl font-bold text-blue-600 dark:text-blue-400"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             Projects
           </motion.h2>
-          <motion.p 
-            className="text-muted-foreground max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            My recent work and personal projects
-          </motion.p>
         </div>
+        <motion.p 
+          className="text-muted-foreground max-w-2xl mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          My recent work and personal projects
+        </motion.p>
 
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -125,36 +126,74 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.2 }}
-                whileHover={{ scale: 1.03 }}
-                className="bg-card rounded-xl shadow-md p-6 flex flex-col justify-between border border-gray-200 dark:border-slate-700 h-full cursor-pointer"
-                onClick={() => link && window.open(link, '_blank', 'noopener noreferrer')}
+                whileHover={{ scale: 1.05, transition: { duration: 0.15, delay: 0 } }}
+                whileTap={{ scale: 0.98 }}
+                className="group bg-white dark:bg-slate-700 rounded-2xl p-6 flex flex-col justify-between border border-gray-200 dark:border-slate-700 h-full relative overflow-hidden fade-in tilt glow-hover"
                 style={{ textDecoration: 'none' }}
               >
                 <div>
-                  <h3 className="text-lg font-bold text-blue-700 dark:text-blue-400 mb-2">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900 dark:text-white group-hover:text-primary transition-colors">
                     {project.title}
                   </h3>
-                  <p className="text-gray-800 dark:text-gray-200 mb-4">
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-4">
                     {project.description}
                   </p>
-                  <div className="flex flex-wrap mb-2">
-                    {project.tags?.map((tag) => {
-                      const iconData = techIconMap[tag] || { icon: <FaRegQuestionCircle />, url: '#', label: tag };
-                      return (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {project.tags.map((tag) => {
+                      const techInfo = techIconMap[tag];
+                      return techInfo ? (
                         <a
                           key={tag}
-                          href={iconData.url}
+                          href={techInfo.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          title={iconData.label}
-                          className="project-tag flex items-center gap-1 hover:text-blue-500 transition-colors"
-                          style={{ textDecoration: 'none' }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-3 py-1 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-medium shadow hover:bg-blue-700 transition-all hover:scale-110 flex items-center gap-1"
+                          title={`Learn more about ${techInfo.label}`}
                         >
-                          {iconData.icon}
+                          {techInfo.icon}
                           <span>{tag}</span>
                         </a>
+                      ) : (
+                        <span
+                          key={tag}
+                          className="px-3 py-1 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-medium shadow"
+                        >
+                          {tag}
+                        </span>
                       );
                     })}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200 dark:border-slate-700">
+                  <div className="flex items-center space-x-4">
+                    {project.github && (
+                      <a
+                        href={project.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                        aria-label={`View ${project.title} source code on GitHub`}
+                      >
+                        <GitHubIcon className="h-5 w-5" />
+                      </a>
+                    )}
+                    {project.demo && (
+                      <a
+                        href={project.demo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                        aria-label={`View ${project.title} live demo`}
+                      >
+                        <ExternalLinkIcon className="h-5 w-5" />
+                      </a>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {project.year}
                   </div>
                 </div>
               </motion.div>

@@ -59,6 +59,19 @@ const timelineItems: TimelineItem[] = [
       'Maintained data quality and integrity'
     ]
   },
+  {
+    title: 'Lead Data Scientist',
+    subtitle: 'Freelance / Open Source',
+    date: '2023 - Present',
+    icon: '📈',
+    description: 'Designed and deployed NLP and computer vision models for real-world applications. Led data science teams and contributed to open-source ML projects.',
+    details: [
+      'Built and deployed deep learning models for text and image data',
+      'Mentored junior data scientists and engineers',
+      'Published research and presented at AI/ML conferences',
+      'Contributed to open-source data science libraries'
+    ]
+  },
 ];
 
 export default function Timeline({ items }: TimelineProps) {
@@ -128,82 +141,84 @@ export default function Timeline({ items }: TimelineProps) {
 
   return (
     <section className="relative py-16 px-2 sm:px-6 w-full overflow-hidden">
-      <svg
-        ref={svgRef}
-        className="absolute left-1/2 top-0 -translate-x-1/2 -z-10 w-[700px] h-[300px] opacity-15 pointer-events-none"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="timeline-gradient-dark" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#06b6d4" />
-            <stop offset="100%" stopColor="#22d3ee" />
-          </linearGradient>
-          <linearGradient id="timeline-gradient-light" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#38bdf8" />
-            <stop offset="100%" stopColor="#a7f3d0" />
-          </linearGradient>
-        </defs>
-        <path
-          ref={pathRef}
-          d={morphPaths[0]}
-          fill={`url(#timeline-gradient-${theme === 'dark' ? 'dark' : 'light'})`}
-        />
-      </svg>
-
-      <div className="w-full bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-4 sm:p-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-          🕒 Timeline
-        </h2>
-        <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-blue-200 dark:bg-blue-800" />
-          
-          <div className="space-y-12">
-            {items.map((item, index) => (
-              <motion.div
-                key={`${item.date}-${item.title}`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                className="relative pl-16"
-              >
-                {/* Timeline dot */}
-                <div className="absolute left-6 top-2 w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 border-4 border-white dark:border-slate-800" />
-                
-                <div className="transform hover:scale-[1.02] transition-all duration-300 bg-white/10 dark:bg-slate-700/40 rounded-2xl p-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{item.icon || defaultIcon}</span>
-                    <h3 className="text-xl font-semibold text-blue-600 dark:text-blue-400">
-                      {item.title}
-                    </h3>
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    {item.date}
-                    {item.subtitle && (
-                      <span className="ml-2 text-gray-500 dark:text-gray-500">
-                        — {item.subtitle}
-                      </span>
+      <div className="w-full relative">
+        <svg
+          ref={svgRef}
+          className="absolute left-1/2 top-0 -translate-x-1/2 -z-10 w-[700px] h-[300px] opacity-15 pointer-events-none rounded-2xl"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="timeline-gradient-dark" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#22d3ee" />
+            </linearGradient>
+            <linearGradient id="timeline-gradient-light" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#38bdf8" />
+              <stop offset="100%" stopColor="#a7f3d0" />
+            </linearGradient>
+          </defs>
+          <path
+            ref={pathRef}
+            d={morphPaths[0]}
+            fill={`url(#timeline-gradient-${theme === 'dark' ? 'dark' : 'light'})`}
+          />
+        </svg>
+        <div className="relative w-full bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-4 sm:p-8">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+            🕒 Timeline
+          </h2>
+          <div className="relative">
+            {/* Vertical line */}
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-blue-200 dark:bg-blue-800" />
+            
+            <div className="space-y-12">
+              {items.map((item, index) => (
+                <motion.div
+                  key={`${item.date}-${item.title}`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.2 }}
+                  whileHover={{ scale: 1.05, transition: { duration: 0.15, delay: 0 } }}
+                  className="relative pl-16"
+                >
+                  {/* Timeline dot */}
+                  <div className="absolute left-6 top-2 w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 border-4 border-white dark:border-slate-800" />
+                  
+                  <div className="transform hover:scale-[1.02] transition-all duration-300 bg-white dark:bg-slate-700 rounded-2xl p-6 border border-gray-200 dark:border-slate-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{item.icon || defaultIcon}</span>
+                      <h3 className="text-xl font-semibold text-blue-600 dark:text-blue-400">
+                        {item.title}
+                      </h3>
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {item.date}
+                      {item.subtitle && (
+                        <span className="ml-2 text-gray-500 dark:text-gray-500">
+                          — {item.subtitle}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-gray-700 dark:text-gray-300 mb-4">
+                      {item.description}
+                    </p>
+                    {item.details && (
+                      <ul className="space-y-2">
+                        {item.details.map((detail, i) => (
+                          <li
+                            key={i}
+                            className="flex items-start text-gray-600 dark:text-gray-400 text-sm"
+                          >
+                            <span className="mr-2 mt-1">•</span>
+                            {detail}
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 mb-4">
-                    {item.description}
-                  </p>
-                  {item.details && (
-                    <ul className="space-y-2">
-                      {item.details.map((detail, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start text-gray-600 dark:text-gray-400 text-sm"
-                        >
-                          <span className="mr-2 mt-1">•</span>
-                          {detail}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

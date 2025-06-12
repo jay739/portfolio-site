@@ -17,10 +17,10 @@ export default function Footer() {
             © {year ?? ''} Jayakrishna Konda. All rights reserved.
           </p>
           <a 
-            href="mailto:jayakrishnakonda@jay739.dev" 
+            href="mailto:contact@jay739.dev" 
             className="mt-2 text-accent hover:text-accent-foreground transition-colors"
           >
-            jayakrishnakonda@jay739.dev
+            contact@jay739.dev
           </a>
           <div className="flex gap-4 mt-4">
             <a href="https://github.com/jay739" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-accent-foreground text-xl">
@@ -28,9 +28,6 @@ export default function Footer() {
             </a>
             <a href="https://www.linkedin.com/in/jaya-krishna-konda/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-accent-foreground text-xl">
               <DynamicIcon name="linkedin" />
-            </a>
-            <a href="https://x.com/jay739" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="hover:text-accent-foreground text-xl">
-              <DynamicIcon name="twitter" />
             </a>
           </div>
         </div>

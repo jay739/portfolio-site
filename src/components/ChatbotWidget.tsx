@@ -39,17 +39,56 @@ export default function ChatbotWidget() {
     setMessages((msgs) => [...msgs, { sender: 'user', text: input }]);
     setLoading(true);
     setInput('');
+    const botMsg: Message = { sender: 'bot', text: '' };
+    setMessages((msgs) => [...msgs, botMsg]);
     try {
       const res = await fetch('/api/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: input, stream: true }),
       });
-      if (!res.ok) throw new Error('Chatbot backend unreachable');
-      const data = await res.json();
-      setMessages((msgs) => [...msgs, { sender: 'bot', text: data.reply || 'Sorry, I could not find an answer.' }]);
+      if (!res.ok || !res.body) throw new Error('Chatbot backend unreachable');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let done = false;
+      let fullText = '';
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          // Ollama streams NDJSON (one JSON per line)
+          const chunk = decoder.decode(value, { stream: true });
+          // Split in case multiple JSON objects in one chunk
+          for (const line of chunk.split('\n')) {
+            if (!line.trim()) continue;
+            try {
+              const json = JSON.parse(line);
+              if (json.response) {
+                fullText += json.response;
+                setMessages((msgs) => {
+                  // Update the last bot message
+                  const updated = [...msgs];
+                  updated[updated.length - 1] = { sender: 'bot', text: fullText };
+                  return updated;
+                });
+              }
+            } catch {}
+          }
+        }
+      }
+      if (!fullText) {
+        setMessages((msgs) => {
+          const updated = [...msgs];
+          updated[updated.length - 1] = { sender: 'bot', text: 'Sorry, I could not find an answer.' };
+          return updated;
+        });
+      }
     } catch (e) {
-      setMessages((msgs) => [...msgs, { sender: 'bot', text: 'Sorry, there was an error or the backend is unreachable.' }]);
+      setMessages((msgs) => {
+        const updated = [...msgs];
+        updated[updated.length - 1] = { sender: 'bot', text: 'Sorry, there was an error or the backend is unreachable.' };
+        return updated;
+      });
     } finally {
       setLoading(false);
     }

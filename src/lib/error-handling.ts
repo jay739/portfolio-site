@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 export class APIError extends Error {
   constructor(
     message: string,
-    public statusCode: number,
-    public isPublic: boolean = false
+    public status: number = 500,
+    public code: string = 'INTERNAL_SERVER_ERROR'
   ) {
     super(message);
     this.name = 'APIError';
@@ -15,11 +15,11 @@ export function handleAPIError(error: unknown) {
   if (error instanceof APIError) {
     return NextResponse.json(
       { 
-        error: error.isPublic ? error.message : 'An error occurred',
-        code: error.statusCode
+        error: error.code,
+        code: error.code
       },
       { 
-        status: error.statusCode,
+        status: error.status,
         headers: {
           'Content-Type': 'application/json',
         }
@@ -33,7 +33,7 @@ export function handleAPIError(error: unknown) {
   return NextResponse.json(
     { 
       error: 'An internal error occurred',
-      code: 500
+      code: 'INTERNAL_SERVER_ERROR'
     },
     { 
       status: 500,
@@ -46,21 +46,10 @@ export function handleAPIError(error: unknown) {
 
 // Common error types
 export const Errors = {
-  BadRequest: (message: string, isPublic = true) => 
-    new APIError(message, 400, isPublic),
-  
-  Unauthorized: (message = 'Unauthorized', isPublic = true) => 
-    new APIError(message, 401, isPublic),
-  
-  Forbidden: (message = 'Forbidden', isPublic = true) => 
-    new APIError(message, 403, isPublic),
-  
-  NotFound: (message = 'Not found', isPublic = true) => 
-    new APIError(message, 404, isPublic),
-  
-  TooManyRequests: (message = 'Too many requests', isPublic = true) => 
-    new APIError(message, 429, isPublic),
-  
-  Internal: (message = 'Internal server error', isPublic = false) => 
-    new APIError(message, 500, isPublic),
+  BadRequest: (message = 'Bad Request') => new APIError(message, 400, 'BAD_REQUEST'),
+  Unauthorized: (message = 'Unauthorized') => new APIError(message, 401, 'UNAUTHORIZED'),
+  Forbidden: (message = 'Forbidden') => new APIError(message, 403, 'FORBIDDEN'),
+  NotFound: (message = 'Not Found') => new APIError(message, 404, 'NOT_FOUND'),
+  TooManyRequests: (message = 'Too Many Requests') => new APIError(message, 429, 'TOO_MANY_REQUESTS'),
+  Internal: (message = 'Internal Server Error') => new APIError(message, 500, 'INTERNAL_SERVER_ERROR'),
 }; 

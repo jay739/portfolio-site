@@ -7,14 +7,14 @@ import { DynamicIcon, getIconData } from '@/lib/icons';
 
 interface SkillsCardProps {
   title: string;
-  skills: string[];
+  skills: Array<{ name: string; url: string }>;
   delay?: number;
 }
 
 export function SkillsCard({ title, skills, delay = 0 }: SkillsCardProps) {
   const [mounted, setMounted] = useState(false);
   const { theme } = useTheme();
-  const [displayedSkills, setDisplayedSkills] = useState<string[]>([]);
+  const [displayedSkills, setDisplayedSkills] = useState<Array<{ name: string; url: string }>>([]);
   const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -32,11 +32,11 @@ export function SkillsCard({ title, skills, delay = 0 }: SkillsCardProps) {
       const currentSkill = skills[currentSkillIndex];
       let currentText = '';
       
-      for (let i = 0; i <= currentSkill.length; i++) {
-        currentText = currentSkill.slice(0, i);
+      for (let i = 0; i <= currentSkill.name.length; i++) {
+        currentText = currentSkill.name.slice(0, i);
         setDisplayedSkills(prev => {
           const newSkills = [...prev];
-          newSkills[currentSkillIndex] = currentText;
+          newSkills[currentSkillIndex] = { name: currentText, url: currentSkill.url };
           return newSkills;
         });
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -57,39 +57,35 @@ export function SkillsCard({ title, skills, delay = 0 }: SkillsCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: delay / 1000 }}
-      className="bg-card rounded-lg p-6 border border-border hover:border-accent/50 transition-colors"
+      className="bg-white dark:bg-slate-700 rounded-lg p-6 border border-gray-200 dark:border-slate-700 hover:border-blue-600/50 transition-colors"
     >
-      <h3 className="text-xl font-bold text-primary mb-4">{title}</h3>
+      <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-4">{title}</h3>
       <div className="flex flex-wrap gap-2">
         {displayedSkills.map((skill, index) => {
-          const iconData = getIconData(skill);
+          const iconData = getIconData(skill.name);
           return (
-            <motion.span
-              key={skill}
+            <motion.div
+              key={skill.name}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
-              className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 ${
-                index === currentSkillIndex && isTyping
-                  ? 'bg-accent/20 text-accent-foreground'
-                  : 'bg-muted text-muted-foreground'
-              }`}
             >
               <a 
-                href={iconData.url} 
+                href={skill.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                title={skill}
-                aria-label={skill}
-                className="text-lg align-middle hover:text-blue-500 transition-colors"
+                title={skill.name}
+                aria-label={skill.name}
+                onClick={(e) => e.stopPropagation()}
+                className="px-3 py-1 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-medium shadow hover:bg-blue-700 transition-all hover:scale-110 flex items-center gap-1"
               >
-                <DynamicIcon name={skill} />
+                <DynamicIcon name={skill.name} />
+                <span>{skill.name}</span>
+                {index === currentSkillIndex && isTyping && (
+                  <span className="animate-pulse text-white">|</span>
+                )}
               </a>
-              <span>{skill}</span>
-              {index === currentSkillIndex && isTyping && (
-                <span className="animate-pulse">|</span>
-              )}
-            </motion.span>
+            </motion.div>
           );
         })}
       </div>
