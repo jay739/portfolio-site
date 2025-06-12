@@ -1,78 +1,83 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    turbo: {
+      enabled: true
+    }
+  },
+  images: {
+    domains: [
+      'avatars.githubusercontent.com',
+      'repository-images.githubusercontent.com',
+      'github.com',
+      'raw.githubusercontent.com'
+    ],
+  },
   async headers() {
     return [
       {
-        // Apply these headers to all routes
-        source: '/:path*',
+        // Allow CORS for Netdata API routes
+        source: '/api/netdata/:path*',
         headers: [
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains'
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://metrics.jay739.dev https://www.google-analytics.com; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests;"
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()'
-          },
-          {
-            key: 'Cache-Control',
-            value: 'no-store, max-age=0'
-          }
-        ]
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, X-Auth-User, X-Auth-Pass' },
+        ],
       },
       {
-        // Additional headers for API routes
-        source: '/api/:path*',
+        // Prevent download of PDF files (force inline viewing)
+        source: '/documents/:path*.pdf',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, max-age=0'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          // Rate limiting headers (for demonstration; real values should be set dynamically in API logic)
-          {
-            key: 'X-RateLimit-Limit',
-            value: '1000'
-          },
-          {
-            key: 'X-RateLimit-Remaining',
-            value: '999'
-          },
-          {
-            key: 'X-RateLimit-Reset',
-            value: '3600'
-          }
-        ]
-      }
+          { key: 'Content-Disposition', value: 'inline' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+      {
+        // Prevent download of images (force inline viewing)
+        source: '/images/:path*',
+        headers: [
+          { key: 'Content-Disposition', value: 'inline' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+      {
+        // Prevent download of any files in downloads directory
+        source: '/downloads/:path*',
+        headers: [
+          { key: 'Content-Disposition', value: 'inline' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+      {
+        // General security headers for all pages
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
     ];
   },
-  // Enable React strict mode for better development experience
-  reactStrictMode: true,
-  // Disable server-side source maps in production
-  productionBrowserSourceMaps: false,
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack'],
+    });
+    return config;
+  },
+  transpilePackages: ['lucide-react'],
 };
 
 module.exports = nextConfig; 

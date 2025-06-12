@@ -99,6 +99,9 @@ const config: Config = {
           '50%': { opacity: '0' },
         },
       },
+      cursor: {
+        'custom': 'none',
+      },
     },
   },
   plugins: [
