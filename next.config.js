@@ -1,3 +1,11 @@
+const withMDX = require('@next/mdx')({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -5,6 +13,7 @@ const nextConfig = {
       enabled: true
     }
   },
+  pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   images: {
     domains: [
       'avatars.githubusercontent.com',
@@ -80,4 +89,4 @@ const nextConfig = {
   transpilePackages: ['lucide-react'],
 };
 
-module.exports = nextConfig; 
+module.exports = withMDX(nextConfig); 

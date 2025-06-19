@@ -1,19 +1,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { env } from '@/lib/env';
 
 // Paths that require authentication
 const PROTECTED_PATHS = [
   '/api/netdata',
-  '/api/active-users',
   '/api/visitors'
 ];
 
 // Paths that are always public
 const PUBLIC_PATHS = [
   '/api/auth',
-  '/api/ai-news'
+  '/api/ai-news',
+  '/api/active-users',
+  '/api/contact',
+  '/api/total-visitors'
 ];
 
 export async function middleware(request: NextRequest) {
@@ -43,7 +44,7 @@ export async function middleware(request: NextRequest) {
       // Verify authentication
       const token = await getToken({ 
         req: request,
-        secret: env.NEXTAUTH_SECRET
+        secret: process.env.NEXTAUTH_SECRET
       });
       
       if (!token) {

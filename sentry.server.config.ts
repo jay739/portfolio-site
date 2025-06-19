@@ -1,8 +1,12 @@
 import * as Sentry from '@sentry/nextjs';
-import { env } from '@/lib/env';
 
-Sentry.init({
-  dsn: env.SENTRY_DSN,
-  tracesSampleRate: 1.0,
-  debug: env.NODE_ENV === 'development',
-}); 
+// Only initialize Sentry if DSN is available
+const sentryDsn = process.env.SENTRY_DSN;
+
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    tracesSampleRate: 1.0,
+    debug: process.env.NODE_ENV === 'development',
+  });
+} 

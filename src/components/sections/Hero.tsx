@@ -9,6 +9,7 @@ import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { useClickSound } from '@/lib/hooks/useClickSound';
 import ContactButton from '@/components/ContactButton';
 import { useTypewriter } from '@/lib/effects';
+import Image from 'next/image';
 
 // Dynamically import confetti with no SSR
 const ConfettiButton = dynamic(() => import('./ConfettiButton'), {
@@ -129,7 +130,7 @@ export default function Hero() {
 
   return (
     <section 
-      className="relative w-screen min-h-screen flex flex-col justify-center items-center text-center px-0 overflow-hidden fade-in-up"
+      className="relative w-full min-h-screen flex flex-col justify-center items-center text-center px-0 overflow-hidden fade-in-up"
       role="banner"
       aria-label="Hero section"
       id="welcome"

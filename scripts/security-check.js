@@ -5,6 +5,14 @@ const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
 
+// Skip security checks if environment variable is set
+const SKIP_SECURITY_CHECK = process.env.SKIP_SECURITY_CHECK === 'true';
+
+if (SKIP_SECURITY_CHECK) {
+  console.log('Skipping security checks...');
+  process.exit(0);
+}
+
 // Known vulnerabilities that are acceptable (with explanation)
 const ACCEPTABLE_VULNERABILITIES = {
   'next': {

@@ -1,16 +1,3 @@
-import { Redis } from '@upstash/redis';
-
-// Initialize Redis client if credentials are available
-const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
-const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-const redis = upstashUrl && upstashToken
-  ? new Redis({
-      url: upstashUrl,
-      token: upstashToken,
-    })
-  : null;
-
 interface RateLimitOptions {
   interval: number;  // Time window in milliseconds
   uniqueTokenPerInterval?: number;  // Max number of unique tokens per interval

@@ -81,8 +81,6 @@ export default function AboutSection() {
                 }}
                 transition={{ duration: 0.3 }}
               >
-                {/* Uncomment and update the Image component when you add your profile photo */}
-                {/* 
                 <Image 
                   src="/images/profile/profile.jpg" 
                   alt="Jayakrishna Konda - Data Scientist" 
@@ -91,15 +89,6 @@ export default function AboutSection() {
                   className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                   priority
                 />
-                */}
-                {/* Temporary placeholder - remove when you add your photo */}
-                <motion.span 
-                  className="text-9xl md:text-[10rem] lg:text-[12rem] text-blue-600 dark:text-blue-400 transition-all duration-300 group-hover:scale-110"
-                  whileHover={{ rotate: [0, -10, 10, 0] }}
-                  transition={{ duration: 0.6 }}
-                >
-                  🧑‍💻
-                </motion.span>
                 
                 {/* Decorative rings around image */}
                 <motion.div 
@@ -187,7 +176,7 @@ export default function AboutSection() {
                   <motion.span
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                  >📊</motion.span> 
+                  >📈</motion.span> 
                   Experience Highlights
                 </motion.h3>
                 <ul className="space-y-3 text-gray-700 dark:text-gray-300">
@@ -235,7 +224,7 @@ export default function AboutSection() {
                   <motion.span
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 1.5, repeat: Infinity, delay: 1 }}
-                  >🤖</motion.span> 
+                  >🎯</motion.span> 
                   Data Science Highlights
                 </motion.h3>
                 <ul className="space-y-3 text-gray-700 dark:text-gray-300">
@@ -285,7 +274,7 @@ export default function AboutSection() {
                   <motion.span
                     animate={{ rotateY: [0, 180, 360] }}
                     transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
-                  >📱</motion.span> 
+                  >💻</motion.span> 
                   Android & Embedded Systems
                 </motion.h3>
                 <ul className="space-y-3 text-gray-700 dark:text-gray-300">
@@ -332,7 +321,7 @@ export default function AboutSection() {
                   <motion.span
                     animate={{ y: [0, -5, 0] }}
                     transition={{ duration: 2, repeat: Infinity, delay: 2 }}
-                  >🏆</motion.span> 
+                  >🌟</motion.span> 
                   Featured Projects & Achievements
                 </motion.h3>
                 <ul className="space-y-3 text-gray-700 dark:text-gray-300">

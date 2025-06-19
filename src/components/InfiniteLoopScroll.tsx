@@ -232,7 +232,7 @@ const InfiniteLoopScroll: React.FC = () => {
       >
         <canvas
           ref={topCanvasRef}
-          className="w-full h-24"
+          className="w-full h-12 sm:h-16 md:h-24 lg:h-32"
           style={{
             background: 'transparent',
             mixBlendMode: 'screen'
@@ -250,7 +250,7 @@ const InfiniteLoopScroll: React.FC = () => {
       >
         <canvas
           ref={bottomCanvasRef}
-          className="w-full h-24"
+          className="w-full h-12 sm:h-16 md:h-24 lg:h-32"
           style={{
             background: 'transparent',
             mixBlendMode: 'screen'
@@ -268,7 +268,7 @@ const InfiniteLoopScroll: React.FC = () => {
       >
         <canvas
           ref={leftCanvasRef}
-          className="w-24 h-full"
+          className="h-full w-8 sm:w-12 md:w-24 lg:w-32"
           style={{
             background: 'transparent',
             mixBlendMode: 'screen'
@@ -286,7 +286,7 @@ const InfiniteLoopScroll: React.FC = () => {
       >
         <canvas
           ref={rightCanvasRef}
-          className="w-24 h-full"
+          className="h-full w-8 sm:w-12 md:w-24 lg:w-32"
           style={{
             background: 'transparent',
             mixBlendMode: 'screen'

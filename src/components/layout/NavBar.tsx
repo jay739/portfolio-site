@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,16 +16,16 @@ import {
 } from '@/components/icons/icons';
 
 const sections = [
-  { id: 'welcome', label: 'Welcome' },
-  { id: 'about', label: 'About' },
-  { id: 'impact', label: 'Impact' },
-  { id: 'timeline', label: 'Timeline' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'ai-tools', label: 'AI Tools' },
-  { id: 'home-server', label: 'Home Server' },
-  { id: 'ai-news', label: 'AI News' },
-  { id: 'contact', label: 'Contact' },
+  { id: 'welcome', label: 'Welcome', href: '/#welcome', isAnchor: true },
+  { id: 'about', label: 'About', href: '/#about', isAnchor: true },
+  { id: 'impact', label: 'Impact', href: '/impact', isAnchor: false },
+  { id: 'timeline', label: 'Timeline', href: '/timeline', isAnchor: false },
+  { id: 'skills', label: 'Skills', href: '/skills', isAnchor: false },
+  { id: 'projects', label: 'Projects', href: '/projects', isAnchor: false },
+  { id: 'ai-tools', label: 'AI Tools', href: '/ai-tools', isAnchor: false },
+  { id: 'home-server', label: 'Home Server', href: '/homeserver', isAnchor: false },
+  { id: 'ai-news', label: 'AI News', href: '/ai-news', isAnchor: false },
+  { id: 'contact', label: 'Contact', href: '/contact', isAnchor: false },
 ];
 
 export default function NavBar() {
@@ -34,6 +35,8 @@ export default function NavBar() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { soundEnabled, toggleSound, playClick } = useSoundContext();
   const navRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
@@ -43,8 +46,20 @@ export default function NavBar() {
   useEffect(() => {
     if (!mounted) return;
 
+    // Only track sections that are anchor links (on the same page)
+    const anchorSections = sections.filter(section => section.isAnchor);
+
     const updateActiveSection = () => {
-      const sectionElements = sections.map(({ id }) => {
+      // For non-anchor links, use pathname
+      const nonAnchorSection = sections.find(
+        (section) => !section.isAnchor && section.href === pathname
+      );
+      if (nonAnchorSection) {
+        setActiveSection(nonAnchorSection.id);
+        return;
+      }
+
+      const sectionElements = anchorSections.map(({ id }) => {
         const element = document.getElementById(id);
         if (element) {
           const rect = element.getBoundingClientRect();
@@ -98,7 +113,7 @@ export default function NavBar() {
     };
 
     // IntersectionObserver as backup
-    const sectionEls = sections.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const sectionEls = anchorSections.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     const observer = new IntersectionObserver(
       (entries) => {
         // Only update if no manual scroll is happening
@@ -135,30 +150,40 @@ export default function NavBar() {
       observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [mounted, activeSection]);
+  }, [mounted, activeSection, pathname]);
 
   // Track manual scrolling
   const lastManualScroll = useRef<number>(0);
 
   // Smooth scroll for anchor links
-  const handleNavClick = (id: string) => (e: React.MouseEvent) => {
+  const handleNavClick = (section: typeof sections[0]) => (e: React.MouseEvent) => {
     e.preventDefault();
-    lastManualScroll.current = Date.now();
-    
-    // Play click sound
     playClick();
-    
-    const el = document.getElementById(id);
-    if (el) {
-      // Immediately update active section for instant feedback
-      setActiveSection(id);
-      
-      // Smooth scroll to element
-      el.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start',
-        inline: 'nearest'
-      });
+    if (section.isAnchor) {
+      if (pathname !== '/') {
+        // Navigate to home with hash, then scroll after navigation
+        router.push('/' + section.href);
+        setTimeout(() => {
+          const el = document.getElementById(section.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 500);
+      } else {
+        lastManualScroll.current = Date.now();
+        const el = document.getElementById(section.id);
+        if (el) {
+          setActiveSection(section.id);
+          const navbarHeight = navRef.current?.offsetHeight || 64;
+          const elementTop = el.offsetTop - navbarHeight;
+          window.scrollTo({
+            top: elementTop,
+            behavior: 'smooth'
+          });
+        }
+      }
+    } else {
+      router.push(section.href);
     }
     setIsOpen(false);
   };
@@ -191,14 +216,14 @@ export default function NavBar() {
             {sections.map((section) => (
               <motion.a
                 key={section.id}
-                href={`#${section.id}`}
+                href={section.href}
                 role="menuitem"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 relative overflow-hidden
                   ${activeSection === section.id 
                     ? 'text-white bg-blue-600 shadow-lg' 
                     : 'text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                   }`}
-                onClick={handleNavClick(section.id)}
+                onClick={handleNavClick(section)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20 }}
@@ -218,6 +243,19 @@ export default function NavBar() {
                 </AnimatePresence>
               </motion.a>
             ))}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            >
+              <Link
+                href="/blog"
+                className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+                onClick={() => playClick()}
+              >
+                Blog
+              </Link>
+            </motion.div>
             <button
               onClick={toggleSound}
               aria-label={soundEnabled ? 'Disable sound' : 'Enable sound'}
@@ -261,13 +299,13 @@ export default function NavBar() {
                 {sections.map((section) => (
                   <motion.a
                     key={section.id}
-                    href={`#${section.id}`}
+                    href={section.href}
                     className={`block px-3 py-2 rounded-md text-base font-medium transition-all duration-200 relative
                       ${activeSection === section.id 
                         ? 'text-white bg-blue-600' 
                         : 'text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                       }`}
-                    onClick={handleNavClick(section.id)}
+                    onClick={handleNavClick(section)}
                     whileHover={{ scale: 1.02, x: 4 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 20 }}
@@ -287,6 +325,22 @@ export default function NavBar() {
                     </AnimatePresence>
                   </motion.a>
                 ))}
+                <motion.div
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                >
+                  <Link
+                    href="/blog"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+                    onClick={() => {
+                      playClick();
+                      setIsOpen(false);
+                    }}
+                  >
+                    Blog
+                  </Link>
+                </motion.div>
                 <div className="flex items-center justify-center space-x-4 px-3 py-2 border-t border-border mt-2 pt-4">
                   <button
                     onClick={toggleSound}

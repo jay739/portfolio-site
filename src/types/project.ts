@@ -5,4 +5,10 @@ export interface Project {
   link?: string;
   github?: string;
   demo?: string;
+  year?: string | number;
+  images?: string[]; // Array of image URLs for gallery/carousel
+  techStack?: string[];
+  challenges?: string[];
+  learnings?: string[];
+  featured?: boolean;
 } 

@@ -39,11 +39,11 @@ export function SkillsCard({ title, skills, delay = 0 }: SkillsCardProps) {
           newSkills[currentSkillIndex] = { name: currentText, url: currentSkill.url };
           return newSkills;
         });
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, 20));
       }
 
       setIsTyping(false);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 300));
       setCurrentSkillIndex(prev => prev + 1);
     };
 

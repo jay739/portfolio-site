@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateCsrfToken } from '@/lib/csrf';
-import { rateLimit } from '@/lib/rate-limit';
 import { handleAPIError, Errors } from '@/lib/error-handling';
 
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
 const NEWS_API_URL = 'https://newsapi.org/v2/everything';
 
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500
-});
-
 export async function GET(request: NextRequest) {
   try {
-    // Rate limiting
-    try {
-      await limiter.check(10, 'AI_NEWS'); // 10 requests per minute
-    } catch {
-      throw Errors.TooManyRequests();
-    }
-
     if (!NEWS_API_KEY) {
+      console.error('News API key not configured');
       throw Errors.Internal('News API key not configured');
     }
 
@@ -31,14 +19,25 @@ export async function GET(request: NextRequest) {
         sortBy: 'publishedAt',
         pageSize: '5',
         apiKey: NEWS_API_KEY
-      })
+      }),
+      {
+        headers: {
+          'User-Agent': 'jay739-portfolio/1.0'
+        }
+      }
     );
 
     if (!response.ok) {
+      console.error(`News API responded with status: ${response.status}`);
       throw Errors.Internal(`News API responded with status: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    if (!data.articles) {
+      console.error('Invalid response from News API:', data);
+      throw Errors.Internal('Invalid response from News API');
+    }
     
     // Transform the articles to a simpler format
     const articles = data.articles.map((article: any) => ({
@@ -49,6 +48,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ articles });
   } catch (error) {
+    console.error('AI News API error:', error);
     return handleAPIError(error);
   }
 }
@@ -64,13 +64,6 @@ export async function POST(request: NextRequest) {
       throw Errors.Forbidden('Invalid CSRF token');
     }
 
-    // Rate limiting
-    try {
-      await limiter.check(5, 'AI_NEWS_POST'); // 5 POST requests per minute
-    } catch {
-      throw Errors.TooManyRequests();
-    }
-
     // Handle POST-specific logic here
     const data = await request.json();
     
@@ -79,6 +72,7 @@ export async function POST(request: NextRequest) {
       message: 'News preferences updated'
     });
   } catch (error) {
+    console.error('AI News POST error:', error);
     return handleAPIError(error);
   }
 } 
