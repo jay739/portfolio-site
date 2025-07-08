@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
@@ -11,6 +11,9 @@ const FloatingTimeWidget: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [isAtTop, setIsAtTop] = useState(true);
   const { resolvedTheme } = useTheme();
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const widgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -67,6 +70,39 @@ const FloatingTimeWidget: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [mounted]);
 
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    widgetRef.current!.style.cursor = 'grabbing';
+    widgetRef.current!.dataset.dragStartX = String(e.clientX - position.x);
+    widgetRef.current!.dataset.dragStartY = String(e.clientY - position.y);
+    document.body.style.userSelect = 'none';
+  };
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    const dragStartX = Number(widgetRef.current!.dataset.dragStartX);
+    const dragStartY = Number(widgetRef.current!.dataset.dragStartY);
+    setPosition({ x: e.clientX - dragStartX, y: e.clientY - dragStartY });
+  };
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (widgetRef.current) widgetRef.current.style.cursor = 'grab';
+    document.body.style.userSelect = '';
+  };
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
   if (!mounted) return null;
 
   const isDark = resolvedTheme === 'dark';
@@ -75,6 +111,7 @@ const FloatingTimeWidget: React.FC = () => {
     <AnimatePresence>
       {isVisible && (
         <motion.div
+          ref={widgetRef}
           initial={{ opacity: 0, y: -20, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.8 }}
@@ -84,14 +121,23 @@ const FloatingTimeWidget: React.FC = () => {
             damping: 20,
             duration: 0.4 
           }}
-          className={`fixed right-4 z-40 pointer-events-none transition-all duration-300 ${
-            isAtTop ? 'top-20' : 'top-4'
-          }`}
+          className={`fixed z-40 pointer-events-auto transition-all duration-300 ${isAtTop ? 'top-20' : 'top-4'}`}
+          style={{ right: 16 + position.x, top: (isAtTop ? 80 : 16) + position.y, cursor: isDragging ? 'grabbing' : 'grab' }}
+          onMouseDown={handleMouseDown}
         >
           <motion.div
             whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
-            className="relative pointer-events-auto"
+            className="relative"
           >
+            {/* Close button */}
+            <button
+              onClick={() => setIsVisible(false)}
+              className="absolute top-1 right-1 z-10 p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-red-500 hover:text-white text-gray-700 dark:text-gray-200"
+              aria-label="Close time widget"
+              style={{ fontSize: 14 }}
+            >
+              ×
+            </button>
             {/* Glow effect background */}
             <div 
               className="absolute inset-0 rounded-2xl opacity-20"

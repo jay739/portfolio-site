@@ -7,7 +7,7 @@ import ChatbotWidget from '@/components/ChatbotWidget';
 import SmartScrollButton from '@/components/SmartScrollButton';
 import ThemeAwareBackground from '@/components/ThemeAwareBackground';
 import NavBar from '@/components/layout/NavBar';
-import CustomCursor from '../CustomCursor';
+// import CustomCursor from '../CustomCursor';
 import InfiniteLoopScroll from '../InfiniteLoopScroll';
 import FloatingTimeWidget from '../FloatingTimeWidget';
 
@@ -19,7 +19,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <>
       <ThemeAwareBackground />
-      <CustomCursor />
+      {/* <CustomCursor /> */}
       <InfiniteLoopScroll />
       <FloatingTimeWidget />
       <Providers>

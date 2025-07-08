@@ -166,27 +166,27 @@ export default function HomeServerStats() {
   const [networkIn, setNetworkIn] = useState<any[]>([]);
   const [networkOut, setNetworkOut] = useState<any[]>([]);
   const [progress, setProgress] = useState(1);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastUpdateRef = useRef(Date.now());
   const REFRESH_INTERVAL = 30000;
 
   const fetchData = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const memoryData = await fetchNetdataMetrics('memory', 'used', 0, 0, 20);
       setMemory(memoryData.map(entry => ({
         timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
         value: entry.value,
       })));
-
       const [used, avail, free, total] = await Promise.all([
         fetchNetdataMetrics('storage', 'used', 0, 0, 20),
         fetchNetdataMetrics('storage', 'avail', 0, 0, 20),
         fetchNetdataMetrics('storage', 'free', 0, 0, 20),
         fetchNetdataMetrics('storage', 'total', 0, 0, 20)
       ]);
-
       setStorage({
         used: used.map(entry => ({
           timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
@@ -205,12 +205,10 @@ export default function HomeServerStats() {
           value: entry.value,
         }))
       });
-
       const [networkInData, networkOutData] = await Promise.all([
         fetchNetdataMetrics('network', 'tcp', 0, 0, 20),
         fetchNetdataMetrics('network', 'udp', 0, 0, 20)
       ]);
-
       setNetworkIn(networkInData.map(entry => ({
         timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
         value: entry.value,
@@ -219,15 +217,13 @@ export default function HomeServerStats() {
         timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
         value: entry.value,
       })));
-
       lastUpdateRef.current = Date.now();
       setProgress(0);
-      setIsAuthenticated(true);
+      setError(null);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      if (error instanceof Error && error.message === 'Authentication required') {
-        setIsAuthenticated(false);
-      }
+      setError('Unable to fetch server stats. Is Netdata running?');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -247,74 +243,6 @@ export default function HomeServerStats() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsAuthenticating(true);
-    
-    const formData = new FormData(event.currentTarget);
-    const username = formData.get('username') as string;
-    const password = formData.get('password') as string;
-    
-    try {
-      const success = await authenticateNetdata(username, password);
-      if (success) {
-        setIsAuthenticated(true);
-        fetchData();
-      }
-    } catch (error) {
-      console.error('Login failed:', error);
-    } finally {
-      setIsAuthenticating(false);
-    }
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <section className="relative py-16 px-2 sm:px-6 w-full overflow-hidden">
-        <div className="w-full bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-4 sm:p-8">
-          <form onSubmit={handleLogin} className="bg-white dark:bg-slate-700 shadow-md rounded-lg px-8 pt-6 pb-8 mb-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Netdata Authentication Required</h2>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-                Username
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Username"
-                required
-              />
-            </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-                Password
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                id="password"
-                name="password"
-                type="password"
-                placeholder="******************"
-                required
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="submit"
-                disabled={isAuthenticating}
-              >
-                {isAuthenticating ? 'Signing in...' : 'Sign In'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
-    );
-  }
-
   // Merge all storage dimensions for charting
   const storageData = storage.used.map((point, idx) => ({
     timestamp: point.timestamp,
@@ -323,6 +251,15 @@ export default function HomeServerStats() {
     free: storage.free[idx]?.value ?? null,
     total: storage.total[idx]?.value ?? null,
   }));
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4" />
+        <span className="text-blue-600">Loading server stats...</span>
+      </div>
+    );
+  }
 
   return (
     <section className="relative py-16 px-2 sm:px-6 w-full overflow-hidden">
@@ -377,6 +314,9 @@ export default function HomeServerStats() {
 
             <div className="bg-white/10 dark:bg-slate-700/40 rounded-2xl p-6">
               <h3 className="mb-4 font-bold text-gray-900 dark:text-white">Memory Usage (MB)</h3>
+              {error && memory.length === 0 ? (
+                <div className="text-red-600 font-semibold mb-2">Memory data not available. <button onClick={fetchData} className="underline">Retry</button></div>
+              ) : (
               <ResponsiveContainer width="100%" height={350}>
                 <AreaChart data={memory} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
                   <defs>
@@ -393,10 +333,14 @@ export default function HomeServerStats() {
                   <Area type="monotone" dataKey="value" stroke="#8884d8" fillOpacity={1} fill="url(#colorMem)" name="Used" isAnimationActive animationDuration={800} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
 
             <div className="bg-white/10 dark:bg-slate-700/40 rounded-2xl p-6">
               <h3 className="mb-4 font-bold text-gray-900 dark:text-white">Root Storage Usage (GiB)</h3>
+              {error && storageData.length === 0 ? (
+                <div className="text-red-600 font-semibold mb-2">Storage data not available. <button onClick={fetchData} className="underline">Retry</button></div>
+              ) : (
               <ResponsiveContainer width="100%" height={350}>
                 <AreaChart data={storageData} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
                   <defs>
@@ -428,6 +372,7 @@ export default function HomeServerStats() {
                   <Area type="monotone" dataKey="total" stroke="#8884d8" fillOpacity={1} fill="url(#colorTotal)" name="Total" isAnimationActive animationDuration={800} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
               <div className="text-xs text-gray-500 mt-2">
                 <b>Note:</b> <span>"Available" is space available to non-root users. "Free" is total free space. "Used" may appear higher than "Available" due to reserved blocks and filesystem overhead.</span>
               </div>
@@ -435,6 +380,9 @@ export default function HomeServerStats() {
 
             <div className="bg-white/10 dark:bg-slate-700/40 rounded-2xl p-6">
               <h3 className="mb-4 font-bold text-gray-900 dark:text-white">Network TCP Packets (packets/s)</h3>
+              {error && networkIn.length === 0 ? (
+                <div className="text-red-600 font-semibold mb-2">Network TCP data not available. <button onClick={fetchData} className="underline">Retry</button></div>
+              ) : (
               <ResponsiveContainer width="100%" height={350}>
                 <AreaChart data={networkIn} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
                   <defs>
@@ -451,10 +399,14 @@ export default function HomeServerStats() {
                   <Area type="monotone" dataKey="value" stroke="#0088FE" fillOpacity={1} fill="url(#colorTCP)" name="TCP" isAnimationActive animationDuration={800} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
 
             <div className="bg-white/10 dark:bg-slate-700/40 rounded-2xl p-6">
               <h3 className="mb-4 font-bold text-gray-900 dark:text-white">Network UDP Packets (packets/s)</h3>
+              {error && networkOut.length === 0 ? (
+                <div className="text-red-600 font-semibold mb-2">Network UDP data not available. <button onClick={fetchData} className="underline">Retry</button></div>
+              ) : (
               <ResponsiveContainer width="100%" height={350}>
                 <AreaChart data={networkOut} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
                   <defs>
@@ -471,6 +423,7 @@ export default function HomeServerStats() {
                   <Area type="monotone" dataKey="value" stroke="#00C49F" fillOpacity={1} fill="url(#colorUDP)" name="UDP" isAnimationActive animationDuration={800} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>

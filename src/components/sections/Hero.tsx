@@ -223,17 +223,14 @@ export default function Hero() {
           </Link>
         </div>
         <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => {
-              playClick();
-              const el = document.getElementById('contact');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
+          <a
+            href="/contact"
+            onClick={playClick}
             className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 to-pink-500 text-white font-bold shadow-lg transform transition hover:scale-105 hover:shadow-xl hover:brightness-110 text-lg md:text-xl"
-            aria-label="Scroll to contact section"
+            aria-label="Go to contact page"
           >
             Contact Me
-          </button>
+          </a>
         </div>
         {/* Modern Social Links */}
         <motion.nav 

@@ -75,7 +75,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
             {/* Share and Read Aloud Buttons */}
             <div className="flex items-center gap-4 mb-8">
-              <BlogShareButtons title={post.title} url={`https://yourdomain.com/blog/${post.slug}`} />
+              <BlogShareButtons title={post.title} url={`https://jay739.dev/blog/${post.slug}`} />
               <BlogReadAloudButton title={post.title} excerpt={post.excerpt} />
             </div>
 

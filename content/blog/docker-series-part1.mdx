@@ -1,0 +1,197 @@
+---
+title: "🧱 Home Server Chronicles: My Docker-Powered Ecosystem — Part 1"
+description: "An in-depth look at the journey of building a modular, containerized home server using Docker Compose on a Beelink SER8 mini PC."
+date: "2025-06-20"
+tags: ["Docker", "Self-Hosting", "Home Lab", "Linux", "DevOps", "Beelink", "Containerization"]
+series: "Home Server Chronicles"
+---
+
+## 🏡 Welcome to My Home Lab
+
+This is **Part 1** of an ongoing series where I document my self-hosted infrastructure journey—setting up, securing, and scaling an efficient and modular **Docker ecosystem** on my home server. I’ll take you through the choices I made, services I run, and challenges I solved.
+
+For context: I'm running this system on a 🖥️ **Beelink SER8 mini PC**, equipped with:
+
+- AMD Ryzen 7 8745HS  
+- 32GB DDR5 RAM  
+- 1TB NVMe SSD  
+- Ubuntu Server OS
+
+This machine replaced my Mac mini for Docker workloads and now acts as the heart of my **home cloud**, **developer platform**, and **AI lab**.
+
+---
+
+## 📦 Why Docker?
+
+I chose Docker for the following reasons:
+
+- 🧱 **Isolation**: Each service runs in its own container
+- 🔁 **Reproducibility**: No more “it works on my machine” issues
+- 🚀 **Portability**: Move the stack between devices
+- 📄 **Declarative Configuration**: All setup lives in `docker-compose` files
+
+---
+
+## 🧠 Design Principles
+
+My goal was to keep things **modular**, **composable**, and **resilient**. Here’s what that looked like:
+
+- 🔹 Split Compose files into roles: `core.yml`, `media.yml`, `infra.yml`, `extras.yml`
+- 🔹 Avoid monolithic configurations
+- 🔹 Use **external networks** defined in a central `networks.yml`
+- 🔹 Enable **restart policies** and **volume mapping** for persistence
+- 🔹 Log and monitor every service via Netdata
+
+Each service is deployed **headlessly**, accessed either via browser, REST APIs, or reverse proxy.
+
+---
+
+## 🗂️ Overview of the Series
+
+| Part | Title |
+|------|-------|
+| 1️⃣ | Intro & Architecture (you are here) |
+| 2️⃣ | Core Services: Nginx, Authelia, Tailscale |
+| 3️⃣ | Infra Layer: Portainer, VS Code, Cron, Backups |
+| 4️⃣ | Media Stack: Jellyfin, Sonarr, Radarr, Lidarr |
+| 5️⃣ | Productivity: Nextcloud, Uptime Kuma, Vaultwarden |
+| 6️⃣ | AI Lab: Ollama, OpenWebUI, LLM-powered Bots |
+| 7️⃣ | Network Ops: Pi-hole, DNS, Nginx Proxy Manager |
+| 8️⃣ | Hardening & Automation: Secrets, 2FA, Watchtower |
+
+Let’s begin with the **big picture**—how it’s all wired together.
+
+---
+
+## 🧱 Architecture
+
+Here's a bird’s eye view of my setup:
+
+```
+                                      +-----------------------+
+                                      |  Beelink SER8 (Host)  |
+                                      +-----------------------+
+                                                |
+                       +------------------------+-------------------------+
+                       |                        |                         |
+                 Docker Compose          External Access             VPN Tunnel
+              (core.yml + others)        (NPM, Authelia)              (Tailscale)
+                       |
+        +--------------+---------------------+
+        |              |                     |
+    Core Stack      Media Stack          AI Stack
+  (Nginx, Auth)  (Jellyfin, Sonarr)   (Ollama, TTS, Bots)
+```
+
+Every service belongs to a category and communicates through pre-defined **Docker networks**, with `networks.yml` acting as the shared config.
+
+---
+
+## 🔄 Modularity with Compose
+
+### ➕ File Structure
+
+```bash
+docker/
+├── core.yml
+├── infra.yml
+├── media.yml
+├── extras.yml
+├── networks.yml
+└── .env
+```
+
+### 🧩 Why Split Files?
+
+This modular split helps in:
+
+- ✅ Running specific layers independently  
+- ✅ Upgrading only what you need  
+- ✅ Easier debugging and configuration  
+- ✅ Clear separation of concern
+
+I also prefix volumes and container names per file to avoid naming conflicts.
+
+---
+
+## 🌐 Networks & Naming
+
+Defined in `networks.yml`:
+
+```yaml
+networks:
+  traefik:
+    name: traefik
+    driver: bridge
+  backend:
+    name: backend
+    driver: bridge
+  ai:
+    name: ai
+    driver: bridge
+```
+
+Services declare these external networks in their own files. This ensures containers are **interoperable across layers** without duplicating definitions.
+
+---
+
+## 🔐 Secrets and Security
+
+Security is critical. Even a home server should have strong hygiene:
+
+- 🔑 `.env` files store secrets (never committed)
+- 🔒 Authelia + Nginx Proxy Manager enable 2FA and domain routing
+- 🌍 Tailscale manages zero-config VPN with ACLs
+
+All admin UIs are hidden behind TOTP authentication or VPN entry.
+
+---
+
+## 🧭 Reverse Proxy Flow
+
+The reverse proxy stack routes requests like this:
+
+```text
+User → https://service.jay739.dev
+       ↳ Nginx Proxy Manager
+           ↳ Authelia (2FA if protected)
+               ↳ Internal Docker container
+```
+
+Each app is accessible via a subdomain thanks to NPM + wildcard DNS setup via Cloudflare.
+
+---
+
+## 📈 Monitoring & Maintenance
+
+Every container’s health is tracked using **Netdata**, running on a dedicated `infra` container and exposed via:
+
+🔗 [https://metrics.jay739.dev](https://metrics.jay739.dev)
+
+Future parts will explore how I created a **custom Astro dashboard** to visualize key stats live on my portfolio.
+
+---
+
+## 🧰 Core Tools Installed on Host
+
+Even though most things run in Docker, I have some native tools:
+
+- 🛜 `tailscale` — for remote access  
+- 🐳 `docker`, `docker-compose` — core engine  
+- 📦 `fail2ban` — SSH brute force protection  
+- 📃 `rsync`, `cron` — automated local backups  
+- 🧠 `nvitop` — monitor GPU usage in terminal  
+
+---
+
+## 🚀 What’s Next?
+
+In the next part of this series, I’ll walk you through the **Core Services** stack in detail: reverse proxy, domain mapping, VPN access, and 2FA gateways.
+
+Stay tuned, and feel free to reach out if you want to replicate this setup or have questions on customizing your own server stack! 💬
+
+---
+
+👉 [Part 2 → Core Services (Nginx, Authelia, Tailscale)](#)
+
+**— Jayakrishna**

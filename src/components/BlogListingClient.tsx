@@ -5,11 +5,11 @@ import Link from 'next/link';
 import BlogCard from '@/components/BlogCard';
 import BlogSubscribeForm from '@/components/BlogSubscribeForm';
 import { Search, Tag } from 'lucide-react';
-import type { BlogPost } from '@/lib/blog';
+import type { BlogPostMeta } from '@/lib/blog';
 
 interface BlogListingClientProps {
-  allPosts: BlogPost[];
-  featuredPosts: BlogPost[];
+  allPosts: BlogPostMeta[];
+  featuredPosts: BlogPostMeta[];
 }
 
 const POSTS_PER_PAGE = 6;

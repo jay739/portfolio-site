@@ -109,12 +109,10 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [carouselIdx, setCarouselIdx] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isReading, setIsReading] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-  const projectsPerPage = 6;
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -177,14 +175,6 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
     
     return filtered;
   }, [projects, selectedTag, searchQuery]);
-
-  const paginatedProjects = useMemo(() => {
-    const startIndex = (currentPage - 1) * projectsPerPage;
-    return filteredProjects.slice(startIndex, startIndex + projectsPerPage);
-  }, [filteredProjects, currentPage]);
-
-  const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
-  const featuredProjects = projects.filter(p => p.featured);
 
   const openModal = (project: Project) => {
     setModalProject(project);
@@ -273,7 +263,7 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
                 {project.images.length > 1 && (
                   <>
                     <button
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-800/80 p-1 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-800/80 p-1 rounded-full shadow opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         setImageIdx((imageIdx - 1 + project.images!.length) % project.images!.length);
@@ -283,7 +273,7 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-800/80 p-1 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-800/80 p-1 rounded-full shadow opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         setImageIdx((imageIdx + 1) % project.images!.length);
@@ -336,6 +326,20 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
           <div className="text-sm text-gray-600 dark:text-gray-400">
             {project.year}
           </div>
+          <div className="flex gap-2">
+            {/* View HomeServer button */}
+            {project.viewHomeServer && (
+              <a
+                href={project.viewHomeServer}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-1 rounded-lg bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 hover:bg-green-600 hover:text-white dark:hover:bg-green-600 transition-all font-medium shadow ml-2"
+                onClick={e => e.stopPropagation()}
+              >
+                <ExternalLinkIcon className="h-5 w-5" />
+                <span>View HomeServer</span>
+              </a>
+            )}
           {/* View on GitHub button */}
           {project.github && (
             <a
@@ -349,6 +353,7 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
               <span>View on GitHub</span>
             </a>
           )}
+          </div>
         </div>
       </motion.div>
     );
@@ -383,9 +388,9 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
         </motion.p>
 
         {/* Featured Projects Banner */}
-        {featuredProjects.length > 0 && (
+        {projects.filter(p => p.featured).length > 0 && (
           <motion.div 
-            className="mb-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800"
+            className="mb-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800 overflow-x-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -396,8 +401,8 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
                 Featured Projects
               </h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {featuredProjects.slice(0, 2).map((project) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+              {projects.filter(p => p.featured).slice(0, 2).map((project) => (
                 <div
                   key={project.title}
                   className="p-4 bg-white dark:bg-slate-700 rounded-lg border border-yellow-200 dark:border-yellow-800 cursor-pointer hover:shadow-lg transition-shadow"
@@ -455,47 +460,23 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
         </div>
 
         <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           variants={containerVariants}
-          initial="visible"
-          animate="visible"
         >
-          {paginatedProjects.map((project, index) => (
+          {filteredProjects.map((project, index) => (
             <ProjectCard key={project.title} project={project} index={index} />
           ))}
         </motion.div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-8">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600"
+        {filteredProjects.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12"
             >
-              Previous
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1 rounded-lg ${
-                  currentPage === page
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600"
-            >
-              Next
-            </button>
-          </div>
+            <h3 className="text-xl font-semibold mb-2">No projects found</h3>
+            <p className="text-muted-foreground">Try adjusting your search or filter.</p>
+          </motion.div>
         )}
 
         {/* Modal for Project Details */}
@@ -543,14 +524,28 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
                       <div>
                         <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Tech Stack</h4>
                         <div className="flex flex-wrap gap-2">
-                          {modalProject.techStack.map((tech) => (
+                          {modalProject.techStack.map((tech) => {
+                            const techInfo = techIconMap[tech];
+                            return techInfo ? (
+                              <a
+                                key={tech}
+                                href={techInfo.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm flex items-center gap-1 hover:bg-blue-200 dark:hover:bg-blue-800 transition"
+                              >
+                                {techInfo.icon}
+                                <span>{tech}</span>
+                              </a>
+                            ) : (
                             <span
                               key={tech}
                               className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm"
                             >
                               {tech}
                             </span>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}

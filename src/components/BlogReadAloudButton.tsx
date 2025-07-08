@@ -8,6 +8,32 @@ interface BlogReadAloudButtonProps {
   excerpt: string;
 }
 
+// Utility to remove emojis
+function removeEmojis(str: string) {
+  // Regex covers most emojis
+  return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+}
+
+// Utility to extract text, skipping code blocks and tables
+function extractReadableText(element: Element): string {
+  let result = '';
+  for (const child of Array.from(element.childNodes)) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      result += child.textContent;
+    } else if (child.nodeType === Node.ELEMENT_NODE) {
+      const el = child as HTMLElement;
+      if (el.tagName === 'PRE' || el.tagName === 'CODE') {
+        result += ' Refer to the code block. ';
+      } else if (el.tagName === 'TABLE') {
+        result += ' Refer to the table. ';
+      } else {
+        result += extractReadableText(el);
+      }
+    }
+  }
+  return result;
+}
+
 export default function BlogReadAloudButton({ title, excerpt }: BlogReadAloudButtonProps) {
   const [isReading, setIsReading] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
@@ -91,11 +117,12 @@ export default function BlogReadAloudButton({ title, excerpt }: BlogReadAloudBut
       return;
     }
 
-    // Extract text content from the article
+    // Extract text content from the article, skipping code blocks/tables and removing emojis
     const articleElement = document.querySelector('.prose');
     if (!articleElement) return;
 
-    const text = `${title}. ${excerpt}. ${articleElement.textContent}`;
+    let text = `${title}. ${excerpt}. ${extractReadableText(articleElement)}`;
+    text = removeEmojis(text);
     const utterance = new SpeechSynthesisUtterance(text);
     
     utterance.onstart = () => {
@@ -125,7 +152,7 @@ export default function BlogReadAloudButton({ title, excerpt }: BlogReadAloudBut
       // Restart with a shorter text (skip first 10 seconds worth)
       const articleElement = document.querySelector('.prose');
       if (articleElement) {
-        const text = `${title}. ${excerpt}. ${articleElement.textContent}`;
+        const text = `${title}. ${excerpt}. ${extractReadableText(articleElement)}`;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 1.2; // Slightly faster to simulate skipping
         utterance.onstart = () => {
@@ -154,7 +181,7 @@ export default function BlogReadAloudButton({ title, excerpt }: BlogReadAloudBut
       // Restart with a longer text (go back 10 seconds worth)
       const articleElement = document.querySelector('.prose');
       if (articleElement) {
-        const text = `${title}. ${excerpt}. ${articleElement.textContent}`;
+        const text = `${title}. ${excerpt}. ${extractReadableText(articleElement)}`;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 0.8; // Slightly slower to simulate going back
         utterance.onstart = () => {
@@ -179,37 +206,44 @@ export default function BlogReadAloudButton({ title, excerpt }: BlogReadAloudBut
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Main control button */}
-      <button
-        onClick={readAloud}
-        disabled={!speechSynthesis}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        aria-label={`${isReading ? 'Stop' : 'Start'} reading article aloud`}
-      >
-        {isReading ? (
-          <>
-            <Pause className="w-4 h-4" />
-            <span>Pause</span>
-          </>
-        ) : (
-          <>
-            <Play className="w-4 h-4" />
-            <span>Read Aloud</span>
-          </>
-        )}
-      </button>
-
-      {/* Media player controls */}
-      {isReading && (
+      {/* Main control button removed from above, now always in the media player row */}
         <div className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
           <button
             onClick={skipBackward}
             className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             aria-label="Skip backward 10 seconds"
           >
-            <SkipBack className="w-4 h-4" />
+          <SkipBack className="w-4 h-4 inline-block mr-1" />
+          <span className="text-xs">-10 sec</span>
+        </button>
+        <button
+          onClick={readAloud}
+          disabled={!speechSynthesis}
+          className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label={`${isReading ? 'Pause' : 'Play'} reading article aloud`}
+        >
+          {isReading ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          <span className="text-xs">{isReading ? 'Pause' : 'Play'}</span>
+        </button>
+        <button
+          onClick={skipForward}
+          className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          aria-label="Skip forward 10 seconds"
+        >
+          <span className="text-xs">+10 sec</span>
+          <SkipForward className="w-4 h-4 inline-block ml-1" />
           </button>
-          
+        {/* Animated SVG Wave */}
+        <div className="flex items-center h-8 w-16 mx-2">
+          <svg viewBox="0 0 60 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={isReading ? 'animate-wave' : 'opacity-40'} style={{ width: '100%', height: '100%' }}>
+            <path d="M0 8 Q 7 0, 15 8 T 30 8 T 45 8 T 60 8" stroke="#2563eb" strokeWidth="2" fill="none">
+              <animate attributeName="d" dur="1s" repeatCount="indefinite"
+                values="M0 8 Q 7 0, 15 8 T 30 8 T 45 8 T 60 8;
+                        M0 8 Q 7 16, 15 8 T 30 8 T 45 8 T 60 8;
+                        M0 8 Q 7 0, 15 8 T 30 8 T 45 8 T 60 8" />
+            </path>
+          </svg>
+        </div>
           <div className="flex-1 mx-2">
             <div className="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-2">
               <div 
@@ -218,16 +252,7 @@ export default function BlogReadAloudButton({ title, excerpt }: BlogReadAloudBut
               />
             </div>
           </div>
-          
-          <button
-            onClick={skipForward}
-            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            aria-label="Skip forward 10 seconds"
-          >
-            <SkipForward className="w-4 h-4" />
-          </button>
         </div>
-      )}
     </div>
   );
 } 

@@ -6,7 +6,7 @@ WORKDIR /app
 
 # 3. Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install --ignore-scripts
 
 # 4. Copy the rest of your code
 COPY . .
@@ -18,16 +18,30 @@ RUN npm run build
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
+# Create a non-root user and group for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next
-# Only copy public if it exists
+# Copy necessary files from builder
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# Only copy next.config.js if it exists
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/node_modules ./node_modules
 
+# Set permissions for the non-root user
+RUN chown -R appuser:appgroup /app
+
+# Expose port
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Set environment variables
+ENV PORT 3000
+ENV NODE_ENV production
+
+# Switch to the non-root user
+USER appuser
+
+# Add a healthcheck to ensure the container is running
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+# Start the application
+CMD ["node", "server.js"]

@@ -177,6 +177,7 @@ export async function GET(request: NextRequest, { params }: { params: { service:
     // If no cookie, try env variables
     if (!authHeader) {
       const netdataApiKey = process.env.NETDATA_API_KEY;
+      console.log('DEBUG: NETDATA_API_KEY from env:', netdataApiKey);
       if (!netdataApiKey) {
         throw Errors.Internal('NETDATA_API_KEY not set');
       }
@@ -185,6 +186,7 @@ export async function GET(request: NextRequest, { params }: { params: { service:
         throw Errors.Internal('Invalid NETDATA_API_KEY format. Expected "username:password"');
       }
       authHeader = Buffer.from(`${username}:${password}`).toString('base64');
+      console.log('DEBUG: Constructed Authorization header:', `Basic ${authHeader}`);
     }
 
     // Log request details (without sensitive info)
@@ -221,6 +223,7 @@ export async function GET(request: NextRequest, { params }: { params: { service:
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('DEBUG: Netdata API Error Response Body:', errorText);
       console.error('Authentication failed:', {
         status: response.status,
         statusText: response.statusText,

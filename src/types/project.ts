@@ -11,4 +11,5 @@ export interface Project {
   challenges?: string[];
   learnings?: string[];
   featured?: boolean;
+  viewHomeServer?: string; // Optional property for home server link
 } 

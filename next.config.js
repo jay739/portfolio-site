@@ -87,6 +87,7 @@ const nextConfig = {
     return config;
   },
   transpilePackages: ['lucide-react'],
+  output: 'standalone',
 };
 
 module.exports = withMDX(nextConfig); 

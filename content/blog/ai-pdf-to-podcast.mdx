@@ -1,0 +1,198 @@
+---
+title: "🎙️ From PDF to Podcast: Building an AI-Powered Audio Summarizer"
+description: "A deep dive into building a multi-modal pipeline that converts dense documents into engaging podcasts using LLMs and text-to-speech models like Bark."
+date: "2025-06-20"
+tags: ["AI", "LLM", "TTS", "Audio AI", "Portfolio Project", "Speech Synthesis", "Multimodal AI"]
+---
+
+## 🚀 Introduction
+
+In an age where time is scarce and attention spans are short, rethinking how we consume dense information is more critical than ever. 📚 What if a lengthy whitepaper or research paper could speak to you—literally? 🎧
+
+This idea motivated me to build a full-stack, AI-powered toolchain that **transforms PDF documents into human-like podcasts**, complete with different speakers, tones, and emotional nuances. This isn't just about converting text to speech—it's about **curating an immersive auditory experience** driven by LLMs and customizable voice synthesis.
+
+In this article, I'll share the technical and creative journey of building this system from the ground up: from chunking PDFs and extracting themes to generating natural-sounding speech with tools like **Bark**, **Coqui**, and **Kokoro**. I'll also walk through UI/UX elements, speaker configuration flexibility, and key backend abstractions that made the project scalable and extensible. 🌟
+
+## ❓ Problem Statement
+
+Long-form content—reports, research articles, proposals—often contains insights locked behind walls of jargon and dense paragraphs. For people on the move or with accessibility needs, reading such documents may be impractical. 🏃‍♂️🦻
+
+While traditional summarizers exist, I wanted to go a step further:
+
+> ✅ Convert the core ideas from any document into a podcast-style narration  
+> ✅ Allow control over **who speaks what**, **how they speak**, and **with what tone**  
+> ✅ Make it possible to **embed emotional variation** and **multi-speaker dialogues**  
+
+In short, I envisioned **"Document to Dialogue."** 🗣️
+
+## 🏗️ System Architecture Overview
+
+The solution was designed as a modular pipeline with the following stages:
+
+```
+PDF Input → Chunking → LLM Summarization → Speaker Mapping → TTS Synthesis → MP3 Podcast
+```
+
+On a high level, the system combines **Natural Language Processing**, **Generative AI**, and **Speech Synthesis**, orchestrated through a Python backend and an Electron + React frontend.
+
+### 🧩 Key Components
+
+- **LLM Backend:** For chunk summarization and contextual dialogue generation (OpenAI GPT / Ollama / Local LLMs)
+- **TTS Engines:** Bark, Coqui, and Kokoro with modular plug-ins
+- **Speaker Configuration:** Frontend toggle for name, gender, tone, voice model
+- **Audio Pipeline:** Merges TTS output into continuous MP3 episodes
+
+## 1️⃣ PDF Preprocessing and Thematic Analysis
+
+I started by breaking PDFs into structured sections. This wasn't just raw text splitting—it included:
+
+- **Text chunking based on semantics**
+- Named entity recognition (NER)
+- Heading-based segmentation
+- Optional: Word clouds and topic modeling via **BERTopic**
+
+These steps helped the LLM generate meaningful outputs without hallucination, enabling **prompt engineering tailored to each section**. 🧠
+
+```python
+chunks = split_pdf_by_heading(pdf_path)
+topics = extract_topics(chunks)
+summary_inputs = enrich_chunks_with_topics(chunks, topics)
+```
+
+## 2️⃣ Summarization & Voice Design using LLMs
+
+Once the chunks were ready, I used a structured prompt template to guide the LLM:
+
+```
+Prompt Template:
+"You are a narrator. Rewrite this chunk as a conversational podcast. Assign speaker roles and keep the language friendly and engaging."
+
+→ Output:
+[Speaker: Alex]: "So let's start with the problem. In most reports, you'll find..."
+```
+
+This approach simulated **human podcast dialogues** with a varying set of voices, tones, and transitions. The output was tagged with metadata for speaker identity and tone, enabling downstream TTS synthesis. 🗣️🎭
+
+### 📝 Prompt Engineering Tips
+- Keep chunk size < 700 words for best LLM results
+- Use persona roles (narrator, interviewer, expert)
+- Provide example outputs in the prompt
+
+## 3️⃣ Modular TTS Pipeline
+
+Here came the fun part—giving voices to the script. 🦜
+
+### 🦜 Bark
+
+Bark from Suno AI was my primary model due to its **expressive emotional quality** and **prompt-based speaker conditioning**. It supported:
+
+- Multilingual narration  
+- Emotional tones (e.g., happy, annoyed, neutral)  
+- Speaker embeddings  
+
+I built an interface `tts_bark.py` that wraps Modal-hosted Bark inference and accepts:
+
+```python
+generate_bark_audio(text, speaker_id="v2/en_speaker_9", emotion="excited")
+```
+
+### 🐸 Coqui and Kokoro
+
+To ensure flexibility and model experimentation:
+
+- **Coqui TTS** offered voice cloning and speaker adaptation  
+- **Kokoro** was tested for fast inference and lower compute environments  
+
+Each engine had a plug-and-play wrapper, registered via the `UnifiedPodcastGenerator`.
+
+## 4️⃣ Frontend: Speaker Configuration and UI/UX
+
+I designed a modular Electron-based frontend using React and Tailwind, following a step-wise interface:
+
+1. 📤 Upload PDF  
+2. 🧠 Analyze Structure  
+3. 🗣️ Configure Speakers (table view / form view toggle)  
+4. 🎧 Preview and Export Podcast
+
+Each speaker's **name, gender, tone, and model type** could be configured. This fed into the backend via IPC channels and dynamically generated the prompt structure and TTS pipeline.
+
+#### 🖥️ Persistent UI Elements
+
+To ensure a consistent user experience:
+
+- Project name and theme toggle persisted across steps  
+- A back button retained user state (excluding uploaded files)  
+- Step indicators helped guide new users through the process
+
+## 5️⃣ Audio Merging and Export
+
+Once audio clips were generated for each speaker segment, they were:
+
+- **Concatenated with fade transitions**
+- Converted into a single MP3 file
+- Tagged with metadata like episode title, speaker list, and date
+
+I used **pydub** for the merging and **mutagen** for ID3 tagging. 🏷️
+
+```python
+final_audio = merge_audio_clips(tts_clips, transitions=True)
+export_to_mp3(final_audio, filename="episode1.mp3")
+```
+
+## 🧗‍♂️ Challenges Faced
+
+### 1. Emotional Drift in TTS 😅
+Some Bark outputs deviated from the intended tone (e.g., a sad prompt sounded robotic). I mitigated this by:
+- Adjusting speaker IDs
+- Using longer context windows
+- Testing voice templates before synthesis
+
+### 2. LLM Prompt Balance ⚖️
+Too much instruction caused verbosity; too little caused hallucination. After several iterations, the sweet spot was:
+- **Chunk size < 700 words**
+- **Persona role = narrator, not explainer**
+- **Examples in prompt for speaker format**
+
+### 3. Synchronization 🔄
+Since TTS generation was asynchronous, mapping output clips back to script order needed:
+
+```python
+index_map = [uuid for each script chunk]
+audio_map = {uuid: audio_file}
+```
+
+This ensured accurate audio sequence.
+
+## 🔮 Future Enhancements
+
+- 🎤 **Voice cloning:** Let users upload a voice sample and synthesize in their voice  
+- 🧠 **Memory-based narrator:** Use vector DB to let the narrator "remember" previous segments  
+- 🌐 **Web deployment:** Containerized stack for use in AI content platforms  
+- 🧪 **Evaluation tools:** Add intelligibility, emotion scoring, and user testing
+
+## 🛠️ Tech Stack
+
+| Layer      | Technology                                 |
+|------------|--------------------------------------------|
+| LLM        | OpenAI GPT-4 / Local LLM via Ollama        |
+| TTS        | Bark, Coqui, Kokoro                        |
+| Backend    | Python, Flask, pydub, mutagen              |
+| Frontend   | Electron, React, Tailwind, Framer Motion   |
+| Data       | BERTopic, SpaCy, NLTK                      |
+| Hosting    | Modal, Docker Compose, Local GPU (Beelink SER8) |
+
+## 🏁 Conclusion
+
+Building an AI podcast generator from documents wasn't just a technical feat—it was an exercise in **making information more humane**. By blending LLMs, emotional TTS, and careful design, I created a system that **translates dense PDFs into friendly voices**, making knowledge more accessible and enjoyable. 🧑‍💻🎶
+
+This project reflects my passion for **AI that speaks, listens, and resonates**—a vision where machines not only compute, but communicate. 🤖💬
+
+## 🔗 Source Code
+
+[GitHub Repository](https://github.com/jay739/PodcastAI) 
+
+---
+
+If this project excites you or you'd like to collaborate on advancing emotional speech generation, feel free to connect with me! 🤝
+
+**— Jayakrishna Konda**
