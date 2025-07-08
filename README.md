@@ -4,8 +4,8 @@ Hi! I'm **Jayakrishna Konda**, a passionate full-stack developer, AI enthusiast,
 
 ## 👨‍💻 About Me
 
-- **Location:** India
-- **Profession:** Software Engineer, Open Source Contributor
+- **Location:** United States
+- **Profession:** AI/ML Intern, Open Source Contributor
 - **Interests:**
   - Web development (Next.js, React, Node.js, TypeScript)
   - AI/ML, LLMs, and data science
