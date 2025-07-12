@@ -21,6 +21,9 @@ WORKDIR /app
 # Create a non-root user and group for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
+# Install wget for health check
+RUN apk add --no-cache wget
+
 # Copy necessary files from builder
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
