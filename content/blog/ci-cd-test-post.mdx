@@ -1,0 +1,66 @@
+---
+title: "Testing CI/CD Pipeline - Automated Deployment"
+date: "2024-12-19"
+description: "A test post to verify our Jenkins CI/CD pipeline is working correctly for automated portfolio deployments."
+tags: ["CI/CD", "Jenkins", "Docker", "Testing", "DevOps"]
+---
+
+# 🚀 Testing CI/CD Pipeline - Automated Deployment
+
+This is a **test blog post** created to verify that our Jenkins CI/CD pipeline is working correctly for automated portfolio deployments.
+
+## 🎯 What We're Testing
+
+When this post is committed and pushed to the main branch, the following should happen automatically:
+
+1. **Jenkins Pipeline Triggers** - Detects the new commit
+2. **Dependencies Installation** - Installs npm packages
+3. **Docker Image Build** - Builds the Next.js application
+4. **Container Testing** - Verifies the new content is accessible
+5. **Production Deployment** - Updates the live site at `jay739.dev`
+
+## 🔧 Pipeline Stages
+
+### Stage 1: Code Checkout
+- Pulls latest code from Git repository
+- Validates the new MDX file is present
+
+### Stage 2: Install Dependencies
+- Runs `npm ci` (or `npm install` as fallback)
+- Ensures all packages are up to date
+
+### Stage 3: Build Docker Image
+- Builds using existing `core.yml` configuration
+- Creates optimized production image
+
+### Stage 4: Test Container
+- Starts container with new image
+- Verifies the test post is accessible
+- Checks for any build errors
+
+### Stage 5: Deploy to Production
+- Stops current portfolio container
+- Deploys new container with updated content
+- Cleans up old images
+
+## ✅ Success Criteria
+
+If this post appears on your live portfolio site at `jay739.dev/blog/ci-cd-test-post`, then the CI/CD pipeline is working perfectly!
+
+## 🎉 Expected Result
+
+After pushing this post:
+- **Jenkins Dashboard**: Should show a successful build
+- **Live Site**: This post should be visible at `/blog/ci-cd-test-post`
+- **Deployment Time**: Should take 2-3 minutes from push to live
+
+## 🔍 Monitoring
+
+You can monitor the deployment process by:
+1. Checking Jenkins dashboard at `http://100.89.188.84:8090`
+2. Watching the build logs in real-time
+3. Verifying the post appears on your live site
+
+---
+
+*This post was created on December 19, 2024 to test the automated deployment pipeline. If you're reading this on the live site, congratulations - the CI/CD pipeline is working! 🎉* 
