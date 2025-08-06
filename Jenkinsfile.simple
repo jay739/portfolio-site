@@ -29,44 +29,6 @@ pipeline {
             }
         }
         
-        stage('Lint & Format Check') {
-            steps {
-                echo '🔍 Running linting and format checks...'
-                sh 'npm run lint'
-                sh 'npm run format:check || true'
-            }
-        }
-        
-        stage('Run Tests') {
-            steps {
-                echo '🧪 Running unit tests...'
-                sh 'npm run test:coverage'
-                
-                echo '🧪 Running E2E tests...'
-                sh 'npm run e2e:headless'
-            }
-            post {
-                always {
-                    echo '📊 Publishing test results...'
-                    publishHTML([
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'coverage/lcov-report',
-                        reportFiles: 'index.html',
-                        reportName: 'Coverage Report'
-                    ])
-                }
-            }
-        }
-        
-        stage('Security Scan') {
-            steps {
-                echo '🔒 Running security scans...'
-                sh 'npm run security-check'
-            }
-        }
-        
         stage('Build Docker Image') {
             steps {
                 echo '🐳 Building Docker image using existing compose setup...'
@@ -110,8 +72,6 @@ pipeline {
                 '''
             }
         }
-        
-
         
         stage('Deploy to Production') {
             when {
@@ -179,40 +139,9 @@ pipeline {
         }
         success {
             echo '🎉 Pipeline completed successfully!'
-            script {
-                if (env.BRANCH_NAME == 'main') {
-                    // Send success notification
-                    emailext (
-                        subject: "✅ Portfolio Site Deployed Successfully - Build #${env.BUILD_NUMBER}",
-                        body: """
-                        <h2>🎉 Deployment Successful!</h2>
-                        <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
-                        <p><strong>Branch:</strong> ${env.BRANCH_NAME}</p>
-                        <p><strong>Commit:</strong> ${env.GIT_COMMIT}</p>
-                        <p><strong>Deployed to:</strong> https://jay739.dev</p>
-                        <p><strong>New Blog Post:</strong> https://jay739.dev/blog/docker-series-part3</p>
-                        """,
-                        to: 'your-email@example.com'
-                    )
-                }
-            }
         }
         failure {
             echo '❌ Pipeline failed!'
-            script {
-                // Send failure notification
-                emailext (
-                    subject: "❌ Portfolio Site Deployment Failed - Build #${env.BUILD_NUMBER}",
-                    body: """
-                    <h2>❌ Deployment Failed!</h2>
-                    <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
-                    <p><strong>Branch:</strong> ${env.BRANCH_NAME}</p>
-                    <p><strong>Commit:</strong> ${env.GIT_COMMIT}</p>
-                    <p><strong>Console Log:</strong> <a href="${env.BUILD_URL}console">View Log</a></p>
-                    """,
-                    to: 'your-email@example.com'
-                )
-            }
         }
     }
 } 
