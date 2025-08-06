@@ -1,0 +1,506 @@
+---
+title: "🧱 Home Server Chronicles: My Docker-Powered Ecosystem — Part 3"
+description: "Exploring the infrastructure layer that keeps everything running: Portainer for container management, VS Code Server for development, monitoring with Netdata, and robust backup strategies."
+date: "2025-08-15"
+tags: ["Docker", "Self-Hosting", "Portainer", "VS Code Server", "Monitoring", "Backups", "Infrastructure", "DevOps"]
+series: "Home Server Chronicles"
+---
+
+## 🏗️ The Infrastructure Backbone
+
+Welcome to **Part 3** of my Home Server Chronicles! In the previous parts, we covered the overall architecture and the core security services. Now, let's dive into the **infrastructure layer** — the tools and services that keep everything running smoothly, provide monitoring, and ensure your data stays safe.
+
+This layer consists of:
+
+- 🐳 **Portainer** — Container management with a beautiful web UI
+- 💻 **VS Code Server** — Cloud-based development environment
+- 📊 **Netdata** — Real-time system monitoring and alerting
+- 🔄 **Watchtower** — Automated container updates
+- 💾 **Backup Strategy** — Protecting your data and configurations
+
+---
+
+## 🐳 Portainer: Container Management Made Beautiful
+
+### Why Portainer Over Docker CLI?
+
+While I'm comfortable with Docker CLI, **Portainer** provides several advantages for day-to-day management:
+
+- 🎨 **Visual Interface**: See all containers, images, and networks at a glance
+- 📊 **Resource Monitoring**: Real-time CPU, memory, and network usage
+- 🔧 **Easy Configuration**: Edit container settings without remembering CLI flags
+- 📝 **Log Management**: Browse logs with syntax highlighting and filtering
+- 🚀 **Quick Actions**: Start, stop, restart, and update containers with one click
+
+### Configuration
+
+Here's how Portainer is set up in my `infra.yml`:
+
+```yaml
+portainer:
+  image: portainer/portainer-ce:latest
+  container_name: portainer
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - ./portainer/data:/data
+  networks:
+    - proxy_net
+  labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.portainer.rule=Host(`portainer.jay739.dev`)"
+    - "traefik.http.routers.portainer.entrypoints=websecure"
+    - "traefik.http.routers.portainer.tls.certresolver=letsencrypt"
+    - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+```
+
+### Key Features I Use Daily
+
+**📊 Dashboard Overview**:
+- Container status at a glance
+- Resource usage graphs
+- Quick access to logs and console
+- Image management and cleanup
+
+**🔧 Stack Management**:
+- Deploy and manage Docker Compose stacks
+- Edit stack configurations through the UI
+- Monitor stack health and dependencies
+
+**📝 Log Analysis**:
+- Real-time log streaming
+- Search and filter capabilities
+- Export logs for debugging
+
+**🔐 Security Features**:
+- Role-based access control
+- Audit logs for all actions
+- Secure admin interface behind 2FA
+
+---
+
+## 💻 VS Code Server: Development in the Cloud
+
+### The Remote Development Dream
+
+**VS Code Server** transforms my home server into a powerful development environment accessible from anywhere:
+
+- 🌐 **Any Device**: Code from laptop, tablet, or phone
+- 🚀 **Full Performance**: Leverage the server's 32GB RAM and fast SSD
+- 🔧 **Consistent Environment**: Same extensions and settings everywhere
+- 📁 **Direct Access**: Work with files directly on the server
+- 🐳 **Docker Integration**: Build and test containers locally
+
+### Configuration
+
+```yaml
+code-server:
+  image: codercom/code-server:latest
+  container_name: code-server
+  restart: unless-stopped
+  environment:
+    - PASSWORD=${VSCODE_PASSWORD}
+    - DOCKER_HOST=unix:///var/run/docker.sock
+    - PUID=1000
+    - PGID=1000
+  volumes:
+    - ./code-server/config:/config
+    - ./code-server/projects:/config/workspace
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - /home/jay739:/home/jay739:ro
+  networks:
+    - proxy_net
+  ports:
+    - "10.0.0.110:8443:8443"     # Local network access
+    - "100.89.188.84:8443:8443"  # Tailscale access
+```
+
+### My Development Workflow
+
+**🔧 Local Development**:
+- Edit code directly on the server
+- Use integrated terminal for Docker commands
+- Debug applications in their native environment
+- Access all project files and configurations
+
+**📦 Container Development**:
+- Build and test Docker images
+- Debug containerized applications
+- Manage Docker Compose stacks
+- Monitor container logs in real-time
+
+**🔗 Integration with Services**:
+- Direct access to service configurations
+- Edit Docker Compose files and redeploy
+- Monitor service health and logs
+- Quick fixes and hot reloads
+
+### Extensions and Customization
+
+I've configured VS Code Server with essential extensions:
+
+```json
+{
+  "extensions": [
+    "ms-vscode.vscode-docker",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers",
+    "ms-vscode-remote.remote-ssh",
+    "ms-vscode.powershell",
+    "ms-python.python",
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-json"
+  ]
+}
+```
+
+---
+
+## 📊 Netdata: Real-Time Monitoring
+
+### Why Netdata?
+
+**Netdata** provides comprehensive monitoring with zero configuration:
+
+- ⚡ **Real-time**: Sub-second data collection
+- 🎯 **Zero Config**: Works out of the box
+- 📊 **Beautiful Dashboards**: Intuitive visualizations
+- 🔔 **Smart Alerts**: Intelligent anomaly detection
+- 🌐 **Web Interface**: Accessible from anywhere
+
+### Configuration
+
+```yaml
+netdata:
+  image: netdata/netdata:latest
+  container_name: netdata
+  restart: unless-stopped
+  hostname: ${HOSTNAME}
+  ports:
+    - "10.0.0.110:19999:19999"     # Local network
+    - "100.89.188.84:19999:19999"  # Tailscale
+  volumes:
+    - ./netdata/config:/etc/netdata
+    - ./netdata/cache:/var/cache/netdata
+    - ./netdata/logs:/var/log/netdata
+    - /etc/passwd:/host/etc/passwd:ro
+    - /etc/group:/host/etc/group:ro
+    - /proc:/host/proc:ro
+    - /sys:/host/sys:ro
+    - /etc/os-release:/host/etc/os-release:ro
+  cap_add:
+    - SYS_PTRACE
+  security_opt:
+    - apparmor:unconfined
+  networks:
+    - proxy_net
+```
+
+### Key Metrics I Monitor
+
+**🖥️ System Resources**:
+- CPU usage per core
+- Memory utilization and swap
+- Disk I/O and space usage
+- Network traffic and bandwidth
+
+**🐳 Docker Metrics**:
+- Container resource usage
+- Image and volume statistics
+- Network performance
+- Storage utilization
+
+**🌐 Application Performance**:
+- Response times for web services
+- Database query performance
+- Cache hit rates
+- Error rates and availability
+
+### Custom Dashboards
+
+I've created custom dashboards for specific use cases:
+
+**🏠 Home Lab Overview**:
+- System health at a glance
+- Service availability status
+- Resource usage trends
+- Alert summary
+
+**🎬 Media Stack Performance**:
+- Jellyfin streaming metrics
+- Transcoding performance
+- Storage I/O patterns
+- User activity monitoring
+
+**🤖 AI Lab Monitoring**:
+- GPU utilization
+- Model inference times
+- Memory usage patterns
+- API response times
+
+---
+
+## 🔄 Watchtower: Automated Updates
+
+### Keeping Everything Fresh
+
+**Watchtower** automatically updates my containers when new images are available:
+
+- 🔄 **Automatic Updates**: No manual intervention required
+- 🏷️ **Label-based Control**: Choose what gets updated
+- 📅 **Scheduled Updates**: Run during low-usage hours
+- 🔔 **Notifications**: Get alerts when updates occur
+- 🔄 **Rollback Support**: Easy recovery if something breaks
+
+### Configuration
+
+```yaml
+watchtower:
+  image: containrrr/watchtower:latest
+  container_name: watchtower
+  restart: unless-stopped
+  environment:
+    - WATCHTOWER_CLEANUP=true
+    - WATCHTOWER_INCLUDE_STOPPED=true
+    - WATCHTOWER_REVIVE_STOPPED=true
+    - WATCHTOWER_SCHEDULE=0 0 2 * * *  # Daily at 2 AM
+    - WATCHTOWER_NOTIFICATIONS=shoutrrr
+    - WATCHTOWER_NOTIFICATION_URL=${SHOUTRRR_URL}
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  networks:
+    - proxy_net
+  labels:
+    - "com.centurylinklabs.watchtower.enable=true"
+```
+
+### Update Strategy
+
+I use a tiered approach to updates:
+
+**🚀 Critical Services** (Updated immediately):
+- Security updates (Authelia, Nginx Proxy Manager)
+- Core infrastructure (Portainer, Netdata)
+- VPN and networking services
+
+**📺 Media Services** (Updated weekly):
+- Jellyfin and media management tools
+- Document processing services
+- Utility applications
+
+**🧪 Experimental Services** (Updated manually):
+- AI/ML containers
+- Development tools
+- Testing environments
+
+### Monitoring Updates
+
+Watchtower sends notifications via Discord when:
+- Updates are available and applied
+- Updates fail and require attention
+- New images are pulled
+- Containers are restarted
+
+---
+
+## 💾 Backup Strategy: Protecting Your Data
+
+### The 3-2-1 Backup Rule
+
+I follow the **3-2-1 backup rule**: 3 copies, 2 different media, 1 off-site location.
+
+**🏠 Primary Location**: Beelink SER8 home server  
+**☁️ Off-site Backup**: Digital Ocean VPS  
+**💾 Local Storage**: External hard drives and NAS
+
+### What Gets Backed Up
+
+**📁 Configuration Files**:
+- Docker Compose files
+- Environment variables
+- Service configurations
+- SSL certificates
+
+**💾 Persistent Data**:
+- Database files
+- Media libraries
+- Document storage
+- User data
+
+**🔧 System State**:
+- Container images
+- Volume data
+- Network configurations
+- Host system settings
+
+### Backup Implementation
+
+**🔄 Automated Local Backups**:
+
+```bash
+#!/bin/bash
+# /home/jay739/scripts/backup-docker.sh
+
+BACKUP_DIR="/mnt/backup/docker"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+# Create backup directory
+mkdir -p "$BACKUP_DIR/$DATE"
+
+# Backup Docker Compose files
+cp -r /home/jay739/docker_services/* "$BACKUP_DIR/$DATE/"
+
+# Backup persistent volumes
+docker run --rm -v docker_data:/data -v "$BACKUP_DIR/$DATE":/backup alpine tar czf /backup/data.tar.gz -C /data .
+
+# Backup configuration files
+tar czf "$BACKUP_DIR/$DATE/config.tar.gz" \
+  /home/jay739/docker_services/nginx-proxy-manager \
+  /home/jay739/docker_services/authelia \
+  /home/jay739/docker_services/portainer \
+  /home/jay739/docker_services/netdata
+
+# Clean up old backups (keep 30 days)
+find "$BACKUP_DIR" -type d -mtime +30 -exec rm -rf {} \;
+```
+
+**☁️ Cloud Backup**:
+
+My **Digital Ocean VPS** serves as the off-site backup location, providing:
+
+- 🔄 **Automated Sync**: Daily backups via rclone with encryption
+- 🛡️ **Redundancy**: Critical data replicated across multiple locations
+- ⚡ **Quick Recovery**: Fast restoration in case of home server failure
+- 🔐 **Encrypted Storage**: All backup data encrypted at rest and in transit
+
+```yaml
+# rclone configuration for cloud backup
+rclone:
+  image: rclone/rclone:latest
+  container_name: rclone-backup
+  restart: unless-stopped
+  volumes:
+    - ./rclone/config:/config/rclone
+    - /mnt/backup:/backup:ro
+  command: >
+    sync /backup remote:docker-backups
+    --progress
+    --delete-after
+    --transfers 4
+    --checkers 8
+  environment:
+    - RCLONE_CONFIG=/config/rclone/rclone.conf
+```
+
+**🔄 Database Backups**:
+
+```yaml
+# Automated database backups
+db-backup:
+  image: postgres:15-alpine
+  container_name: db-backup
+  restart: "no"
+  volumes:
+    - ./backups:/backups
+    - postgres_data:/var/lib/postgresql/data:ro
+  environment:
+    - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  command: >
+    pg_dump -h postgres -U postgres -d myapp
+    | gzip > /backups/db_$(date +%Y%m%d_%H%M%S).sql.gz
+```
+
+### Recovery Procedures
+
+**🔄 Full System Restore**:
+1. Stop all containers
+2. Restore configuration files
+3. Restore persistent volumes
+4. Restart services in order
+5. Verify all services are running
+
+**🔧 Individual Service Restore**:
+1. Stop the specific service
+2. Restore its configuration and data
+3. Restart the service
+4. Verify functionality
+
+**🚨 Disaster Recovery**:
+1. Provision new server (or use existing Digital Ocean VPS)
+2. Install Docker and dependencies
+3. Restore from cloud backup stored on the VPS
+4. Update DNS and certificates
+5. Test all services
+6. **VPS as Hot Standby**: In critical situations, the Digital Ocean VPS can serve as a temporary production environment while the home server is being repaired
+
+---
+
+## 🔧 Maintenance Tasks
+
+### Daily Tasks
+- Check Portainer dashboard for any failed containers
+- Review Netdata alerts and system health
+- Monitor backup job completion
+- Check for security updates
+
+### Weekly Tasks
+- Review and clean up old Docker images
+- Analyze resource usage trends
+- Test backup restoration procedures
+- Update documentation
+
+### Monthly Tasks
+- Review and rotate logs
+- Update base images and dependencies
+- Security audit of configurations
+- Performance optimization review
+
+---
+
+## 🎯 Benefits of This Infrastructure Layer
+
+### For Management
+- ✅ **Centralized Control**: Manage everything from Portainer
+- ✅ **Visual Monitoring**: See system health at a glance
+- ✅ **Automated Maintenance**: Updates and backups run automatically
+- ✅ **Easy Troubleshooting**: Comprehensive logging and monitoring
+
+### For Development
+- ✅ **Cloud Development**: Code from anywhere with VS Code Server
+- ✅ **Integrated Environment**: Direct access to Docker and services
+- ✅ **Consistent Setup**: Same environment across all devices
+- ✅ **Quick Iteration**: Fast build and test cycles
+
+### For Reliability
+- ✅ **Proactive Monitoring**: Catch issues before they become problems
+- ✅ **Automated Recovery**: Self-healing containers and services
+- ✅ **Data Protection**: Comprehensive backup strategy
+- ✅ **Easy Rollbacks**: Quick recovery from failed updates
+
+---
+
+## 🚀 What's Next?
+
+In **Part 4**, we'll explore the **Media Stack** — the entertainment and content management services:
+
+- 🎬 **Jellyfin**: Self-hosted media streaming
+- 📺 **Sonarr/Radarr/Lidarr**: Automated media management
+- 📚 **Paperless-ngx**: Document management and OCR
+- 🎵 **Navidrome**: Music streaming and organization
+- 📱 **Mobile Apps**: Access your media anywhere
+
+This infrastructure layer provides the foundation for reliable, manageable, and scalable services. With proper monitoring, automated updates, and robust backups, you can confidently run production-grade services in your home lab.
+
+---
+
+👈 [Part 2 ← Core Services (Nginx, Authelia, WireGuard)](./docker-series-part2)  
+👉 [Part 4 → Media Stack (Coming Soon)](#)
+
+**Questions about setting up your own infrastructure layer? Feel free to reach out!**
+
+**— Jayakrishna** 

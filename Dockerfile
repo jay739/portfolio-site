@@ -1,12 +1,18 @@
 # 1. Use official Node.js image
 FROM node:18-alpine AS builder
 
+# Install system dependencies for sharp and other native modules
+RUN apk add --no-cache \
+    vips-dev \
+    build-base \
+    python3
+
 # 2. Set working directory
 WORKDIR /app
 
 # 3. Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install --ignore-scripts
+RUN npm install
 
 # 4. Copy the rest of your code
 COPY . .
@@ -21,8 +27,8 @@ WORKDIR /app
 # Create a non-root user and group for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Install wget for health check
-RUN apk add --no-cache wget
+# Install wget for health check and runtime dependencies for sharp
+RUN apk add --no-cache wget vips
 
 # Copy necessary files from builder
 COPY --from=builder /app/.next/standalone ./
