@@ -1,0 +1,11 @@
+{
+  "id": "profile",
+  "title": "Jayakrishna Konda - Professional Profile",
+  "content": "Jayakrishna Konda is a Machine Learning Engineer and Full-stack Developer with a strong focus on AI/ML systems and infrastructure.\n\nProfessional Background:\n- Currently pursuing advanced studies in Machine Learning and AI\n- Specializes in building RAG (Retrieval-Augmented Generation) systems\n- Experienced in both research and production ML deployments\n- Active contributor to open-source projects\n- Public speaker on data storage technologies\n\nCore Competencies:\n- AI/ML: TensorFlow, PyTorch, LangChain, NLP, Computer Vision, MLOps\n- Full-stack: React, Next.js, TypeScript, Python, Django, Node.js\n- DevOps: Docker, Kubernetes, Linux, AWS, GCP, CI/CD\n- Specialized: Android ROM development, Custom Kernels, Home server management",
+  "metadata": {
+    "source": "portfolio",
+    "type": "resume",
+    "date": "2024-03-20",
+    "tags": ["profile", "background", "skills", "experience"]
+  }
+} 
