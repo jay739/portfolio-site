@@ -39,6 +39,7 @@ RUN apk add --no-cache wget vips
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/src/rag ./src/rag
 
 # Set permissions for the non-root user
 RUN chown -R appuser:appgroup /app
