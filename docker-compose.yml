@@ -1,0 +1,48 @@
+services:
+  portfolio:
+    image: jayakrishnakonda/portfolio:latest
+    container_name: portfolio
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=2048
+    mem_limit: 2g
+    memswap_limit: 3g
+    networks:
+      - default
+      - batcave_default
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  sentry-webhook:
+    build:
+      context: .
+      dockerfile: Dockerfile.webhook
+    container_name: sentry-webhook
+    ports:
+      - "3007:3007"
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - "NODE_ENV=production"
+    networks:
+      - default
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  default:
+    driver: bridge
+  batcave_default:
+    external: true
