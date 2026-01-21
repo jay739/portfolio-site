@@ -1,0 +1,20 @@
+# Sentry Telegram Webhook Service
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies
+RUN npm init -y && npm install express axios
+
+# Copy webhook script
+COPY sentry-telegram-webhook.js .
+
+# Expose port
+EXPOSE 3007
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3007/health || exit 1
+
+# Start the webhook server
+CMD ["node", "sentry-telegram-webhook.js"]

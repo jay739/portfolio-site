@@ -13,12 +13,12 @@ const rateLimits = new Map<string, { count: number, resetTime: number }>();
 
 // Default RAG configuration
 const defaultConfig: RAGConfig = {
-  model: 'rag-mistral',
-  temperature: 0.7,
-  maxTokens: 2048,
+  model: 'phi3:3.8b', // Use lightweight model for better performance
+  temperature: 0.3,   // Lower temperature for more focused responses
+  maxTokens: 1024,    // Reduced for faster generation
   topK: 50,
   topP: 0.9,
-  contextWindow: 8192,
+  contextWindow: 4096, // Reduced for phi3 efficiency
   ollamaEndpoint: process.env.OLLAMA_ENDPOINT || 'http://localhost:11434',
 };
 
@@ -116,7 +116,12 @@ export class RAGService {
       }
     }
     
-    return results.sort((a, b) => b.score - a.score).slice(0, 3);
+    const searchResults = results.sort((a, b) => b.score - a.score).slice(0, 3);
+    
+    // Log search for transparency
+    console.log(`RAG Search - Query: "${query}", Found ${searchResults.length} documents, Scores: ${searchResults.map(r => r.score.toFixed(2)).join(', ')}`);
+    
+    return searchResults;
   }
 
   private calculateSimilarity(embedding: number[], text: string): number {
@@ -151,37 +156,48 @@ export class RAGService {
       .map(result => result.document.content)
       .join('\n\n');
 
-    const prompt = `You are an AI assistant representing Jayakrishna Konda. Use the following context to answer questions about Jayakrishna's background, skills, projects, and experience. If you don't find relevant information in the context, say so.
+    const prompt = `Based on this context about Jayakrishna Konda, answer the question:
 
-Context:
-${contextText}
+Context: ${contextText || 'No information found.'}
 
-Chat History:
-${conversation.messages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
-
-User: ${message}
-Assistant:`;
+Question: ${message}
+Answer:`;
 
     try {
+      // Use focused parameters for RAG generation
       const response = await fetch(this.config.ollamaEndpoint + '/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: this.config.model,
           prompt,
-          temperature: this.config.temperature,
-          max_tokens: this.config.maxTokens,
-          top_k: this.config.topK,
-          top_p: this.config.topP,
+          stream: false,
+          options: {
+            temperature: 0.3,
+            top_k: this.config.topK,
+            top_p: this.config.topP,
+            num_ctx: this.config.contextWindow
+          }
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate response');
+        throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return data.response || 'I apologize, but I was unable to generate a response.';
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error('Failed to parse Ollama response as JSON:', responseText);
+        throw new Error('Invalid response from Ollama API');
+      }
+      
+      const generatedResponse = data.response || 'I apologize, but I was unable to generate a response.';
+      
+      // Post-process response to ensure RAG compliance
+      return this.validateRAGResponse(generatedResponse, contextText);
     } catch (error) {
       console.error('Error generating response:', error);
       throw error;
@@ -263,6 +279,42 @@ Assistant:`;
         conversations.delete(sessionId);
       }
     }
+  }
+
+  private validateRAGResponse(response: string, contextText: string): string {
+    // Red flags that indicate potential hallucination
+    const hallucinationIndicators = [
+      'based on my knowledge',
+      'i know that',
+      'it\'s common that',
+      'typically',
+      'usually',
+      'in general',
+      'most people',
+      'according to',
+      'research shows',
+      'studies indicate'
+    ];
+
+    const lowerResponse = response.toLowerCase();
+    
+    // Check for hallucination indicators
+    const hasHallucinationIndicators = hallucinationIndicators.some(indicator => 
+      lowerResponse.includes(indicator)
+    );
+
+    if (hasHallucinationIndicators) {
+      console.warn('RAG Response Validation: Potential hallucination detected, filtering response');
+      return "I don't have that specific information in my knowledge base. You can find more details in Jayakrishna's complete documents or contact him directly.";
+    }
+
+    // If context is empty but response is detailed, it's likely hallucination
+    if ((!contextText || contextText.trim().length < 50) && response.length > 100) {
+      console.warn('RAG Response Validation: Detailed response without sufficient context, filtering');
+      return "I don't have that specific information in my knowledge base. You can find more details in Jayakrishna's complete documents or contact him directly.";
+    }
+
+    return response;
   }
 
   public async getConversation(sessionId: string): Promise<Conversation | null> {

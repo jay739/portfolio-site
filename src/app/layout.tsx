@@ -1,19 +1,25 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import ClientLayout from '@/components/layout/ClientLayout'
+import * as Sentry from '@sentry/nextjs'
 
-export const metadata: Metadata = {
-  title: 'Jayakrishna Konda - Portfolio',
-  description: 'Full Stack Developer & DevOps Engineer specializing in AI/ML, Data Science, and Home Server solutions.',
-  keywords: ['Full Stack Developer', 'DevOps Engineer', 'AI/ML Engineer', 'Data Science', 'Home Server'],
-  authors: [{ name: 'Jayakrishna Konda' }],
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://jay739.dev',
+export function generateMetadata(): Metadata {
+  return {
     title: 'Jayakrishna Konda - Portfolio',
     description: 'Full Stack Developer & DevOps Engineer specializing in AI/ML, Data Science, and Home Server solutions.',
-  },
+    keywords: ['Full Stack Developer', 'DevOps Engineer', 'AI/ML Engineer', 'Data Science', 'Home Server'],
+    authors: [{ name: 'Jayakrishna Konda' }],
+    openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      url: 'https://jay739.dev',
+      title: 'Jayakrishna Konda - Portfolio',
+      description: 'Full Stack Developer & DevOps Engineer specializing in AI/ML, Data Science, and Home Server solutions.',
+    },
+    other: {
+      ...Sentry.getTraceData()
+    }
+  }
 }
 
 export default function RootLayout({

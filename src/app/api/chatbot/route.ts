@@ -6,6 +6,7 @@ import { headers } from 'next/headers';
 const ragService = new RAGService();
 
 export async function POST(req: NextRequest) {
+
   try {
     // Get request metadata
     const headersList = headers();
@@ -33,14 +34,27 @@ export async function POST(req: NextRequest) {
       .map(result => result.document.content)
       .join('\n\n');
 
-    // Prepare the prompt with context
-    const prompt = `You are an AI assistant representing Jayakrishna Konda. Use the following context to answer questions about Jayakrishna's background, skills, projects, and experience. If you don't find relevant information in the context, say so.
+    // DEBUG: Log what context was found
+    console.log(`DEBUG: Query="${message}", Context found: ${contextText.substring(0, 200)}...`);
+    console.log(`DEBUG: Context length: ${contextText.length}, Number of documents: ${context.length}`);
 
-Context:
+    // If no relevant context found, return helpful message
+    if (!contextText || contextText.trim().length < 50) {
+      return NextResponse.json({ 
+        reply: "I don't have enough information in my knowledge base to answer that question. Please check the provided documents or contact Jayakrishna directly.",
+        conversationId: sessionId
+      }, { status: 200 });
+    }
+
+    const prompt = `STRICT INSTRUCTIONS: You are a document reader. You MUST ONLY use information from the DOCUMENT below. Do NOT use any knowledge from your training. If the document doesn't contain the answer, say "This information is not available in the provided documents."
+
+===== DOCUMENT START =====
 ${contextText}
+===== DOCUMENT END =====
 
-User: ${message}
-Assistant:`;
+QUESTION: ${message}
+
+RESPONSE (using ONLY the document above):`;
 
     // If streaming is requested (default: true)
     if (stream !== false) {
@@ -48,9 +62,10 @@ Assistant:`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: process.env.OLLAMA_MODEL || 'mistral',
+          model: process.env.OLLAMA_MODEL || 'phi3:3.8b',
           prompt,
           stream: true,
+          temperature: 0.3, // Slightly lower temperature for more focused responses
         }),
       });
 

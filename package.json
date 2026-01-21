@@ -60,7 +60,7 @@
     "@babel/plugin-transform-private-property-in-object": "^7.27.1",
     "@babel/plugin-transform-runtime": "^7.27.4",
     "@cypress/code-coverage": "^3.14.4",
-    "@sentry/nextjs": "^9.28.1",
+    "@sentry/nextjs": "^10.8.0",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^14.2.1",

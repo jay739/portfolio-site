@@ -17,7 +17,8 @@ RUN npm install
 # 4. Copy the rest of your code
 COPY . .
 
-# 5. Build the Next.js app
+# 5. Build the Next.js app with memory optimization
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # 6. Production image, copy built assets and install only production deps

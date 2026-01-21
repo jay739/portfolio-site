@@ -1,0 +1,163 @@
+---
+title: "🚀 Automating My Portfolio Deployment with GitHub Actions"
+excerpt: "How I set up a fully automated CI/CD pipeline for my Next.js portfolio without crashing my VPS"
+date: "2026-01-21"
+category: "DevOps"
+tags: ["github-actions", "docker", "automation", "nextjs", "ci-cd"]
+featured: true
+---
+
+# 🚀 Automating My Portfolio Deployment with GitHub Actions
+
+Building a Next.js application on a memory-constrained VPS was becoming a nightmare. Every time I wanted to add a blog post or make a small change, the build process would eat up all available RAM and sometimes crash the server. Here's how I solved it with GitHub Actions.
+
+## 🎯 The Problem
+
+My backup VPS has limited resources:
+- 4GB RAM
+- 2GB Swap
+- Multiple services running (Nginx, Grafana, Uptime Kuma, etc.)
+
+Next.js builds are memory-hungry, requiring 2-4GB during compilation. Running `npm run build` would:
+- ❌ Max out memory
+- ❌ Trigger OOM (Out of Memory) killer
+- ❌ Sometimes crash other services
+- ❌ Take 6+ minutes if it succeeded
+
+## 💡 The Solution
+
+Instead of building on my VPS, I offloaded the heavy lifting to GitHub's infrastructure:
+
+### Architecture Overview
+
+```
+Local Changes → GitHub → GitHub Actions Build → Docker Hub → VPS Deploy
+```
+
+1. **Make changes** on the VPS or locally
+2. **Push to GitHub** - triggers the workflow
+3. **GitHub Actions** builds the Docker image (on their servers!)
+4. **Push to Docker Hub** - stores the built image
+5. **Auto-deploy to VPS** - pulls and restarts the container
+
+## 🛠️ Implementation Steps
+
+### 1️⃣ Created Build Script with Swap Management
+
+For local builds when needed:
+
+```bash
+#!/bin/bash
+# Temporarily adds 4GB swap, builds, then cleans up
+sudo /opt/portfolio/build-with-swap.sh
+```
+
+This prevents VPS crashes during manual builds.
+
+### 2️⃣ Set Up GitHub Actions Workflow
+
+Created `.github/workflows/build-and-deploy.yml`:
+
+- Builds on GitHub's servers (not my VPS)
+- Uses Docker BuildKit with caching
+- Pushes image to Docker Hub
+- SSHs to VPS and deploys
+
+### 3️⃣ Implemented Secure Deployment
+
+Instead of using `root` for deployments, created a dedicated `deployer` user:
+
+```bash
+sudo /opt/portfolio/create-deploy-user.sh
+```
+
+**Security benefits:**
+- ✅ Limited to Docker commands only
+- ✅ Can't modify system files
+- ✅ Follows principle of least privilege
+- ✅ Separate SSH key for automation
+
+### 4️⃣ Configured Docker Hub
+
+Made the Docker image **private** while keeping the GitHub repo **public**:
+- Recruiters can see my code on GitHub ✓
+- Random users can't pull my Docker image ✓
+- Best of both worlds!
+
+## 📝 The New Workflow
+
+Adding a blog post is now simple:
+
+```bash
+cd /opt/portfolio
+nano content/blog/my-new-post.mdx
+git add .
+git commit -m "Add blog post about automation"
+git push
+```
+
+Then:
+1. ⏱️ Wait 5-10 minutes
+2. ☕ Grab coffee
+3. ✅ Site auto-updates!
+
+**No more:**
+- 🚫 Manual builds
+- 🚫 Memory issues
+- 🚫 Server crashes
+- 🚫 Babysitting deployments
+
+## 📊 Results
+
+### Before:
+- Build time: 6+ minutes (if successful)
+- Success rate: ~70%
+- Manual intervention: Required
+- Stress level: High 😰
+
+### After:
+- Build time: 5-10 minutes
+- Success rate: 100%
+- Manual intervention: None
+- Stress level: Zero 😎
+
+## 🎓 Lessons Learned
+
+1. **Offload heavy tasks**: Don't build on resource-constrained servers
+2. **Automate everything**: One push, automatic deployment
+3. **Security matters**: Use dedicated users for automation
+4. **Free tier is powerful**: GitHub Actions + Docker Hub = $0/month
+5. **Visibility vs Privacy**: Keep code public, build artifacts private
+
+## 🔧 Technical Stack
+
+- **CI/CD**: GitHub Actions
+- **Container Registry**: Docker Hub (private image)
+- **Deployment**: SSH-based auto-deploy
+- **Build Environment**: Node.js 18, Docker BuildKit
+- **Memory Management**: Temporary swap for local builds
+
+## 🚀 Future Improvements
+
+Potential enhancements I'm considering:
+
+- [ ] Add automated tests before deployment
+- [ ] Implement blue-green deployments
+- [ ] Add deployment notifications via Telegram
+- [ ] Set up preview deployments for PRs
+- [ ] Add performance monitoring
+
+## 💭 Final Thoughts
+
+This setup has been a game-changer for my development workflow. I can now focus on creating content and improving features without worrying about infrastructure limitations.
+
+The best part? Everything runs on free tiers:
+- ✅ GitHub Actions: Unlimited for public repos
+- ✅ Docker Hub: 1 free private repository
+- ✅ No ongoing costs!
+
+If you're running a portfolio or blog on a budget VPS, I highly recommend this approach. Your server will thank you! 🙏
+
+---
+
+**Questions?** Feel free to check out my [portfolio repository](https://github.com/jay739/portfolio-site) to see the complete setup!

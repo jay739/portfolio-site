@@ -286,3 +286,5 @@ temp/
 
 # README_APP.md
 README_APP.md 
+# Sentry Config File
+.env.sentry-build-plugin
