@@ -10,6 +10,9 @@ services:
     environment:
       - NODE_ENV=production
       - NODE_OPTIONS=--max-old-space-size=2048
+      - HOSTNAME=0.0.0.0
+    volumes:
+      - ./service-account.json:/app/service-account.json:ro
     mem_limit: 2g
     memswap_limit: 3g
     networks:

@@ -288,3 +288,16 @@ temp/
 README_APP.md 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Local development scripts
+setup-backup-vps.sh
+setup-networks.sh
+test-sentry.js
+sentry-telegram-*.js
+docker-compose.webhook.yml
+Dockerfile.webhook
+core.yml
+*.backup
+
+# Local security files
+public/security-audit-*.html

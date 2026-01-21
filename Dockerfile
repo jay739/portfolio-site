@@ -12,16 +12,20 @@ WORKDIR /app
 
 # 3. Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # 4. Copy the rest of your code
 COPY . .
 
-# 5. Build the Next.js app with memory optimization
+# 5. Build arguments for Next.js public env vars
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
+
+# 6. Build the Next.js app with memory optimization
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
-# 6. Production image, copy built assets and install only production deps
+# 7. Production image, copy built assets and install only production deps
 FROM node:18-alpine AS runner
 WORKDIR /app
 
@@ -43,8 +47,8 @@ RUN chown -R appuser:appgroup /app
 EXPOSE 3000
 
 # Set environment variables
-ENV PORT 3000
-ENV NODE_ENV production
+ENV PORT=3000
+ENV NODE_ENV=production
 
 # Switch to the non-root user
 USER appuser

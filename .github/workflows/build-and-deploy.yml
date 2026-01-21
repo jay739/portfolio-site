@@ -12,6 +12,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'Dockerfile'
+      - 'docker-compose.yml'
       - 'next.config.js'
   workflow_dispatch: # Allow manual trigger
 
@@ -53,6 +54,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NODE_OPTIONS=--max-old-space-size=4096
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=G-LYDFWSJ06J
 
   deploy:
     needs: build-and-push
