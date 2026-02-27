@@ -35,7 +35,7 @@ const taglines = [
 ];
 const links = {
   server: "https://homarr.jay739.dev",
-  resume: "/documents/Jayakrishna_Konda_Resume.pdf",
+  resume: "/documents/resume.pdf",
   github: "https://github.com/jay739",
   linkedin: "https://www.linkedin.com/in/jaya-krishna-konda/",
   email: "mailto:contact@jay739.dev"
