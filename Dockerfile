@@ -5,14 +5,21 @@ FROM node:18-alpine AS builder
 RUN apk add --no-cache \
     vips-dev \
     build-base \
-    python3
+    python3 \
+    git
 
 # 2. Set working directory
 WORKDIR /app
 
 # 3. Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+
+# Set npm configurations for better reliability
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
+
+RUN npm install --legacy-peer-deps --loglevel verbose
 
 # 4. Copy the rest of your code
 COPY . .
@@ -22,7 +29,7 @@ ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
 
 # 6. Build the Next.js app with memory optimization
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # 7. Production image, copy built assets and install only production deps

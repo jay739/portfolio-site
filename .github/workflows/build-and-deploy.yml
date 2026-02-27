@@ -14,11 +14,21 @@ on:
       - 'Dockerfile'
       - 'docker-compose.yml'
       - 'next.config.js'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      clear_cache:
+        description: 'Clear build cache'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     
     steps:
       - name: 📦 Checkout code
@@ -30,8 +40,22 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: 🗑️ Clear GitHub Actions cache (if requested)
+        if: github.event.inputs.clear_cache == 'true'
+        run: |
+          echo "Clearing GitHub Actions cache..."
+          gh extension install actions/gh-actions-cache || true
+          gh actions-cache delete --all || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
       - name: 🏗️ Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
+          buildkitd-flags: --debug
 
       - name: 🏷️ Generate tags
         id: meta
@@ -50,11 +74,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: ${{ github.event.inputs.clear_cache == 'true' }}
           build-args: |
             NODE_OPTIONS=--max-old-space-size=4096
             NEXT_PUBLIC_GA_MEASUREMENT_ID=G-LYDFWSJ06J
+          provenance: false
+        timeout-minutes: 25
 
   deploy:
     needs: build-and-push
