@@ -17,6 +17,7 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 .env*.local
+.env.sentry-build-plugin
 
 # ===== Docker =====
 # Keep your Dockerfiles, ignore runtime artifacts
@@ -61,3 +62,6 @@ next-env.d.ts
 bfg.jar          # BFG Repo Cleaner binary, no need to commit
 .husky/_/        # Husky internal files (generated, not source)
 portfolio-site-mirror/  # Bare git repo clone, shouldn't be committed
+
+# ===== Shell Scripts =====
+*.sh
