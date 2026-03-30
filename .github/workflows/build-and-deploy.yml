@@ -1,0 +1,162 @@
+# Credentials: use GitHub → Settings → Secrets and variables → Actions.
+# - Secrets: DOCKER_PASSWORD, VPS_SSH_KEY, etc. (never commit real values)
+# - Variables: NEXT_PUBLIC_GA_MEASUREMENT_ID (and any other non-secret build config)
+# Do not put secrets in a committed .env file; CI reads secrets/vars here, not repo .env files.
+name: Build and Deploy Portfolio
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'src/**'
+      - 'content/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - 'next.config.js'
+      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      sync_from_vps:
+        description: 'SSH to VPS — commit changes under /opt/portfolio and push to GitHub, then build + deploy in this same run'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      clear_cache:
+        description: 'Clear build cache (build job only)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  # Optional first step: push server-side edits to GitHub. Commit message includes [skip ci] so this push does not start a second workflow.
+  sync-from-vps:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.sync_from_vps == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📤 Push portfolio from VPS to GitHub
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/portfolio
+            BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            git remote -v
+            git fetch origin
+            git pull --rebase origin "$BRANCH" || true
+            git add -A
+            if [ -n "$(git status --porcelain)" ]; then
+              git config user.name "github-actions[bot]" || true
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com" || true
+              git commit -m "chore: sync portfolio from VPS [skip ci]"
+            else
+              echo "No local changes to commit."
+            fi
+            git push origin "$BRANCH"
+
+  build-and-push:
+    needs: sync-from-vps
+    if: |
+      always() &&
+      (needs.sync-from-vps.result == 'success' || needs.sync-from-vps.result == 'skipped') &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔄 Use latest commit after VPS sync
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.sync_from_vps == 'true'
+        run: |
+          git fetch origin
+          git reset --hard "origin/${{ github.ref_name }}"
+
+      - name: 🔐 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🗑️ Clear GitHub Actions cache (if requested)
+        if: github.event.inputs.clear_cache == 'true'
+        run: |
+          echo "Clearing GitHub Actions cache..."
+          gh extension install actions/gh-actions-cache || true
+          gh actions-cache delete --all || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: 🏗️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
+          buildkitd-flags: --debug
+
+      - name: 🏷️ Generate tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/portfolio
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix={{branch}}-
+
+      - name: 🚀 Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          no-cache: ${{ github.event.inputs.clear_cache == 'true' }}
+          build-args: |
+            NODE_OPTIONS=--max-old-space-size=4096
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+          provenance: false
+        timeout-minutes: 25
+
+  # Explicit if: sync-from-vps is often "skipped", which makes default success() false and would skip this job.
+  deploy:
+    needs: build-and-push
+    if: always() && needs.build-and-push.result == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚀 Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/portfolio
+            docker-compose pull portfolio
+            docker-compose up -d --force-recreate portfolio
+            docker image prune -f
+
+      - name: ✅ Deployment notification
+        run: |
+          echo "✅ Portfolio deployed successfully!"
+          echo "🔗 URL: https://jay739.dev"

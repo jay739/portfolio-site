@@ -1,0 +1,23 @@
+{
+  "/ai-tools/page": "app/ai-tools/page.js",
+  "/ai-news/page": "app/ai-news/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/active-users/route": "app/api/active-users/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/chatbot/route": "app/api/chatbot/route.js",
+  "/api/ai-news/route": "app/api/ai-news/route.js",
+  "/api/contact/route": "app/api/contact/route.js",
+  "/api/rag/documents/route": "app/api/rag/documents/route.js",
+  "/api/netdata/[service]/route": "app/api/netdata/[service]/route.js",
+  "/api/total-visitors/route": "app/api/total-visitors/route.js",
+  "/api/visitors/route": "app/api/visitors/route.js",
+  "/contact/page": "app/contact/page.js",
+  "/blog/[slug]/page": "app/blog/[slug]/page.js",
+  "/blog/page": "app/blog/page.js",
+  "/homeserver/page": "app/homeserver/page.js",
+  "/page": "app/page.js",
+  "/projects/page": "app/projects/page.js",
+  "/impact/page": "app/impact/page.js",
+  "/skills/page": "app/skills/page.js",
+  "/timeline/page": "app/timeline/page.js"
+}

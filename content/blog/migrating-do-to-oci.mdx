@@ -1,0 +1,98 @@
+---
+title: "🚀 Methodical Migration: DigitalOcean Droplet to Oracle Cloud (OCI)"
+date: "2026-03-31"
+category: "DevOps"
+tags: ["migration", "oracle-cloud", "digitalocean", "docker", "nextjs", "infrastructure"]
+featured: true
+---
+
+
+
+# 🚀 Methodical Migration: DigitalOcean Droplet to Oracle Cloud (OCI)
+
+Migrating a self-hosted infrastructure is never just about moving files—it's about preserving reliability, minimizing downtime, and future-proofing your stack. In this post, I’ll walk through my journey of moving from a long-standing DigitalOcean droplet to a modern Oracle Cloud (OCI) instance, with a focus on Dockerized services, automation, and lessons learned. If you’re interested in the evolution of my stack, check out these related posts:
+
+- [Automating My Portfolio Deployment with GitHub Actions](./automating-portfolio-deployment)
+- [Home Server Chronicles: My Docker-Powered Ecosystem — Part 1](./docker-series-part1)
+- [Home Server Chronicles: My Docker-Powered Ecosystem — Part 2](./docker-series-part2)
+- [Home Server Chronicles: My Docker-Powered Ecosystem — Part 3](./docker-series-part3)
+- [Home Server Chronicles: My Docker-Powered Ecosystem — Part 4](./docker-series-part4)
+- [Building a Real-Time Infrastructure Monitoring System with Telegram Alerts](./monitoring-infrastructure-with-telegram)
+
+---
+
+## Why Migrate?
+
+My DigitalOcean droplet served me well for years, running everything from my Next.js portfolio to monitoring, webhooks, and media services. But as my needs grew—more containers, more storage, more automation—I hit the limits of what a single VPS could offer. Oracle Cloud’s flexible resources, affordable scaling, and robust networking made it the perfect next step.
+
+## 1. Inventory & Audit
+
+## 1. Inventory & Audit
+
+Before touching anything, I created a complete inventory of all running containers, Docker images, volumes, and configuration files. This included:
+
+- Portfolio (Next.js, Dockerized)
+- Sentry Webhook
+- Nginx Proxy Manager
+- Error Pages Server
+- All Docker volumes and configs
+
+
+I started by creating a full inventory of all running containers, Docker images, volumes, and configuration files. This included:
+
+- Portfolio (Next.js, Dockerized)
+- Sentry Webhook
+- Nginx Proxy Manager
+- Error Pages Server
+- All Docker volumes and configs
+
+Reference: [MIGRATION_INVENTORY.md](../../../MIGRATION_INVENTORY.md)
+
+
+## 2. Prepare the Target OCI Instance
+
+- Provisioned a new Ubuntu server on OCI (public IP reserved)
+- Installed Docker, Docker Compose, and all required system packages
+- Hardened SSH, set up firewall rules, and configured VCN/subnets
+- Created user accounts and SSH keys for secure automation
+
+
+## 3. Data Transfer
+
+- Stopped non-essential services on the source (DigitalOcean) to ensure data consistency
+- Used rsync and scp to transfer ~2.5GB of essential data, Docker volumes, and configuration files
+- Pulled fresh Docker images on OCI to minimize transfer time and ensure up-to-date images
+
+
+## 4. Service-by-Service Migration
+
+I migrated services in order of dependency:
+1. **Nginx Proxy Manager** (reverse proxy, SSL termination)
+2. **Portfolio** (Next.js app, Dockerized, with CI/CD)
+3. **Sentry Webhook** (error notification integration)
+4. **Error Pages Server** (custom error handling)
+
+For each service:
+- Updated configuration files for the new environment (IP addresses, domains, secrets)
+- Recreated Docker containers using docker compose
+- Verified logs, health checks, and service endpoints
+
+
+## 5. Verification & Testing
+
+- Used a detailed checklist ([MIGRATION_VERIFICATION_GUIDE.md](../../../MIGRATION_VERIFICATION_GUIDE.md)) to verify each service
+- Checked DNS, SSL, and public endpoints for correct routing and certificates
+- Monitored logs for errors, warnings, and performance issues
+- Ensured all automations (CI/CD, webhooks, monitoring) worked as expected
+
+## 6. Lessons & Best Practices
+
+- **Document everything:** Inventories and checklists are your best friends for repeatability and troubleshooting.
+- **Automate where possible:** Use CI/CD (see [Automating My Portfolio Deployment with GitHub Actions](./automating-portfolio-deployment)) to reduce manual steps and errors.
+- **Migrate in dependency order:** Start with core infrastructure, then apps, then supporting services.
+- **Test thoroughly:** Don’t decommission your old server until you’ve verified every service in production.
+- **Monitor and alert:** Integrate monitoring and alerting ([see Telegram Monitoring System](./monitoring-infrastructure-with-telegram)) to catch issues early.
+
+---
+
+This migration was a major milestone in my self-hosting journey. With OCI, I now have a more scalable, reliable, and automated platform for all my projects. If you’re planning a similar move, start with a full inventory and checklist—future you will thank you!

@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp/jay739dev/batcave-portfolio",
+      "type": "http"
+    }
+  }
+}

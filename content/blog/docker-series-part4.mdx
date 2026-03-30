@@ -1,0 +1,203 @@
+---
+title: "🧱 Home Server Chronicles: My Docker-Powered Ecosystem — Part 4"
+excerpt: "A practical walkthrough of my media stack: Jellyfin, Sonarr, Radarr, Lidarr, and the automation patterns that keep the pipeline reliable."
+date: "2026-03-17"
+category: "Self-Hosting"
+tags: ["docker", "self-hosting", "jellyfin", "sonarr", "radarr", "lidarr", "media-stack", "automation"]
+series: "Home Server Chronicles"
+featured: false
+---
+
+## 🎬 The Media Automation Layer
+
+Welcome to **Part 4** of my Home Server Chronicles.
+
+In Part 3, I covered the infrastructure backbone (Portainer, VS Code Server, monitoring, and backups). In this part, I’m focusing on the media stack that runs on top of that foundation:
+
+- 📺 **Jellyfin** for streaming
+- 🔎 **Sonarr** for TV automation
+- 🎥 **Radarr** for movie automation
+- 🎵 **Lidarr** for music automation
+- 🧭 A clean workflow for quality profiles, folder structure, and reliability
+
+---
+
+## 🧱 Stack Design Goals
+
+My media layer is built around a few strict rules:
+
+- **Single source of truth for paths** across all containers
+- **Predictable naming + folder conventions** to avoid broken imports
+- **Minimal manual intervention** after initial setup
+- **Safe defaults** for updates and restarts
+
+At a high level, every service sits in the same Docker network and shares the same mounted media paths.
+
+---
+
+## 📁 Folder Strategy (Most Important)
+
+This is where most self-hosted media stacks break.  
+If paths differ between Sonarr/Radarr/Jellyfin/download clients, automation fails.
+
+My structure is standardized:
+
+```bash
+/srv/media/
+├── downloads/
+│   ├── incomplete/
+│   └── complete/
+├── movies/
+├── tv/
+└── music/
+```
+
+Container mounts follow the same target path pattern:
+
+- `downloads` -> `/data/downloads`
+- `movies` -> `/data/movies`
+- `tv` -> `/data/tv`
+- `music` -> `/data/music`
+
+This keeps import/move operations deterministic.
+
+---
+
+## 📺 Jellyfin Configuration
+
+Jellyfin is my playback and metadata front-end.
+
+### Why Jellyfin?
+
+- Fully open-source
+- Hardware acceleration support
+- Clean multi-user setup
+- Great plugin ecosystem without lock-in
+
+### Compose baseline
+
+```yaml
+jellyfin:
+  image: jellyfin/jellyfin:latest
+  container_name: jellyfin
+  restart: unless-stopped
+  volumes:
+    - ./jellyfin/config:/config
+    - ./jellyfin/cache:/cache
+    - /srv/media/movies:/data/movies:ro
+    - /srv/media/tv:/data/tv:ro
+    - /srv/media/music:/data/music:ro
+  ports:
+    - "8096:8096"
+  networks:
+    - media_net
+```
+
+### Practical tuning I use
+
+- Library scans scheduled (not constant)
+- Conservative transcoding defaults
+- Metadata language and image providers aligned for consistency
+
+---
+
+## 🔎 Sonarr + Radarr + Lidarr
+
+These services run the acquisition and organization loop.
+
+### Sonarr (TV)
+
+- Profiles per show type (anime / standard)
+- Root folder: `/data/tv`
+- Imports from `/data/downloads/complete`
+
+### Radarr (Movies)
+
+- Separate quality profiles for archive vs high-priority titles
+- Root folder: `/data/movies`
+- Custom formats kept simple to reduce bad matches
+
+### Lidarr (Music)
+
+- Root folder: `/data/music`
+- Automation enabled but with stricter matching to avoid noisy releases
+
+---
+
+## 🔄 Automation Flow
+
+My end-to-end flow is:
+
+1. Add item in Sonarr/Radarr/Lidarr
+2. Grab request sent to downloader
+3. Downloader places files into `downloads/complete`
+4. Arr app imports + renames + moves into final library folder
+5. Jellyfin scans and exposes content
+
+If paths are aligned, this is mostly hands-off.
+
+---
+
+## 🛡️ Reliability & Operations
+
+A few operational practices make this stable long-term:
+
+- `restart: unless-stopped` on all media services
+- Health checks and uptime alerts from monitoring stack
+- Staggered updates (don’t update all services at once)
+- Backup of app configs and DB files before upgrades
+
+For maintenance windows, I update automation services first, then Jellyfin after validation.
+
+---
+
+## 📊 Monitoring Signals I Watch
+
+From my monitoring layer, I care most about:
+
+- Disk usage growth trend (especially downloads)
+- IO wait spikes during imports
+- Container restarts/failures
+- Stream/transcode load during peak usage
+
+These signals tell me when to clean up, rebalance storage, or adjust quality profiles.
+
+---
+
+## ⚠️ Common Pitfalls I Avoid
+
+- Different host/container path mapping per service
+- Aggressive quality profiles that cause constant upgrades
+- Overly broad indexer filters
+- Running too many major updates in one maintenance cycle
+
+Simple configurations outperform clever-but-fragile setups.
+
+---
+
+## ✅ Outcomes So Far
+
+This media stack gives me:
+
+- Reliable automated acquisition and organization
+- Clean libraries in Jellyfin with minimal manual work
+- Predictable operations and easier troubleshooting
+- A setup that scales with my broader home lab architecture
+
+---
+
+## 🚀 What’s Next
+
+In **Part 5**, I’ll cover the productivity layer:
+
+- ☁️ Nextcloud
+- 🔐 Vaultwarden
+- ⏱️ Uptime Kuma
+- Daily workflow integrations between personal cloud and development services
+
+---
+
+👈 [Part 3 ← Infrastructure Layer](./docker-series-part3)  
+👉 [Part 5 → Productivity Layer (Coming Soon)](#)
+
+**— Jayakrishna**

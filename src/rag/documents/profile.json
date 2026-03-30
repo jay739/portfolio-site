@@ -1,0 +1,11 @@
+{
+  "id": "profile",
+  "title": "Jayakrishna Konda - Professional Profile",
+  "content": "Jayakrishna Konda is a Data Scientist, ML Engineer, and GenAI Engineer with 4+ years of experience building production ML systems.\n\nProfessional Background:\n- Currently working as Data Scientist at Enigma Technologies (GenAI & ML role)\n- Previously ML Programming Intern at R/SEEK — UMBC\n- Machine Learning Engineer at Cognizant (Jan 2020 – Jul 2023)\n- Software Engineering Intern at Infosys\n- Master's in Data Science from UMBC (GPA: 3.91/4.0)\n- Builder and operator of \"Batcave\" — a 56-container hybrid-cloud AI platform\n\nCore Competencies:\n- GenAI/LLM: RAG pipelines, LangChain, LangGraph, LlamaIndex, Ollama, Fine-tuning (LoRA/QLoRA)\n- ML/AI: PyTorch, TensorFlow, NLP, Computer Vision (YOLOv8), Edge AI (TensorFlow Lite, ESP32)\n- Data Engineering: PySpark, Apache Spark, ETL Pipelines, Feature Engineering\n- Databases: PostgreSQL, MariaDB, Redis, SQLite, FAISS\n- MLOps: MLflow, Weights & Biases, CI/CD (GitHub Actions, Jenkins), Model Versioning\n- Infrastructure: Docker (56 containers), Kubernetes, AWS (SageMaker, Lambda, S3), Oracle Cloud\n- Security: Authentik SSO/2FA, Tailscale VPN, Zero-trust architecture, CWE/CVE scanning\n- Monitoring: Netdata, Telegram alerting\n- Full-stack: Next.js, TypeScript, FastAPI, Node.js, React\n\nNotable Achievements:\n- Deployed 56-container \"Batcave\" AI infrastructure with 99.9% uptime\n- Reduced ML inference latency from 450ms to under 90ms\n- Processed 10,000+ audio files with 95% deduplication accuracy\n- Built RAG-powered systems with 98% OCR accuracy\n- Automated security audit identifying 27 vulnerability exposures\n- Reduced manual review effort by 30-35% through ML automation",
+  "metadata": {
+    "source": "portfolio",
+    "type": "profile",
+    "date": "2025-03-11",
+    "tags": ["profile", "background", "skills", "experience", "batcave", "genai", "mlops"]
+  }
+} 
