@@ -24,10 +24,10 @@ Hi! I'm **Jayakrishna Konda**, a passionate full-stack developer, AI enthusiast,
 
 ## 🌐 Online Presence
 
-- **Website:** [jay739.dev](https://jay739.dev)
-- **GitHub:** [github.com/jay739](https://github.com/jay739)
-- **LinkedIn:** [linkedin.com/in/jay739](https://linkedin.com/in/jay739)
-- **Blog:** [jay739.dev/blog](https://jay739.dev/blog)
+- **Website:** [Portfolio](https://jay739.dev)
+- **GitHub:** [Github](https://github.com/jay739)
+- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/jaya-krishna-konda/))
+- **Blog:** [Blog Page](https://jay739.dev/blog)
 
 ## 🚀 What I Do
 
