@@ -42,11 +42,13 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 # Install wget for health check and runtime dependencies for sharp
 RUN apk add --no-cache wget vips
 
+
 # Copy necessary files from builder
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/src/rag ./src/rag
+COPY --from=builder /app/content/blog ./content/blog
 
 # Set permissions for the non-root user
 RUN chown -R appuser:appgroup /app
