@@ -122,15 +122,18 @@ jobs:
             type=raw,value=latest
             type=sha,prefix={{branch}}-
 
-      - name: 🚀 Build and push Docker image
+      - name: 🚀 Build and push Docker image (Multi-Architecture)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64  # Multi-architecture support
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           no-cache: ${{ github.event.inputs.clear_cache == 'true' }}
+          cache-from: type=gha  # Use GitHub Actions cache
+          cache-to: type=gha,mode=max  # Save cache for faster builds
           build-args: |
             NODE_OPTIONS=--max-old-space-size=4096
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
