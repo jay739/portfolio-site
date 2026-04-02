@@ -76,7 +76,7 @@ jobs:
       (needs.sync-from-vps.result == 'success' || needs.sync-from-vps.result == 'skipped') &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45  # Increased for multi-architecture builds
 
     steps:
       - name: 📦 Checkout code
@@ -138,7 +138,7 @@ jobs:
             NODE_OPTIONS=--max-old-space-size=4096
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
           provenance: false
-        timeout-minutes: 25
+        timeout-minutes: 40  # Multi-arch builds take longer
 
   # Explicit if: sync-from-vps is often "skipped", which makes default success() false and would skip this job.
   deploy:
