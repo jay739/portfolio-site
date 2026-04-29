@@ -1,0 +1,11 @@
+{
+  "id": "chip_career_turning_points_facts_2026",
+  "title": "Career Turning Points - Factual Source",
+  "content": "Turning point patterns documented in source guides:\n- Early transition trigger: analytics exploration during software engineering internship revealed stronger motivation for data-driven insight work.\n- Production ML maturation: initial model-performance setbacks during early enterprise projects reinforced data quality and feature engineering discipline.\n- Education pivot: pursuing graduate data science training addressed theoretical and research-method gaps identified during industry work.\n- Applied innovation pivot: edge AI internship broadened practical ML deployment understanding beyond cloud-only systems.\n- Current specialization pivot: movement into GenAI and RAG production systems with stronger emphasis on reliability and hallucination control.\n\nCore lessons repeatedly emphasized:\n- Data quality and problem framing often dominate model choice in real-world outcomes.\n- Engineering rigor, validation, and monitoring are central to production ML success.\n- Career progression is driven by combining systems thinking with measurable business impact.",
+  "metadata": {
+    "source": "career-source career overview + internships",
+    "type": "profile",
+    "date": "2026-04-03",
+    "tags": ["chip", "career", "turning-points", "lessons", "growth", "journey", "milestones"]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_enigma_semantic_search_api_2026",
+  "title": "STAR - Enigma Hybrid Semantic Search API",
+  "content": "Project: Enigma Hybrid Semantic Search API for Business Discovery\n\nSituation:\n- Teams needed natural-language business discovery instead of rigid query-only workflows.\n- Pure structured search missed fuzzy semantic intent, while pure semantic search lacked hard business constraints.\n\nTask:\n- Deliver a practical retrieval system combining constraint-based filtering with semantic relevance.\n\nAction:\n- Built a hybrid design using structured filter extraction, vector retrieval, and reranking.\n- Parsed user intent into hard constraints and semantic query components.\n- Combined SQL-style filtering with vector similarity retrieval for precision and breadth.\n- Added reranking to improve final result relevance for user-facing responses.\n\nResult:\n- Source-reported higher usability and faster business discovery workflows for internal teams.\n- Demonstrated a scalable retrieval pattern for operational query systems.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "enigma", "semantic-search", "hybrid-retrieval", "api", "reranking"]
+  }
+}

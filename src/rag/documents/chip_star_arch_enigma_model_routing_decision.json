@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_arch_enigma_model_routing_decision_2026",
+  "title": "STAR Architecture Decision - Enigma Model Routing",
+  "content": "Architecture Decision: Complexity-aware model routing for LLM workloads\n\nSituation:\n- Uniform use of premium models drove cost growth beyond sustainable levels.\n- Some tasks did not need the highest-cost model tier to meet quality targets.\n\nTask:\n- Choose an inference architecture that optimizes cost while maintaining acceptable quality and latency.\n\nAction:\n- Designed complexity-aware model routing policy for request classes.\n- Introduced caching to avoid redundant expensive inference calls.\n- Allocated premium models to high-complexity tasks and lower-cost models to simpler tasks.\n- Monitored quality drift and adjusted routing thresholds iteratively.\n\nResult:\n- Source material reports strong cost reduction with maintained quality expectations.\n- Decision established a durable architecture pattern for cost-efficient GenAI scale.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "architecture",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "architecture", "decision", "model-routing", "cost", "llm", "enigma"]
+  }
+}

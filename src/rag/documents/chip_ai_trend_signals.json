@@ -1,0 +1,11 @@
+{
+  "id": "chip_ai_trend_signals_2026",
+  "title": "AI Trend Signals - Relevance to Jayakrishna's Current Stack",
+  "content": "Signal 1 - Applied RAG over static prompting: Jayakrishna prioritizes retrieval-augmented generation using LangChain, LangGraph, LlamaIndex, FAISS, and semantic search for document intelligence workflows. Practical implementation is visible in his production RAG pipelines and PDF-to-podcast system.\n\nSignal 2 - Local/private LLM inference for cost and control: He runs local inference with Ollama and models such as LLaMA, Mistral, and Phi. This trend maps to his Batcave architecture where he operates a private AI platform with hybrid-cloud caching and low-latency retrieval goals.\n\nSignal 3 - Evaluation-first GenAI development: He uses evaluation methods like BLEU, ROUGE, BERTScore, A/B testing, and human-in-the-loop feedback. This indicates a tooling choice toward measurable model quality instead of prompt-only iteration.\n\nSignal 4 - MLOps and observability convergence: His delivery stack combines MLflow/model versioning, CI/CD (GitHub Actions and Jenkins), drift detection, and Netdata/Telegram alerting. This trend signal is relevant because his work repeatedly emphasizes production reliability and monitoring, not only model training.\n\nSignal 5 - CPU-efficient, containerized AI operations: He built and operates a 56-container hybrid-cloud platform running 36+ services across 177GB of production data. This aligns with current industry movement toward practical, cost-aware infrastructure for continuous AI workloads.",
+  "metadata": {
+    "source": "profile+resume synthesis",
+    "type": "profile",
+    "date": "2026-04-03",
+    "tags": ["chip", "ai-news", "trend-signals", "research-pulse", "genai", "rag", "llm", "tooling"]
+  }
+}

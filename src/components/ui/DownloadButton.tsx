@@ -22,9 +22,9 @@ export default function DownloadButton({
   const baseClasses = "inline-flex items-center font-semibold rounded-lg transition-all duration-200 hover:shadow-lg hover:scale-105";
   
   const variantClasses = {
-    primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-lg",
-    secondary: "bg-gray-600 hover:bg-gray-700 text-white shadow-lg",
-    outline: "bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+    primary: "bg-amber-500 hover:bg-amber-400 text-amber-950 shadow-lg shadow-amber-900/30",
+    secondary: "bg-slate-700 hover:bg-slate-600 text-slate-100 shadow-lg",
+    outline: "bg-transparent border-2 border-amber-500 text-amber-400 hover:bg-amber-500 hover:text-amber-950"
   };
   
   const sizeClasses = {

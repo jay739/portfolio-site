@@ -1,5 +1,53 @@
+.git
+.gitignore
+
+# Secrets and local credentials
+.env
+.env.*
+!.env.example
+service-account.json
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Local/editor metadata
+.vscode
+.idea
+.DS_Store
+.claude
+
+# Dependencies and build output
 node_modules
 .next
-Dockerfile
+out
+build
+coverage
+.nyc_output
+playwright-report
+test-results
+*.tsbuildinfo
+.swc
+npm-cache
+.npm
+
+# Logs
+logs
 *.log
-.git
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Docker/runtime local state
+docker-compose.override.yml
+gallery-data
+
+# VCS / CI / docs not needed in image build context
+.github
+README.md
+
+# Test files not needed for app image build
+e2e
+tests

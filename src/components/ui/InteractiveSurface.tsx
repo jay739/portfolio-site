@@ -11,6 +11,16 @@ interface InteractiveSurfaceProps {
 export default function InteractiveSurface({ children, className = '' }: InteractiveSurfaceProps) {
   const [glow, setGlow] = useState({ x: 50, y: 50 });
   const prefersReducedMotion = useReducedMotion();
+  const hoverMotion = prefersReducedMotion
+    ? undefined
+    : {
+        y: -4,
+        scale: 1.006,
+        transition: {
+          duration: 0.16,
+          ease: [0.22, 1, 0.36, 1],
+        },
+      };
 
   return (
     <motion.div
@@ -22,13 +32,16 @@ export default function InteractiveSurface({ children, className = '' }: Interac
         const y = ((event.clientY - bounds.top) / bounds.height) * 100;
         setGlow({ x, y });
       }}
-      whileHover={prefersReducedMotion ? undefined : { y: -5, scale: 1.008 }}
-      transition={{ duration: 0.2 }}
+      whileHover={hoverMotion}
+      transition={{
+        duration: 0.28,
+        ease: [0.22, 1, 0.36, 1],
+      }}
       style={
         {
           '--surface-glow-x': `${glow.x}%`,
           '--surface-glow-y': `${glow.y}%`,
-          boxShadow: prefersReducedMotion ? undefined : '0 20px 48px rgba(2,6,23,0.38)',
+          boxShadow: prefersReducedMotion ? undefined : '0 18px 42px rgba(0,0,0,0.34)',
         } as CSSProperties
       }
     >

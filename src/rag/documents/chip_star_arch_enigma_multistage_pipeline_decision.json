@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_arch_enigma_multistage_pipeline_decision_2026",
+  "title": "STAR Architecture Decision - Enigma Multi-Stage Pipeline",
+  "content": "Architecture Decision: Multi-stage pipeline with confidence routing\n\nSituation:\n- Direct single-pass extraction produced variable output quality across document types.\n- Operations required controllable confidence handling for high-impact decisions.\n\nTask:\n- Design an architecture that improves quality control and supports fallback or human-review pathways.\n\nAction:\n- Selected a multi-stage architecture: preprocessing, retrieval-aware extraction, and confidence-based routing.\n- Added validation and gating between stages to prevent low-quality propagation.\n- Built explicit fallback paths for low-confidence outputs.\n- Tuned stage boundaries and interfaces for reliability and observability.\n\nResult:\n- Source context reports better operational trust and reduced manual burden in document workflows.\n- Decision created a scalable template for reliability-oriented GenAI pipelines.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "architecture",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "architecture", "decision", "enigma", "multistage", "confidence-routing", "rag"]
+  }
+}

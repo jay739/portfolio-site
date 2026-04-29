@@ -1,0 +1,11 @@
+{
+  "id": "chip_projects_case_studies_2026",
+  "title": "Project Case Studies - Production Focus Highlights",
+  "content": "Case Study 1 - Batcave AI Platform:\nProblem: Need a private, scalable, always-on AI environment for inference, retrieval, automation, and monitoring.\nExecution: Built and operated a 56-container hybrid-cloud stack with multi-database architecture, local LLM inference, and observability tooling.\nOutcome: 36+ services running over 177GB of production data with reliability and operational visibility emphasis.\n\nCase Study 2 - Enterprise NLP and Document Intelligence:\nProblem: High manual effort and slow review workflows in legal/compliance-oriented text processing.\nExecution: Delivered production NLP pipelines for extraction, semantic search, and classification over large-scale records.\nOutcome: Approximately 35% reduction in manual review effort and measurable SLA-aligned throughput gains.\n\nCase Study 3 - Production ML Platform Optimization:\nProblem: Inference latency and cloud costs constrained scale and responsiveness.\nExecution: Built MLOps-enabled pipelines and optimized inference architecture with event-driven cloud services and model-serving improvements.\nOutcome: Latency dropped from ~450ms to <90ms in key paths; p99 improved and infrastructure cost reduced in production settings.",
+  "metadata": {
+    "source": "profile+resume synthesis",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "projects", "case-studies", "interactive-cards", "production-focus", "outcomes"]
+  }
+}

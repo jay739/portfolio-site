@@ -1,5 +1,5 @@
 const summary = {
-  text: "Full Stack Developer & DevOps Engineer with a passion for AI/ML, automation, and home server solutions. Graduate student in Data Science at UMBC (3.9 GPA). Experienced in building scalable AI systems, modern web apps, and self-hosted infrastructure. Open-source contributor and advocate for automation, cloud-native, and privacy-first technologies."
+  text: "ML/AI Engineer and Data Scientist with 5 years delivering production ML systems across NLP, computer vision, and GenAI. M.S. Data Science, UMBC (GPA 3.91). Builder and sole operator of Batcave — a 56-container private AI platform running LLMs, RAG pipelines, and ML inference services 24/7. Expert in PyTorch, LangChain, AWS, Docker, and end-to-end MLOps."
 };
 
 const volunteerExperience = {

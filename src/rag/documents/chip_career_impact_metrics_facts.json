@@ -1,0 +1,11 @@
+{
+  "id": "chip_career_impact_metrics_facts_2026",
+  "title": "Career Impact Metrics - Consolidated Factual Source",
+  "content": "Impact metrics repeatedly reported across source guides:\n- Enigma: review-efficiency and processing improvements in GenAI/RAG document workflows.\n- Cognizant: material reductions in manual legal and document review effort through NLP automation.\n- Internship and project phases: measurable model quality and operational improvements in applied AI contexts.\n\nMetric categories present in source material:\n- Efficiency: reductions in manual review and turnaround times.\n- Quality: improvements in classification or extraction performance for domain tasks.\n- Reliability: uptime-oriented production goals and deployment stability practices.\n- Cost: lower inference or processing spend through architecture and routing optimization.\n\nHow these metrics are used in narrative responses:\n- Tie technical design decisions to business impact outcomes.\n- Explain progression from implementation to ownership through measurable delivery.\n- Ground claims in operational contexts rather than abstract skill statements.",
+  "metadata": {
+    "source": "career-source consolidated career docs",
+    "type": "impact",
+    "date": "2026-04-03",
+    "tags": ["chip", "impact", "metrics", "outcomes", "efficiency", "quality", "cost", "reliability"]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "chip_research_to_production_playbook_2026",
+  "title": "Research to Production Playbook - Jayakrishna Konda",
+  "content": "How new research gets converted into production use-cases:\n\nStep 1 - Identify applicable method: He selects methods that are directly mappable to business workflows, especially in NLP, document intelligence, and retrieval-heavy tasks.\n\nStep 2 - Build with orchestration tooling: He uses LangChain/LangGraph/LlamaIndex and FAISS-based retrieval design to create multi-step, tool-enabled pipelines instead of single-prompt prototypes.\n\nStep 3 - Validate with measurable evaluation: He applies metrics and evaluation frameworks (BLEU/ROUGE/BERTScore, A/B tests, human-in-the-loop checks, model validation routines) to avoid subjective quality claims.\n\nStep 4 - Productionize with MLOps controls: He deploys with Docker/Kubernetes and CI/CD, integrates model/version governance (MLflow), and adds monitoring/drift checks and alerting.\n\nStep 5 - Optimize for real operations: He iterates on latency, throughput, and cost (for example, reducing inference latency and lowering cloud spend), and hardens reliability in a multi-service production environment.\n\nRepresentative outcomes from this playbook include reduced review effort, faster inference, and stable high-availability operations in both enterprise and self-hosted stacks.",
+  "metadata": {
+    "source": "profile+resume synthesis",
+    "type": "profile",
+    "date": "2026-04-03",
+    "tags": ["chip", "research-pulse", "implementation", "production", "playbook", "mlops", "deployment"]
+  }
+}

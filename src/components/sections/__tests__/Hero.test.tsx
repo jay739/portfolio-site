@@ -1,33 +1,12 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import Hero from '../Hero';
 
-// Mock next/dynamic
-jest.mock('next/dynamic', () => () => {
-  const DynamicComponent = () => (
-    <a href="https://homarr.jay739.dev" aria-label="Access Home Server">
-      🏠 Access Home Server
-    </a>
-  );
-  DynamicComponent.displayName = 'ConfettiButton';
-  return DynamicComponent;
-});
-
 // Mock useReducedMotion hook
-jest.mock('@/lib/hooks/useReducedMotion', () => ({
+jest.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: jest.fn(),
 }));
 
-// Mock framer-motion
-jest.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: any) => {
-      const { initial, ...validProps } = props;
-      return <div {...validProps}>{children}</div>;
-    },
-  },
-  useReducedMotion: jest.fn(),
-}));
 
 describe('Hero', () => {
   const mockDate = new Date('2024-01-01T12:00:00');
@@ -42,6 +21,9 @@ describe('Hero', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
+
+    // Clear sessionStorage so visitor cache from previous tests doesn't bleed through
+    sessionStorage.clear();
     
     // Mock window.fetch
     global.fetch = jest.fn(() =>
@@ -83,11 +65,7 @@ describe('Hero', () => {
     Element.prototype.scrollIntoView = mockScrollIntoView;
 
     // Mock getElementById
-    document.getElementById = jest.fn((id) => ({
-      offsetTop: 100,
-      offsetHeight: 100,
-      scrollIntoView: mockScrollIntoView,
-    }));
+    document.getElementById = jest.fn(() => null) as typeof document.getElementById;
   });
 
   afterEach(() => {
@@ -102,7 +80,9 @@ describe('Hero', () => {
     
     // Check for main content
     expect(screen.getByRole('heading', { name: /jayakrishna konda/i })).toBeInTheDocument();
-    expect(screen.getByText(/full stack developer.*devops engineer/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/ML\/AI Engineer building production RAG pipelines, LLM systems/i)
+    ).toBeInTheDocument();
   });
 
   it('renders social links', async () => {
@@ -121,9 +101,8 @@ describe('Hero', () => {
       render(<Hero />);
     });
 
-    // Check for main action buttons
-    expect(screen.getByRole('link', { name: /access home server/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /view resume/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /go to contact page/i })).toBeInTheDocument();
   });
 
   it('fetches and displays visitor count', async () => {
@@ -132,31 +111,25 @@ describe('Hero', () => {
     });
     
     // Wait for the visitor count message to be fetched and displayed above the name
-    expect(await screen.findByText(/✨ You're the 10th visitor! ✨/)).toBeInTheDocument();
+    expect(await screen.findByText(/You're the 10th visitor!/)).toBeInTheDocument();
   });
 
-  it('displays current time', async () => {
-    await act(async () => {
-      render(<Hero />);
-    });
-    
-    // Check if time is displayed
-    expect(screen.getByText(mockDateString)).toBeInTheDocument();
-  });
-
-  it('scrolls to contact section when contact button is clicked', async () => {
+  it('renders typewriter role display', async () => {
     await act(async () => {
       render(<Hero />);
     });
 
-    const contactButton = screen.getByRole('button', { name: /scroll to contact section/i });
-    expect(contactButton).toBeInTheDocument();
+    // The typewriter role area has role="status" and aria-label="Current role"
+    expect(screen.getByRole('status', { name: /current role/i })).toBeInTheDocument();
+  });
 
+  it('contact link points to /contact page', async () => {
     await act(async () => {
-      fireEvent.click(contactButton);
+      render(<Hero />);
     });
 
-    expect(mockScrollIntoView).toHaveBeenCalled();
+    const contactLink = screen.getByRole('link', { name: /go to contact page/i });
+    expect(contactLink).toHaveAttribute('href', '/contact');
   });
 
   it('handles fetch error gracefully', async () => {
@@ -166,9 +139,9 @@ describe('Hero', () => {
     await act(async () => {
       render(<Hero />);
     });
-    
-    // Should show welcome message when fetch fails
-    expect(await screen.findByText(/✨ Welcome! ✨/)).toBeInTheDocument();
+
+    // On error the component sets 'Welcome visitor!' as the fallback message
+    expect(await screen.findByText(/Welcome visitor!/)).toBeInTheDocument();
   });
 
   it('handles reduced motion preference', async () => {

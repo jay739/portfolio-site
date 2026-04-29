@@ -1,190 +1,185 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RAGService } from '@/lib/rag/service';
-import { headers } from 'next/headers';
+import { detectIntent, INTENT_CONFIG, docPrefixesForIntent, DOC_INTENT_TAGS } from '@/lib/rag/intents';
+import { formatByIntent } from '@/lib/rag/formatters';
+import { getClientIpFromHeaders, rateLimit } from '@/lib/rate-limit';
 
-// Initialize RAG service
+// ─── Singleton ────────────────────────────────────────────────────────────────
 const ragService = new RAGService();
 
-const GREETING_REGEX = /^(hi|hello|hey|yo|hola|namaste)[!. ]*$/i;
-const MAX_CONTEXT_DOCS = 2;
-const MAX_CONTEXT_CHARS_PER_DOC = 1800;
-const MIN_IN_SCOPE_CONTEXT_CHARS = 60;
-const MIN_RELEVANCE_SCORE = 0.12;
-const OOS_PREFIX =
-  'I am confined to answer details about Jayakrishna; such questions are out of my scope of answering.';
-const QUERY_STOP_WORDS = new Set([
-  'the', 'a', 'an', 'and', 'or', 'to', 'of', 'in', 'on', 'for', 'with', 'at',
-  'by', 'is', 'are', 'was', 'were', 'be', 'been', 'can', 'could', 'should',
-  'would', 'do', 'does', 'did', 'what', 'which', 'who', 'whom', 'where', 'when',
-  'why', 'how', 'about', 'from', 'that', 'this', 'it', 'as', 'if', 'i', 'you',
-  'we', 'they', 'he', 'she', 'my', 'your', 'our', 'their', 'hi', 'hello', 'hey'
-]);
+const chatLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500 });
 
-function buildGoogleSearchLink(query: string): string {
-  const base = 'https://www.google.com/search?q=';
-  return `${base}${encodeURIComponent(query.trim())}`;
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
+const GREETING_REGEX = /^(hi|hello|hey|yo|hola|namaste)[!. ]*$/i;
+const MAX_CONTEXT_CHARS_PER_DOC = 1800;
+
+// ─── Out-of-scope reply ───────────────────────────────────────────────────────
 
 function outOfScopeReply(query: string): string {
-  return `${OOS_PREFIX} But here's the Google search results of what you asked for:\n${buildGoogleSearchLink(query)}`;
+  const OOS = 'I am confined to answer details about Jayakrishna; such questions are out of my scope of answering.';
+  const link = `https://www.google.com/search?q=${encodeURIComponent(query.trim())}`;
+  return `${OOS} But here's the Google search results of what you asked for:\n${link}`;
 }
 
-function buildContextText(rawContext: string[]): string {
-  return rawContext
-    .slice(0, MAX_CONTEXT_DOCS)
-    .map((content) => content.replace(/\s+/g, ' ').trim().slice(0, MAX_CONTEXT_CHARS_PER_DOC))
+// ─── Scope gate ───────────────────────────────────────────────────────────────
+
+function isLikelyInScope(query: string): boolean {
+  const q = query.toLowerCase();
+  const profileSignals =
+    /(jayakrishna|konda|profile|resume|experience|project|skills|impact|timeline|career|milestones|outcomes|metrics|genai|nlp|devops|home.?server|homeserver|ai tools|blog|batcave|enigma|cognizant|infosys|umbc|r\/seek|self.host|docker|container|infrastructure|server setup|home.?lab|python|machine learning|deep learning|framework|cloud|aws|gcp|azure|education|university|degree|graduate|research|publication|paper|tool|model|deployment|pipeline|certification|\bai\b|\bml\b)/i.test(
+      q
+    );
+  const leadershipSignals =
+    /(roles?|responsibilit|technical leadership|leadership|mentoring|mentor|career progression|role progression|promotion|ownership)/i.test(
+      q
+    );
+  const pronounReference = /\b(he|his|him)\b/i.test(q);
+  const profileQuestionSignals =
+    /(career|role|experience|project|portfolio|resume|skills|stack|deployment|production|batcave|timeline|education|impact|leadership|\bml\b|\bai\b|genai|rag|infra|infrastructure)/i.test(
+      q
+    );
+
+  // Pronoun-only prompts like "Can he cook pasta?" should stay out-of-scope.
+  const pronounScoped = pronounReference && profileQuestionSignals;
+
+  return profileSignals || leadershipSignals || pronounScoped;
+}
+
+// ─── Context builder ──────────────────────────────────────────────────────────
+
+function buildContextText(rawContent: string[], maxDocs: number): string {
+  return rawContent
+    .slice(0, maxDocs)
+    .map((content) =>
+      content
+        .split('\n')
+        .map((line) => line.replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
+        .join('\n')
+        .slice(0, MAX_CONTEXT_CHARS_PER_DOC)
+    )
     .join('\n\n');
 }
 
-function extractiveAnswer(query: string, contextText: string): string | null {
-  const terms = query
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((term) => term.length >= 3 && !QUERY_STOP_WORDS.has(term));
+// ─── Query enrichment (intent-aware) ─────────────────────────────────────────
+//
+// Adds signal terms to improve keyword recall for each intent family.
+// Does NOT affect semantic scoring (Phase 2) — embeddings use the raw query.
 
-  if (terms.length === 0) return null;
+function enrichQuery(query: string, intent: string, chip?: string): string {
+  const lower    = query.toLowerCase();
+  const chipLower = (chip ?? '').toLowerCase();
+  const base     = 'Jayakrishna Konda profile resume projects skills experience';
 
-  const sentences = contextText
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.replace(/\s+/g, ' ').trim())
-    .filter((s) => s.length >= 35 && s.length <= 260);
+  const intentTerms: Record<string, string> = {
+    career:          'career timeline role progression infosys cognizant r/seek umbc enigma technologies milestones transition',
+    projects:        'STAR situation task action result project case study pipeline system built implemented production delivery',
+    infra:           'homeserver infrastructure devops monitoring containerized services reliability batcave docker',
+    skills:          'technical stack skills nlp ml genai rag tools python pytorch aws deployment expertise',
+    'ai-research':   'ai ml nlp genai rag systems model workflows trends research lab vector embedding semantic',
+    'ux-blog':       'interactive ux blog article guide longform accessibility read aloud chip prompt feedback',
+    'general-profile': 'profile summary overview data scientist engineer',
+  };
 
-  if (sentences.length === 0) return null;
+  const additions = [base, intentTerms[intent] ?? ''];
 
-  const ranked = sentences
-    .map((sentence) => {
-      const lower = sentence.toLowerCase();
-      const score = terms.reduce((acc, term) => (lower.includes(term) ? acc + 1 : acc), 0);
-      return { sentence, score };
-    })
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 2);
-
-  if (ranked.length === 0) return null;
-  return ranked.map((item) => item.sentence).join(' ');
-}
-
-function contextualFallbackAnswer(query: string, contextText: string): string {
-  const extractive = extractiveAnswer(query, contextText);
-  if (extractive) return extractive;
-
-  const sentences = contextText
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.replace(/\s+/g, ' ').trim())
-    .filter((s) => s.length >= 45 && s.length <= 240)
-    .slice(0, 2);
-
-  if (sentences.length > 0) {
-    return sentences.join(' ');
+  // Sub-intent enrichment for projects
+  if (intent === 'projects') {
+    if (chipLower.includes('incident') || /(incident|debug)/i.test(lower))
+      additions.push('incident debugging root cause mitigation fallback validation latency cost spike');
+    if (chipLower.includes('architecture') || /(architecture|decision|tradeoff)/i.test(lower))
+      additions.push('architecture decision tradeoff hybrid retrieval multistage pipeline model routing');
   }
 
-  return outOfScopeReply(query);
+  // General-profile sub-intent enrichment
+  if (intent === 'general-profile') {
+    if (/(education|university|degree|graduate|gpa)/i.test(lower))
+      additions.push('UMBC university masters data science degree graduate GPA coursework academic');
+    if (/(cloud|aws|gcp|azure)/i.test(lower))
+      additions.push('AWS cloud platform deployment kubernetes docker production pipeline');
+    if (/(compan|employer|work.?at|worked.?at)/i.test(lower))
+      additions.push('Infosys Cognizant Enigma UMBC R/SEEK career roles transitions');
+  }
+
+  return `${query} ${additions.filter(Boolean).join(' ')}`.trim();
 }
 
-function isLikelyProfileScopedQuery(query: string): boolean {
-  return /(jayakrishna|konda|profile|resume|experience|project|skills|impact|timeline|career|milestones|outcomes|metrics|genai|nlp|devops|homeserver|ai tools|blog)/i.test(
-    query
+// ─── Retrieval ────────────────────────────────────────────────────────────────
+
+async function retrieveContext(
+  message: string,
+  intent: string,
+  chip?: string
+): Promise<{ contextText: string; bestScore: number }> {
+  const config  = INTENT_CONFIG[intent as keyof typeof INTENT_CONFIG] ?? INTENT_CONFIG['general-profile'];
+  const enriched = enrichQuery(message, intent, chip);
+
+  // Hybrid intent-aware search + broad keyword search in parallel.
+  // Results are merged by doc-ID, keeping the highest score per document.
+  const { primary: primaryPrefixes, supplemental: supplementalPrefixes } = docPrefixesForIntent(
+    intent as Parameters<typeof ragService.searchByIntent>[1]
+  );
+
+  const [intentDocs, keywordDocs] = await Promise.all([
+    ragService.searchByIntent(enriched, intent as Parameters<typeof ragService.searchByIntent>[1]),
+    ragService.searchDocuments(enriched),
+  ]);
+
+  // When allowSupplemental is false, strip keyword docs whose ID prefix maps to
+  // a different intent's primary set — prevents cross-intent bleed (e.g. homeserver
+  // "signals" doc leaking into ai-research "trend signals" results).
+  const allowSupplemental = config.fallback.allowSupplemental;
+  const filteredKeywordDocs = allowSupplemental
+    ? keywordDocs
+    : keywordDocs.filter((item) => {
+        const id = (item.document.id || '').toLowerCase();
+        const isIntentAligned = primaryPrefixes.some((p) => id.startsWith(p));
+        const isSupplemental  = supplementalPrefixes.some((p) => id.startsWith(p));
+        // Also allow docs with no known intent mapping (not in DOC_INTENT_TAGS at all)
+        const hasKnownIntent  = Object.keys(DOC_INTENT_TAGS).some((p) => id.startsWith(p.toLowerCase()));
+        return isIntentAligned || isSupplemental || !hasKnownIntent;
+      });
+
+  const merged = new Map<string, (typeof intentDocs)[number]>();
+  for (const item of [...intentDocs, ...filteredKeywordDocs]) {
+    const id   = item.document.id || item.document.title;
+    const prev = merged.get(id);
+    if (!prev || item.score > prev.score) merged.set(id, item);
+  }
+
+  const sorted = Array.from(merged.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, config.topK);
+
+  const bestScore  = sorted[0]?.score ?? 0;
+  const contextText = buildContextText(
+    sorted.map((r) => r.document.content),
+    config.topK
+  );
+  return { contextText, bestScore };
+}
+
+// ─── STAR query detection ─────────────────────────────────────────────────────
+
+function isStarQuery(query: string, chip?: string): boolean {
+  const c = (chip ?? '').toLowerCase();
+  return (
+    /(\bstar\b|situation|task|action|result|incident|debugging|architecture decision|tradeoff)/i.test(query) ||
+    c.includes('incident') ||
+    c.includes('architecture')
   );
 }
 
-function enrichQueryForRetrieval(query: string): string {
-  const lower = query.toLowerCase();
-  const additions: string[] = ['Jayakrishna Konda profile resume projects skills experience'];
+// ─── Ollama streaming ─────────────────────────────────────────────────────────
 
-  if (/(journey|timeline|milestone|transition|narrative)/i.test(lower)) {
-    additions.push('career timeline role progression infosys cognizant r/seek umbc enigma technologies');
-  }
-  if (/(impact|outcome|metric|signal|performance)/i.test(lower)) {
-    additions.push('measurable outcomes delivery impact engineering velocity production metrics');
-  }
-  if (/(nlp|genai|llm|ai|ml|rag|tool)/i.test(lower)) {
-    additions.push('ai ml nlp genai rag systems deployment model workflows');
-  }
-  if (/(home|server|infra|ops|devops|monitor|telemetry)/i.test(lower)) {
-    additions.push('homeserver infrastructure devops monitoring containerized services reliability');
-  }
-
-  return `${query} ${additions.join(' ')}`.trim();
-}
-
-async function searchWithExpansion(message: string) {
-  const queries = Array.from(new Set([message, enrichQueryForRetrieval(message)]));
-  let bestContext: Awaited<ReturnType<RAGService['searchDocuments']>> = [];
-
-  for (const q of queries) {
-    const context = await ragService.searchDocuments(q);
-    const bestScore = context[0]?.score ?? 0;
-    if (bestScore > (bestContext[0]?.score ?? 0)) {
-      bestContext = context;
-    }
-  }
-
-  return bestContext;
-}
-
-export async function POST(req: NextRequest) {
-
-  try {
-    // Get request metadata
-    const headersList = headers();
-    const userAgent = headersList.get('user-agent') || undefined;
-    const ip = headersList.get('x-forwarded-for') || 
-               headersList.get('x-real-ip') || 
-               'unknown';
-
-    // Get session ID from cookie or generate new one
-    const sessionId = req.cookies.get('chat_session')?.value || 
-                     crypto.randomUUID();
-
-    // Parse request body
-    const { message, stream } = await req.json();
-    if (!message || typeof message !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid message format' },
-        { status: 400 }
-      );
-    }
-
-    if (GREETING_REGEX.test(message.trim())) {
-      return NextResponse.json(
-        {
-          reply:
-            "Hi! I can answer only questions about Jayakrishna Konda's profile, resume, projects, skills, and related documents.",
-          conversationId: sessionId,
-        },
-        { status: 200 }
-      );
-    }
-
-    // Search for relevant context
-    const context = await searchWithExpansion(message);
-    const contextText = buildContextText(context.map(result => result.document.content));
-    const bestScore = context[0]?.score ?? 0;
-    const likelyInScope = isLikelyProfileScopedQuery(message);
-
-    if (process.env.NODE_ENV !== 'production') {
-      // Keep detailed debug logging only in development.
-      console.log(`DEBUG: Query="${message}", Context found: ${contextText.substring(0, 200)}...`);
-      console.log(`DEBUG: Context length: ${contextText.length}, Number of documents: ${context.length}`);
-    }
-
-    // Keep strict scope for unrelated queries, but be less strict for chip-like in-scope prompts.
-    const hasEnoughContext = contextText && contextText.trim().length >= MIN_IN_SCOPE_CONTEXT_CHARS;
-    const hasGoodScore = bestScore >= MIN_RELEVANCE_SCORE;
-    if (!hasEnoughContext || (!hasGoodScore && !likelyInScope)) {
-      return NextResponse.json({ 
-        reply: outOfScopeReply(message),
-        conversationId: sessionId
-      }, { status: 200 });
-    }
-
-    const prompt = `STRICT INSTRUCTIONS:
+function buildOllamaPrompt(contextText: string, message: string): string {
+  return `STRICT INSTRUCTIONS:
 - You are a profile assistant for Jayakrishna Konda only.
 - You MUST ONLY use information from the DOCUMENT below.
-- NEVER suggest external websites, sources, references, or general web resources.
-- NEVER mention where the answer came from.
-- NEVER use phrases like "the profile states", "the document says", "according to the resume", or "the source mentions".
+- NEVER suggest external websites, sources, or references.
+- NEVER use phrases like "the profile states", "the document says", or "according to the resume".
+- Prefer concrete specifics: technologies, systems, project names, quantities, and outcomes.
+- Give 2-4 concise bullet points when enough detail exists.
 - If the question cannot be answered from the document, answer exactly:
 "I am confined to answer details about Jayakrishna; such questions are out of my scope of answering."
 
@@ -195,130 +190,169 @@ ${contextText}
 QUESTION: ${message}
 
 RESPONSE (using ONLY the document above):`;
+}
 
-    const fastReply = extractiveAnswer(message, contextText);
-    if (fastReply) {
-      return NextResponse.json({ reply: fastReply, conversationId: sessionId }, { status: 200 });
-    }
-
-    // If streaming is requested (default: true)
-    if (stream !== false) {
-      let ollamaRes: Response;
-      try {
-        ollamaRes = await fetch(`${process.env.OLLAMA_ENDPOINT || 'http://localhost:11434'}/api/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: process.env.OLLAMA_MODEL || 'phi3:mini',
-            prompt,
-            stream: true,
-            keep_alive: '15m',
-            options: {
-              temperature: 0.2,
-              num_ctx: 1024,
-              num_predict: 120,
-              top_k: 30,
-              top_p: 0.9
-            }
-          }),
-        });
-      } catch (ollamaError) {
-        return NextResponse.json(
-          {
-            reply: contextualFallbackAnswer(message, contextText),
-            conversationId: sessionId,
-          },
-          { status: 200 }
-        );
-      }
-
-      if (!ollamaRes.ok) {
-        return NextResponse.json(
-          {
-            reply: contextualFallbackAnswer(message, contextText),
-            conversationId: sessionId,
-          },
-          { status: 200 }
-        );
-      }
-
-      if (!ollamaRes.body) {
-        return NextResponse.json(
-          {
-            reply: contextualFallbackAnswer(message, contextText),
-            conversationId: sessionId,
-          },
-          { status: 200 }
-        );
-      }
-
-      // Pipe Ollama's stream to the client
-      return new Response(ollamaRes.body, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/x-ndjson',
-          'Transfer-Encoding': 'chunked',
-          'Cache-Control': 'no-cache',
-        },
-      });
-    }
-
-    // Fallback: non-streaming (legacy)
-    const { reply, conversationId } = await ragService.handleMessage(
-      message,
-      sessionId,
-      { userAgent, ip }
-    );
-    const response = NextResponse.json({ reply, conversationId });
-    response.cookies.set('chat_session', sessionId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 3600, // 1 hour
+async function tryOllamaStream(prompt: string): Promise<Response | null> {
+  const endpoint = process.env.OLLAMA_ENDPOINT ?? 'http://localhost:11434';
+  const model    = process.env.OLLAMA_MODEL    ?? 'gemma2:2b';
+  try {
+    const res = await fetch(`${endpoint}/api/generate`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt,
+        stream: true,
+        options: { temperature: 0.3, top_k: 30, top_p: 0.9, num_ctx: 2048, num_predict: 512 },
+      }),
+      signal: AbortSignal.timeout(parseInt(process.env.OLLAMA_TIMEOUT ?? '30000')),
     });
-    return response;
-  } catch (error) {
-    console.error('Chatbot API error:', error);
-    if (error instanceof Error) {
-      if (error.message.includes('Rate limit exceeded')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 429 }
-        );
-      }
-    }
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return res.ok ? res : null;
+  } catch {
+    return null;
   }
 }
 
-// Optional: Add GET endpoint to retrieve conversation history
-export async function GET(req: NextRequest) {
+// ─── POST handler ─────────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest) {
   try {
-    const sessionId = req.cookies.get('chat_session')?.value;
-    if (!sessionId) {
+    const ip = getClientIpFromHeaders(req.headers);
+    try {
+      await chatLimiter.check(10, `chat:${ip}`);
+    } catch {
+      return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429 });
+    }
+
+    const sessionId   = req.cookies.get('chat_session')?.value || crypto.randomUUID();
+
+    const { message, stream, clientContext } = await req.json();
+    if (!message || typeof message !== 'string') {
+      return NextResponse.json({ error: 'Invalid message format' }, { status: 400 });
+    }
+
+    const trimmed          = message.trim();
+    const chipName         = typeof clientContext?.chip === 'string' ? clientContext.chip : undefined;
+    const isIntroChipPrompt = clientContext?.source === 'intro-chip';
+
+    // ── 1. Greeting shortcut ───────────────────────────────────────────────
+    if (GREETING_REGEX.test(trimmed)) {
       return NextResponse.json(
-        { error: 'No active conversation' },
-        { status: 404 }
+        {
+          reply: INTENT_CONFIG.greeting.fallback.message,
+          conversationId: sessionId,
+        },
+        { status: 200 }
       );
     }
 
-    const conversation = await ragService.getConversation(sessionId);
-    if (!conversation) {
+    // ── 2. Scope gate ──────────────────────────────────────────────────────
+    if (!isIntroChipPrompt && !isLikelyInScope(trimmed)) {
       return NextResponse.json(
-        { error: 'Conversation not found' },
-        { status: 404 }
+        { reply: outOfScopeReply(trimmed), conversationId: sessionId },
+        { status: 200 }
       );
     }
 
-    return NextResponse.json({ conversation });
+    // ── 3. Intent detection ────────────────────────────────────────────────
+    const intent = detectIntent(trimmed, chipName);
+    const config = INTENT_CONFIG[intent];
+    const starQuery = isStarQuery(trimmed, chipName);
+
+    // ── 4. Retrieval ───────────────────────────────────────────────────────
+    const { contextText, bestScore } = await retrieveContext(trimmed, intent, chipName);
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        `DEBUG intent="${intent}" chip="${chipName}" score=${bestScore.toFixed(2)} ctx=${contextText.length}ch`
+      );
+    }
+
+    // ── 5. Per-intent sufficiency check ───────────────────────────────────
+    //
+    // Each intent has its own minScore + minContextChars thresholds.
+    // On failure: return the intent-specific fallback (no cross-intent spillover).
+    const hasScore   = bestScore >= config.minScore;
+    const hasContext = contextText.trim().length >= config.minContextChars;
+
+    if (!hasScore && !hasContext && !isIntroChipPrompt) {
+      return NextResponse.json(
+        { reply: config.fallback.message, conversationId: sessionId },
+        { status: 200 }
+      );
+    }
+
+    // ── 6. Intent-driven formatted answer ─────────────────────────────────
+    //
+    // Chip prompts and structured intents always use the formatter.
+    // Natural general-profile queries with good score may use Ollama streaming.
+    const preferFormatter =
+      isIntroChipPrompt ||
+      intent !== 'general-profile' ||
+      config.formatterPolicy !== 'extractive';
+
+    if (preferFormatter) {
+      const reply = formatByIntent(intent, contextText, trimmed, chipName, starQuery);
+      return NextResponse.json({ reply, conversationId: sessionId }, { status: 200 });
+    }
+
+    // ── 7. Ollama streaming for general natural-language queries ───────────
+    if (stream !== false && hasScore) {
+      const prompt     = buildOllamaPrompt(contextText, trimmed);
+      const ollamaRes  = await tryOllamaStream(prompt);
+
+      if (ollamaRes?.body) {
+        const encoder   = new TextEncoder();
+        const ollamaBody = ollamaRes.body;
+        const readable  = new ReadableStream({
+          async start(controller) {
+            const reader  = ollamaBody.getReader();
+            const decoder = new TextDecoder();
+            let buffer    = '';
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() ?? '';
+                for (const line of lines) {
+                  if (!line.trim()) continue;
+                  try {
+                    const parsed = JSON.parse(line);
+                    if (parsed.response)
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: parsed.response })}\n\n`));
+                    if (parsed.done) {
+                      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                      controller.close();
+                      return;
+                    }
+                  } catch { /* skip malformed line */ }
+                }
+              }
+            } catch {
+              controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            } finally {
+              controller.close();
+            }
+          },
+        });
+        return new Response(readable, {
+          headers: {
+            'Content-Type':  'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection:      'keep-alive',
+          },
+        });
+      }
+    }
+
+    // ── 8. Final fallback: formatter ───────────────────────────────────────
+    const reply = formatByIntent(intent, contextText, trimmed, chipName, starQuery);
+    return NextResponse.json({ reply, conversationId: sessionId }, { status: 200 });
+
   } catch (error) {
-    console.error('Error retrieving conversation:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Chatbot route error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

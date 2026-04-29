@@ -19,7 +19,7 @@ const serverEnvSchema = commonEnvSchema.extend({
   SENTRY_DSN: z.string().optional(),
 
   // Google Analytics
-  GA4_PROPERTY_ID: z.string(),
+  GA4_PROPERTY_ID: z.string().optional(),
   GA_SERVICE_ACCOUNT_KEY_PATH: z.string().default('./service-account.json'),
   
   // Sentry

@@ -1,5 +1,6 @@
 ---
 title: "🚀 Methodical Migration: DigitalOcean Droplet to Oracle Cloud (OCI)"
+excerpt: "How I migrated a fully Dockerized self-hosted stack from DigitalOcean to Oracle Cloud with zero data loss, minimized downtime, and lessons learned along the way."
 date: "2026-03-31"
 category: "DevOps"
 tags: ["migration", "oracle-cloud", "digitalocean", "docker", "nextjs", "infrastructure"]
@@ -8,7 +9,7 @@ featured: true
 
 
 
-# 🚀 Methodical Migration: DigitalOcean Droplet to Oracle Cloud (OCI)
+# <Rocket /> Methodical Migration: DigitalOcean Droplet to Oracle Cloud (OCI)
 
 Migrating a self-hosted infrastructure is never just about moving files—it's about preserving reliability, minimizing downtime, and future-proofing your stack. In this post, I’ll walk through my journey of moving from a long-standing DigitalOcean droplet to a modern Oracle Cloud (OCI) instance, with a focus on Dockerized services, automation, and lessons learned. If you’re interested in the evolution of my stack, check out these related posts:
 
@@ -27,8 +28,6 @@ My DigitalOcean droplet served me well for years, running everything from my Nex
 
 ## 1. Inventory & Audit
 
-## 1. Inventory & Audit
-
 Before touching anything, I created a complete inventory of all running containers, Docker images, volumes, and configuration files. This included:
 
 - Portfolio (Next.js, Dockerized)
@@ -36,17 +35,6 @@ Before touching anything, I created a complete inventory of all running containe
 - Nginx Proxy Manager
 - Error Pages Server
 - All Docker volumes and configs
-
-
-I started by creating a full inventory of all running containers, Docker images, volumes, and configuration files. This included:
-
-- Portfolio (Next.js, Dockerized)
-- Sentry Webhook
-- Nginx Proxy Manager
-- Error Pages Server
-- All Docker volumes and configs
-
-Reference: [MIGRATION_INVENTORY.md](../../../MIGRATION_INVENTORY.md)
 
 
 ## 2. Prepare the Target OCI Instance

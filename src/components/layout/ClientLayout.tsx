@@ -1,12 +1,19 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, Suspense, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Providers } from '@/components/providers';
 import Footer from '@/components/layout/Footer';
-import ChatbotWidget from '@/components/ChatbotWidget';
-import SmartScrollButton from '@/components/SmartScrollButton';
-import ThemeAwareBackground from '@/components/ThemeAwareBackground';
+import ContinueExploring from '@/components/layout/ContinueExploring';
+import RecentlyViewedRail from '@/components/layout/RecentlyViewedRail';
+import LiveStatusStrip from '@/components/layout/LiveStatusStrip';
+import StickyContextBar from '@/components/layout/StickyContextBar';
+import PageProgressPill from '@/components/layout/PageProgressPill';
+import FeedbackToastHub from '@/components/layout/FeedbackToastHub';
+import ChatbotWidget from '@/components/ui/ChatbotWidget';
+import SmartScrollButton from '@/components/ui/SmartScrollButton';
+import QuickNavPalette from '@/components/ui/QuickNavPalette';
+import ThemeAwareBackground from '@/components/backgrounds/ThemeAwareBackground';
 import NavBar from '@/components/layout/NavBar';
 import PageBackground from '@/components/backgrounds/PageBackground';
 // import CustomCursor from '../CustomCursor';
@@ -43,37 +50,15 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       : 'default';
 
   useEffect(() => {
-    const targets = Array.from(document.querySelectorAll('section, .neural-card, .neural-card-soft, .neural-glow-border')) as HTMLElement[];
-    const sections = Array.from(document.querySelectorAll('main section')) as HTMLElement[];
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    const sections = Array.from(mainContent.querySelectorAll('section')) as HTMLElement[];
     sections.forEach((section, index) => {
       section.classList.add('neural-section');
       section.dataset.last = index === sections.length - 1 ? 'true' : 'false';
     });
-
-    targets.forEach((el, index) => {
-      el.classList.add('reveal-on-scroll');
-      el.style.transitionDelay = `${Math.min(index * 40, 320)}ms`;
-    });
-
-    let visibleCount = 0;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('reveal-visible');
-            visibleCount += 1;
-            const level = Math.min(1, 0.2 + visibleCount * 0.08);
-            window.dispatchEvent(new CustomEvent('neural:expand', { detail: { level } }));
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' }
-    );
-
-    targets.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
 
   return (
     <Providers>
@@ -83,7 +68,14 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       {/* <FloatingTimeWidget /> */}
         <ChatbotWidget />
         <SmartScrollButton />
+        <FeedbackToastHub />
+        <Suspense fallback={null}>
+          <StickyContextBar />
+        </Suspense>
+        <PageProgressPill />
+        <QuickNavPalette />
         <NavBar />
+        <LiveStatusStrip />
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-black">
           Skip to main content
         </a>
@@ -95,12 +87,14 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             data-page-theme={pageTheme}
             style={{
               background: hasPageBackground
-                ? 'linear-gradient(180deg, rgba(2,6,23,0.16), rgba(2,6,23,0.04) 34%, transparent 70%)'
-                : 'linear-gradient(180deg, rgba(2,6,23,0.2), rgba(2,6,23,0.05) 45%, rgba(2,6,23,0))',
+                ? 'transparent'
+                : 'transparent',
             }}
           >
             {children}
           </main>
+          <RecentlyViewedRail />
+          <ContinueExploring />
           <Footer />
         </div>
     </Providers>

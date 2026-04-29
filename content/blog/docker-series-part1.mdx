@@ -13,13 +13,15 @@ This is **Part 1** of an ongoing series where I document my self-hosted infrastr
 For context: I'm running this system on a 🖥️ **Beelink SER8 mini PC**, equipped with:
 
 - AMD Ryzen 7 8745HS  
-- 32GB DDR5 RAM  
-- 1TB NVMe SSD  
-- Ubuntu Server OS
+- 12GB DDR5 RAM  
+- 1TB NVMe SSD (boot + Docker)  
+- 3.6TB NVMe SSD (media & Immich storage)  
+- 932GB External SSD (backups & overflow)  
+- Ubuntu 24.04 LTS
 
 This machine replaced my Mac mini for Docker workloads and now acts as the heart of my **home cloud**, **developer platform**, and **AI lab**.
 
-Additionally, I maintain a **backup VPS** on Digital Ocean that serves as an off-site backup location and disaster recovery solution, ensuring my data and services remain protected even if my home server becomes unavailable.
+Additionally, I maintain a **backup VPS** on Oracle Cloud Infrastructure (OCI) that serves as an off-site backup location and disaster recovery solution. I migrated from Digital Ocean to OCI for better performance and cost efficiency — see my [migration post](./migrating-do-to-oci) for details.
 
 ---
 
@@ -38,7 +40,7 @@ I chose Docker for the following reasons:
 
 My goal was to keep things **modular**, **composable**, and **resilient**. Here’s what that looked like:
 
-- 🔹 Split Compose files into roles: `core.yml`, `media.yml`, `infra.yml`, `extras.yml`
+- 🔹 Split Compose files into roles: `core.yml`, `media.yml`, `infra.yml`, `extras.yml`, `immich.yml`
 - 🔹 Avoid monolithic configurations
 - 🔹 Use **external networks** defined in a central `networks.yml`
 - 🔹 Enable **restart policies** and **volume mapping** for persistence
@@ -53,13 +55,10 @@ Each service is deployed **headlessly**, accessed either via browser, REST APIs,
 | Part | Title |
 |------|-------|
 | 1️⃣ | Intro & Architecture (you are here) |
-| 2️⃣ | Core Services: Nginx, Authelia, Tailscale |
-| 3️⃣ | Infra Layer: Portainer, VS Code, Cron, Backups |
-| 4️⃣ | Media Stack: Jellyfin, Sonarr, Radarr, Lidarr |
-| 5️⃣ | Productivity: Nextcloud, Uptime Kuma, Vaultwarden |
-| 6️⃣ | AI Lab: Ollama, OpenWebUI, LLM-powered Bots |
-| 7️⃣ | Network Ops: Pi-hole, DNS, Nginx Proxy Manager |
-| 8️⃣ | Hardening & Automation: Secrets, 2FA, Watchtower |
+| 2️⃣ | Core Services: Nginx Proxy Manager, Authentik, Tailscale |
+| 3️⃣ | Infra Layer: Portainer, Netdata, Watchtower, Backups |
+| 4️⃣ | Media Stack: Jellyfin, Sonarr, Radarr, Lidarr, Navidrome |
+| 5️⃣ | Productivity & Photos: Nextcloud, Immich, Paperless-NGX, Vaultwarden |
 
 Let’s begin with the **big picture**—how it’s all wired together.
 
@@ -77,18 +76,19 @@ Here's a bird’s eye view of my setup:
                        +------------------------+-------------------------+
                        |                        |                         |
                  Docker Compose          External Access             VPN Tunnel
-              (core.yml + others)        (NPM, Authelia)              (Tailscale)
+              (core.yml + others)        (NPM, Authentik)             (Tailscale)
                        |
-        +--------------+---------------------+
-        |              |                     |
-    Core Stack      Media Stack          AI Stack
-  (Nginx, Auth)  (Jellyfin, Sonarr)   (Ollama, TTS, Bots)
+        +--------------+---------------------+------------------+
+        |              |                     |                  |
+    Core Stack      Media Stack        Productivity        AI & Tools
+  (NPM, Auth,    (Jellyfin, Sonarr,  (Nextcloud, Immich,  (Open WebUI,
+   MariaDB)       Radarr, Lidarr)     Paperless-NGX)       PodcastAI)
 ```
 
 Every service belongs to a category and communicates through pre-defined **Docker networks**, with `networks.yml` acting as the shared config.
 
 **🔄 Backup & Disaster Recovery**:
-My setup includes a **Digital Ocean VPS** that serves as an off-site backup location, ensuring data redundancy and providing a quick recovery option in case of hardware failure or other disasters.
+My setup includes an **Oracle Cloud (OCI) VPS** that serves as an off-site backup location, running the portfolio and critical services with data redundancy and quick recovery in case of hardware failure.
 
 ---
 
@@ -97,11 +97,12 @@ My setup includes a **Digital Ocean VPS** that serves as an off-site backup loca
 ### ➕ File Structure
 
 ```bash
-docker/
+docker_services/
 ├── core.yml
 ├── infra.yml
 ├── media.yml
 ├── extras.yml
+├── immich.yml
 ├── networks.yml
 └── .env
 ```
@@ -125,14 +126,26 @@ Defined in `networks.yml`:
 
 ```yaml
 networks:
-  traefik:
-    name: traefik
+  proxy_net:
+    name: proxy_net
     driver: bridge
-  backend:
-    name: backend
+    attachable: true
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+          gateway: 172.28.0.1
+  core_net:
+    name: core_net
     driver: bridge
-  ai:
-    name: ai
+    internal: true    # Isolates DBs from direct internet access
+  media_net:
+    name: media_net
+    driver: bridge
+  infra_net:
+    name: infra_net
+    driver: bridge
+  extras_net:
+    name: extras_net
     driver: bridge
 ```
 
@@ -145,7 +158,7 @@ Services declare these external networks in their own files. This ensures contai
 Security is critical. Even a home server should have strong hygiene:
 
 - 🔑 `.env` files store secrets (never committed)
-- 🔒 Authelia + Nginx Proxy Manager enable 2FA and domain routing
+- 🔒 Authentik SSO + Nginx Proxy Manager enable 2FA and domain routing
 - 🌍 Tailscale manages zero-config VPN with ACLs
 
 All admin UIs are hidden behind TOTP authentication or VPN entry.
@@ -159,11 +172,11 @@ The reverse proxy stack routes requests like this:
 ```text
 User → https://service.jay739.dev
        ↳ Nginx Proxy Manager
-           ↳ Authelia (2FA if protected)
+           ↳ Authentik (SSO/2FA if protected)
                ↳ Internal Docker container
 ```
 
-Each app is accessible via a subdomain thanks to NPM + wildcard DNS setup via Cloudflare.
+Each app is accessible via a subdomain thanks to NPM + wildcard DNS setup via Porkbun DDNS, with local DNS resolution handled by dnsmasq pointing to the LAN IP (`10.0.0.101`).
 
 ---
 
@@ -173,7 +186,7 @@ Every container’s health is tracked using **Netdata**, running on a dedicated 
 
 🔗 [https://metrics.jay739.dev](https://metrics.jay739.dev)
 
-Future parts will explore how I created a **custom Astro dashboard** to visualize key stats live on my portfolio.
+I also have a custom **Telegram bot** for real-time alerting on service health — covered in a [separate post](./monitoring-infrastructure-with-telegram).
 
 ---
 
@@ -185,7 +198,7 @@ Even though most things run in Docker, I have some native tools:
 - 🐳 `docker`, `docker-compose` — core engine  
 - 📦 `fail2ban` — SSH brute force protection  
 - 📃 `rsync`, `cron` — automated local backups  
-- 🧠 `nvitop` — monitor GPU usage in terminal  
+- 📊 `htop`, `btop` — system resource monitoring  
 
 ---
 
@@ -197,6 +210,6 @@ Stay tuned, and feel free to reach out if you want to replicate this setup or ha
 
 ---
 
-👉 [Part 2 → Core Services (Nginx, Authelia, Tailscale)](#)
+👉 [Part 2 → Core Services (Nginx Proxy Manager, Authentik, Tailscale)](./docker-series-part2)
 
 **— Jayakrishna**

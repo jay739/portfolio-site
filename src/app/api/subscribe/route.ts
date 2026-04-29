@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { rateLimit } from '@/lib/rate-limit';
+import { getClientIpFromHeaders, rateLimit } from '@/lib/rate-limit';
+import { validateCsrfToken } from '@/lib/csrf';
 
 const limiter = rateLimit({
   interval: 60 * 1000,
@@ -8,13 +9,22 @@ const limiter = rateLimit({
 });
 
 function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email) && email.length <= 254;
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIpFromHeaders(request.headers);
+    const csrfToken = request.headers.get('x-csrf-token');
+    if (!csrfToken || !validateCsrfToken(csrfToken)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid or missing CSRF token.' },
+        { status: 403 }
+      );
+    }
+
     try {
-      await limiter.check(5, 'BLOG_SUBSCRIBE');
+      await limiter.check(5, `BLOG_SUBSCRIBE:${ip}`);
     } catch {
       return NextResponse.json(
         { success: false, message: 'Too many attempts. Please try again shortly.' },
@@ -60,7 +70,7 @@ export async function POST(request: NextRequest) {
       to: 'contact@jay739.dev',
       subject: 'New Blog Subscription',
       text: `New subscriber email: ${email}`,
-      html: `<p><strong>New subscriber email:</strong> ${email}</p>`,
+      html: `<p><strong>New subscriber email:</strong> ${email.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`,
     });
 
     return NextResponse.json({

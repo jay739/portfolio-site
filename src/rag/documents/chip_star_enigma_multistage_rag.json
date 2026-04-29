@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_enigma_multistage_rag_2026",
+  "title": "STAR - Enigma Multi-Stage RAG Document Intelligence",
+  "content": "Project: Enigma Multi-Stage RAG Pipeline for Document Intelligence\n\nSituation:\n- Analyst teams faced growing document review volume in business intelligence workflows.\n- Manual review effort and turnaround times were becoming operational bottlenecks.\n\nTask:\n- Design a production-ready pipeline that could automate high-volume document understanding while preserving output quality and confidence controls.\n\nAction:\n- Implemented a staged pipeline covering document pre-processing, retrieval-augmented extraction, and confidence-based routing.\n- Tuned retrieval quality with chunking and metadata-aware retrieval strategy.\n- Added validation layers and fallback handling to reduce hallucination and extraction errors.\n- Improved throughput using async or parallel processing patterns in pipeline execution.\n\nResult:\n- Source-reported reduction in analyst review burden and faster document processing cycles.\n- Deployed as a production workflow pattern aligned to reliability, quality, and operational visibility goals.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "enigma", "rag", "document-intelligence", "retrieval", "production"]
+  }
+}

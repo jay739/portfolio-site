@@ -1,0 +1,11 @@
+{
+  "id": "chip_interactive_ux_patterns_facts_2026",
+  "title": "Interactive UX Patterns in AI Tools and Portfolio - Factual Source",
+  "content": "Interactive UX patterns used in the portfolio and assistant flows:\n- Intro chips trigger contextual chat prompts and open the assistant with source metadata (chip + page context), reducing friction from discovery to Q&A.\n- Chip prompts animate into the chat input field with progressive typing, making the transition from UI action to question submission legible to users.\n- Chat input supports multiline composition with auto-resizing textarea behavior and Shift+Enter for line breaks, improving long-prompt usability.\n- Assistant responses render progressively with a visible thinking state, creating clearer response timing and perceived responsiveness.\n- Context labels in the chat header show active page and chip source, helping users understand why a response is focused the way it is.\n- Message rendering preserves multiline formatting and link detection for readability and actionable follow-through.\n\nAI tools and interaction quality signals:\n- UX design prioritizes clear feedback loops, reduced ambiguity, and recoverable interaction states over one-shot opaque responses.\n- Interaction patterns are tuned for mobile and desktop use, including responsive controls, readable message blocks, and accessible focus behavior.\n- The assistant behavior emphasizes structured answers (for chips like STAR, project, ops, and UX) to improve scanability and user trust.\n\nUser-facing product effect:\n- Faster path from intent to answer through chip-to-chat orchestration.\n- Better readability and control for longer queries and multi-step prompts.\n- Improved confidence via explicit context, visible response progress, and consistent structured outputs.",
+  "metadata": {
+    "source": "portfolio UX implementation",
+    "type": "experience",
+    "date": "2026-04-03",
+    "tags": ["chip", "interactive-ux", "chatbot", "ui", "ux", "accessibility", "feedback", "portfolio"]
+  }
+}

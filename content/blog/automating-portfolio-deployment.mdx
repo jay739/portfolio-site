@@ -7,24 +7,24 @@ tags: ["github-actions", "docker", "automation", "nextjs", "ci-cd"]
 featured: false
 ---
 
-# 🚀 Automating My Portfolio Deployment with GitHub Actions
+# <Rocket /> Automating My Portfolio Deployment with GitHub Actions
 
 Building a Next.js application on a memory-constrained VPS was becoming a nightmare. Every time I wanted to add a blog post or make a small change, the build process would eat up all available RAM and sometimes crash the server. Here's how I solved it with GitHub Actions.
 
-## 🎯 The Problem
+## <Target /> The Problem
 
-My backup VPS has limited resources:
-- 4GB RAM
-- 2GB Swap
-- Multiple services running (Nginx, Grafana, Uptime Kuma, etc.)
+My Oracle Cloud (OCI) VPS has limited resources:
+- ARM64 Ampere processor
+- Shared resources with portfolio and other services
+- Multiple services running (Nginx Proxy Manager, Sentry Webhook, etc.)
 
 Next.js builds are memory-hungry, requiring 2-4GB during compilation. Running `npm run build` would:
-- ❌ Max out memory
-- ❌ Trigger OOM (Out of Memory) killer
-- ❌ Sometimes crash other services
-- ❌ Take 6+ minutes if it succeeded
+- Max out memory
+- Trigger OOM (Out of Memory) killer
+- Sometimes crash other services
+- Take 6+ minutes if it succeeded
 
-## 💡 The Solution
+## <Bulb /> The Solution
 
 Instead of building on my VPS, I offloaded the heavy lifting to GitHub's infrastructure:
 
@@ -40,7 +40,7 @@ Local Changes → GitHub → GitHub Actions Build → Docker Hub → VPS Deploy
 4. **Push to Docker Hub** - stores the built image
 5. **Auto-deploy to VPS** - pulls and restarts the container
 
-## 🛠️ Implementation Steps
+## <Tools /> Implementation Steps
 
 ### 1️⃣ Created Build Script with Swap Management
 
@@ -72,19 +72,19 @@ sudo /opt/portfolio/create-deploy-user.sh
 ```
 
 **Security benefits:**
-- ✅ Limited to Docker commands only
-- ✅ Can't modify system files
-- ✅ Follows principle of least privilege
-- ✅ Separate SSH key for automation
+- <Check /> Limited to Docker commands only
+- <Check /> Can't modify system files
+- <Check /> Follows principle of least privilege
+- <Check /> Separate SSH key for automation
 
 ### 4️⃣ Configured Docker Hub
 
 Made the Docker image **private** while keeping the GitHub repo **public**:
-- Recruiters can see my code on GitHub ✓
-- Random users can't pull my Docker image ✓
+- Recruiters can see my code on GitHub <Check />
+- Random users can't pull my Docker image <Check />
 - Best of both worlds!
 
-## 📝 The New Workflow
+## <Note /> The New Workflow
 
 Adding a blog post is now simple:
 
@@ -97,17 +97,17 @@ git push
 ```
 
 Then:
-1. ⏱️ Wait 5-10 minutes
+1. <Clock /> Wait 5-10 minutes
 2. ☕ Grab coffee
-3. ✅ Site auto-updates!
+3. <Check /> Site auto-updates!
 
 **No more:**
-- 🚫 Manual builds
-- 🚫 Memory issues
-- 🚫 Server crashes
-- 🚫 Babysitting deployments
+- Manual builds
+- Memory issues
+- Server crashes
+- Babysitting deployments
 
-## 📊 Results
+## <Chart /> Results
 
 ### Before:
 - Build time: 6+ minutes (if successful)
@@ -121,7 +121,7 @@ Then:
 - Manual intervention: None
 - Stress level: Zero 😎
 
-## 🎓 Lessons Learned
+## <Degree /> Lessons Learned
 
 1. **Offload heavy tasks**: Don't build on resource-constrained servers
 2. **Automate everything**: One push, automatic deployment
@@ -129,7 +129,7 @@ Then:
 4. **Free tier is powerful**: GitHub Actions + Docker Hub = $0/month
 5. **Visibility vs Privacy**: Keep code public, build artifacts private
 
-## 🔧 Technical Stack
+## <Wrench /> Technical Stack
 
 - **CI/CD**: GitHub Actions
 - **Container Registry**: Docker Hub (private image)
@@ -137,7 +137,7 @@ Then:
 - **Build Environment**: Node.js 18, Docker BuildKit
 - **Memory Management**: Temporary swap for local builds
 
-## 🚀 Future Improvements
+## <Rocket /> Future Improvements
 
 Potential enhancements I'm considering:
 
@@ -147,14 +147,14 @@ Potential enhancements I'm considering:
 - [ ] Set up preview deployments for PRs
 - [ ] Add performance monitoring
 
-## 💭 Final Thoughts
+## <Bulb /> Final Thoughts
 
 This setup has been a game-changer for my development workflow. I can now focus on creating content and improving features without worrying about infrastructure limitations.
 
 The best part? Everything runs on free tiers:
-- ✅ GitHub Actions: Unlimited for public repos
-- ✅ Docker Hub: 1 free private repository
-- ✅ No ongoing costs!
+- <Check /> GitHub Actions: Unlimited for public repos
+- <Check /> Docker Hub: 1 free private repository
+- <Check /> No ongoing costs!
 
 If you're running a portfolio or blog on a budget VPS, I highly recommend this approach. Your server will thank you! 🙏
 

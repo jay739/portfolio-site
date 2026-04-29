@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useTheme } from 'next-themes';
 
 interface StreamLine {
   y: number;
@@ -10,26 +9,41 @@ interface StreamLine {
   amplitude: number;
 }
 
-export default function DataStreamBackground() {
+interface DataStreamBackgroundProps {
+  opacity?: number;
+  lineCount?: number;
+  speedMultiplier?: number;
+  amplitudeMultiplier?: number;
+  primaryColor?: string;
+  secondaryColor?: string;
+}
+
+export default function DataStreamBackground({
+  opacity = 0.52,
+  lineCount = 8,
+  speedMultiplier = 1,
+  amplitudeMultiplier = 1,
+  primaryColor = 'rgba(245, 158, 11, 0.28)',
+  secondaryColor = 'rgba(251, 191, 36, 0.18)',
+}: DataStreamBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const streamsRef = useRef<StreamLine[]>([]);
   const dimRef = useRef({ w: 0, h: 0, dpr: 1 });
   const timeRef = useRef(0);
-  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const initStreams = (w: number, h: number) => {
-      const count = Math.min(12, Math.floor(h / 80));
+      const count = Math.max(4, Math.min(lineCount, Math.floor(h / 110) || lineCount));
       streamsRef.current = Array.from({ length: count }).map((_, i) => ({
         y: (i / count) * h,
-        speed: 0.3 + Math.random() * 0.5,
+        speed: (0.16 + Math.random() * 0.24) * speedMultiplier,
         phase: Math.random() * Math.PI * 2,
-        amplitude: 15 + Math.random() * 25,
+        amplitude: (8 + Math.random() * 16) * amplitudeMultiplier,
       }));
     };
 
@@ -54,13 +68,9 @@ export default function DataStreamBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const isDark = resolvedTheme === 'dark';
-    const primary = isDark ? 'rgba(56, 189, 248, 0.34)' : 'rgba(14, 116, 144, 0.24)';
-    const secondary = isDark ? 'rgba(232, 121, 249, 0.26)' : 'rgba(147, 51, 234, 0.2)';
-
     const draw = () => {
       const { w, h, dpr } = dimRef.current;
-      timeRef.current += 0.02;
+      timeRef.current += 0.012;
       const t = timeRef.current;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -75,8 +85,8 @@ export default function DataStreamBackground() {
           const wave = Math.sin((x / 80) + phase) * stream.amplitude;
           ctx.lineTo(x, stream.y + wave);
         }
-        ctx.strokeStyle = i % 2 === 0 ? primary : secondary;
-        ctx.lineWidth = 1.7;
+        ctx.strokeStyle = i % 2 === 0 ? primaryColor : secondaryColor;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       });
 
@@ -85,14 +95,21 @@ export default function DataStreamBackground() {
 
     animRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animRef.current);
-  }, [resolvedTheme]);
+  }, [amplitudeMultiplier, lineCount, primaryColor, secondaryColor, speedMultiplier]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: -4 }}>
+    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(circle at 15% 18%, rgba(245,158,11,0.05), transparent 20%), radial-gradient(circle at 84% 78%, rgba(251,191,36,0.04), transparent 20%)',
+        }}
+      />
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ opacity: 0.96 }}
+        style={{ opacity }}
         aria-hidden="true"
       />
     </div>

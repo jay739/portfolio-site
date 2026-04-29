@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useTheme } from 'next-themes';
 
 interface Star {
   x: number;
@@ -10,25 +9,38 @@ interface Star {
   pulsePhase: number;
 }
 
-export default function ConstellationBackground() {
+interface ConstellationBackgroundProps {
+  opacity?: number;
+  density?: number;
+  maxDistance?: number;
+  lineColor?: string;
+  nodeColor?: string;
+}
+
+export default function ConstellationBackground({
+  opacity = 0.5,
+  density = 1,
+  maxDistance = 140,
+  lineColor = 'rgba(245, 158, 11, 0.18)',
+  nodeColor = 'rgba(251, 191, 36, 0.42)',
+}: ConstellationBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const starsRef = useRef<Star[]>([]);
   const dimRef = useRef({ w: 0, h: 0, dpr: 1 });
   const timeRef = useRef(0);
-  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const initStars = (w: number, h: number) => {
-      const count = Math.min(35, Math.floor((w * h) / 25000));
+      const count = Math.max(12, Math.floor(((w * h) / 42000) * density));
       starsRef.current = Array.from({ length: count }).map(() => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        baseRadius: 1.5 + Math.random() * 2,
+        baseRadius: 1 + Math.random() * 1.6,
         pulsePhase: Math.random() * Math.PI * 2,
       }));
     };
@@ -54,20 +66,15 @@ export default function ConstellationBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const isDark = resolvedTheme === 'dark';
-    const nodeColor = isDark ? 'rgba(232, 121, 249, 0.7)' : 'rgba(99, 102, 241, 0.62)';
-
     const draw = () => {
       const { w, h, dpr } = dimRef.current;
-      timeRef.current += 0.015;
+      timeRef.current += 0.01;
       const t = timeRef.current;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
 
       const stars = starsRef.current;
-      const maxDist = 180;
-
       // Draw edges
       for (let i = 0; i < stars.length; i++) {
         for (let j = i + 1; j < stars.length; j++) {
@@ -76,9 +83,9 @@ export default function ConstellationBackground() {
           const dx = a.x - b.x;
           const dy = a.y - b.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < maxDist) {
-            const alpha = (1 - dist / maxDist) * 0.25;
-            ctx.strokeStyle = isDark ? `rgba(56, 189, 248, ${alpha + 0.04})` : `rgba(37, 99, 235, ${(alpha * 0.85) + 0.03})`;
+          if (dist < maxDistance) {
+            const alpha = (1 - dist / maxDistance) * 0.75;
+            ctx.strokeStyle = lineColor.replace(/[\d.]+\)\s*$/, `${alpha})`);
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -103,14 +110,21 @@ export default function ConstellationBackground() {
 
     animRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animRef.current);
-  }, [resolvedTheme]);
+  }, [density, lineColor, maxDistance, nodeColor]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: -4 }}>
+    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(circle at 24% 30%, rgba(251,191,36,0.06), transparent 24%), radial-gradient(circle at 76% 68%, rgba(245,158,11,0.05), transparent 24%)',
+        }}
+      />
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ opacity: 0.97 }}
+        style={{ opacity }}
         aria-hidden="true"
       />
     </div>

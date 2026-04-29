@@ -9,6 +9,7 @@ interface NeuralPageIntroProps {
   subtitle: string;
   chips?: string[];
   kicker?: string;
+  theme?: 'default' | 'projects' | 'blog' | 'skills' | 'gallery' | 'ai-tools' | 'ai-news' | 'homeserver' | 'impact' | 'timeline' | 'contact';
 }
 
 function buildChipPrompt(chip: string, pageTitle: string): string {
@@ -73,6 +74,7 @@ export default function NeuralPageIntro({
   subtitle,
   chips = [],
   kicker = 'Neural Experience Layer',
+  theme = 'default',
 }: NeuralPageIntroProps) {
   const prefersReducedMotion = useReducedMotion();
   const [activeChip, setActiveChip] = useState<string | null>(null);
@@ -81,17 +83,87 @@ export default function NeuralPageIntro({
     setActiveChip(chip);
     const message = buildChipPrompt(chip, title);
     window.dispatchEvent(new CustomEvent('chatbot:open'));
-    window.dispatchEvent(new CustomEvent('chatbot:ask', { detail: { message } }));
+    window.dispatchEvent(
+      new CustomEvent('chatbot:ask', {
+        detail: {
+          message,
+          source: 'intro-chip',
+          chip,
+          pageTitle: title,
+        },
+      })
+    );
   };
+
+  const themeStyles: Record<NonNullable<NeuralPageIntroProps['theme']>, { panel: string; glow: string; kicker: string }> = {
+    default: {
+      panel: 'from-slate-950/70 via-slate-900/70 to-slate-950/70',
+      glow: 'from-amber-500/10 via-transparent to-transparent',
+      kicker: 'text-amber-300',
+    },
+    projects: {
+      panel: 'from-orange-950/70 via-amber-950/55 to-slate-950/70',
+      glow: 'from-orange-500/12 via-transparent to-transparent',
+      kicker: 'text-orange-300',
+    },
+    blog: {
+      panel: 'from-sky-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-sky-500/12 via-transparent to-transparent',
+      kicker: 'text-sky-300',
+    },
+    skills: {
+      panel: 'from-teal-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-teal-400/12 via-transparent to-transparent',
+      kicker: 'text-teal-300',
+    },
+    gallery: {
+      panel: 'from-fuchsia-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-fuchsia-400/12 via-transparent to-transparent',
+      kicker: 'text-fuchsia-300',
+    },
+    'ai-tools': {
+      panel: 'from-violet-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-violet-400/12 via-transparent to-transparent',
+      kicker: 'text-violet-300',
+    },
+    'ai-news': {
+      panel: 'from-indigo-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-indigo-400/12 via-transparent to-transparent',
+      kicker: 'text-indigo-300',
+    },
+    homeserver: {
+      panel: 'from-emerald-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-emerald-400/12 via-transparent to-transparent',
+      kicker: 'text-emerald-300',
+    },
+    impact: {
+      panel: 'from-amber-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-amber-400/12 via-transparent to-transparent',
+      kicker: 'text-amber-300',
+    },
+    timeline: {
+      panel: 'from-cyan-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-cyan-400/12 via-transparent to-transparent',
+      kicker: 'text-cyan-300',
+    },
+    contact: {
+      panel: 'from-rose-950/70 via-slate-950/70 to-slate-950/70',
+      glow: 'from-rose-400/12 via-transparent to-transparent',
+      kicker: 'text-rose-300',
+    },
+  };
+
+  const activeTheme = themeStyles[theme];
 
   return (
     <motion.header
-      className="neural-intro-panel neural-card-soft mb-6 sm:mb-8 p-4 sm:p-6"
-      initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+      className={`neural-intro-panel neural-card-soft relative overflow-hidden mb-4 sm:mb-5 p-4 sm:p-6 bg-gradient-to-br ${activeTheme.panel}`}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
     >
-      <p className="neural-kicker mb-2">{kicker}</p>
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-r ${activeTheme.glow}`} />
+      <p className={`neural-kicker mb-2 ${activeTheme.kicker}`}>{kicker}</p>
       <h1 className="neural-title text-2xl sm:text-3xl md:text-4xl">{title}</h1>
       <p className="neural-subtitle mt-2 max-w-3xl text-sm sm:text-base">{subtitle}</p>
       {chips.length > 0 && (
@@ -101,9 +173,9 @@ export default function NeuralPageIntro({
               key={chip}
               type="button"
               className={`neural-pill-intro ${
-                activeChip === chip ? 'is-active ring-1 ring-violet-300/70' : ''
+                activeChip === chip ? 'is-active ring-1 ring-white/25' : ''
               }`}
-              initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: prefersReducedMotion ? 0 : index * 0.05 }}
               onClick={() => onChipClick(chip)}

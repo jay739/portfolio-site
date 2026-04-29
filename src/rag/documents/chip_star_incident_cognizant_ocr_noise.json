@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_incident_cognizant_ocr_noise_2026",
+  "title": "STAR Incident - Cognizant OCR Noise in Document Pipeline",
+  "content": "Incident: OCR noise reducing downstream extraction quality\n\nSituation:\n- Scanned and semi-structured enterprise documents produced OCR artifacts that degraded NLP extraction quality.\n- Error propagation across pipeline stages impacted confidence in final outputs.\n\nTask:\n- Improve extraction reliability by reducing OCR-originated noise and tightening downstream validation.\n\nAction:\n- Enhanced preprocessing and quality checks around OCR outputs.\n- Applied domain-aware cleanup and validation before entity extraction stages.\n- Added inconsistency checks to catch low-quality outputs before workflow integration.\n- Iterated with operational feedback from downstream users and reviewers.\n\nResult:\n- Source context points to improved extraction consistency and workflow efficiency in document operations.\n- Incident yielded reusable quality-gating patterns for OCR-heavy pipelines.",
+  "metadata": {
+    "source": "career-source cognizant deep dive",
+    "type": "incident",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "incident", "debugging", "ocr", "cognizant", "pipeline-quality", "document-intelligence"]
+  }
+}

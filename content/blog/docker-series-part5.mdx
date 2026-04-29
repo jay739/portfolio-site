@@ -1,0 +1,456 @@
+---
+title: "🧱 Home Server Chronicles: My Docker-Powered Ecosystem — Part 5"
+excerpt: "The productivity layer: Nextcloud for cloud storage, Immich for photos, Paperless-NGX for documents, Vaultwarden for passwords, and the tools that replaced every SaaS subscription."
+date: "2026-04-06"
+category: "Self-Hosting"
+tags: ["docker", "self-hosting", "nextcloud", "vaultwarden", "immich", "paperless-ngx", "trilium", "bookstack", "productivity"]
+series: "Home Server Chronicles"
+featured: false
+---
+
+## <Cloud /> The Productivity Layer
+
+Welcome to **Part 5** of my Home Server Chronicles.
+
+In Part 4, I covered the media stack — Jellyfin, Sonarr, Radarr, Lidarr. That layer gives me entertainment. This part covers the layer I actually live in every day: productivity tools that replaced my Google Drive, 1Password, Notion, and a half-dozen other SaaS subscriptions.
+
+The services in this layer:
+
+- <Cloud /> **Nextcloud** — Personal cloud storage and office suite
+- <Camera /> **Immich** — Self-hosted Google Photos alternative (~401GB of photos)
+- <Lock /> **Vaultwarden** — Self-hosted Bitwarden-compatible password manager
+- <Note /> **Paperless-NGX** — Document management with OCR and smart tagging
+- <Book /> **Trilium Notes** — Hierarchical knowledge base and daily notes
+- <Bookmark /> **Linkwarden** — Bookmark manager with full-page archival and Meilisearch
+- <Book /> **BookStack** — Wiki for structured documentation
+- <Home /> **Home Assistant** — Home automation hub
+
+---
+
+## <Target /> Why Self-Host Productivity Tools?
+
+Before I get into configs, the obvious question: why bother?
+
+Here's my honest answer — it's not about saving money (though I do). It's about:
+
+- **Data sovereignty**: My documents, passwords, and notes don't leave my network
+- **No subscription creep**: One server bill instead of seven app subscriptions
+- **Tailscale integration**: All of these work from anywhere through my VPN — no public exposure needed
+- **Reliability on my terms**: I control the update schedule, not the vendor
+
+The tradeoff is real: I own the maintenance burden. But the Batcave runs `restart: unless-stopped` on everything, and Watchtower handles routine updates. Most weeks I spend zero time on these services.
+
+---
+
+## <Cloud /> Nextcloud: The Personal Cloud That Actually Works
+
+### Why Nextcloud over alternatives?
+
+I tried Seafile, Syncthing, and a raw rclone setup before landing on Nextcloud. The others are great for sync — but Nextcloud does sync *plus* calendar, contacts, collaborative docs, and mobile apps.
+
+### Compose configuration
+
+```yaml
+nextcloud:
+  image: nextcloud:latest
+  container_name: nextcloud
+  restart: unless-stopped
+  depends_on:
+    mariadb:
+      condition: service_healthy
+  environment:
+    - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    - MYSQL_DATABASE=nextcloud
+    - MYSQL_USER=${MYSQL_USER}
+    - MYSQL_HOST=mariadb
+  volumes:
+    - /home/jay739/docker_services/nextcloud/data:/var/www/html
+    - /mnt/internal_ssd:/mnt/internal_ssd
+    - /mnt/external_ssd:/mnt/external_ssd
+  networks:
+    - core_net
+    - proxy_net
+```
+
+Nextcloud shares the **MariaDB** instance from `core.yml` rather than running a dedicated database. It also mounts both storage drives directly for external storage access.
+
+### What I actually use it for
+
+- **File sync**: My Documents, Downloads, and active project folders sync automatically via the Nextcloud desktop client
+- **Photos**: Photo management is now handled by **Immich** (see below) — Nextcloud focuses on file sync
+- **Calendar + Contacts**: CalDAV and CardDAV sync to all my devices — phone, laptop, and browser
+- **Collaborative docs**: Nextcloud Office (Collabora Online) handles `.docx` and `.xlsx` files without leaving the browser
+
+### Performance tuning that made a real difference
+
+Nextcloud out-of-the-box is slow. These two changes fixed it:
+
+```bash
+# Run inside the nextcloud container
+php occ maintenance:mode --on
+php occ db:add-missing-indices
+php occ db:convert-filecache-bigint
+php occ maintenance:mode --off
+```
+
+And in `config.php`, enabling APCu for local caching:
+
+```php
+'memcache.local' => '\OC\Memcache\APCu',
+'memcache.distributed' => '\OC\Memcache\Redis',
+'memcache.locking' => '\OC\Memcache\Redis',
+'redis' => [
+  'host' => 'nextcloud-redis',
+  'port' => 6379,
+],
+```
+
+After this, file browser response went from ~2s to ~300ms.
+
+---
+
+## <Lock /> Vaultwarden: Passwords Without the Subscription
+
+### The case for self-hosted passwords
+
+Bitwarden is excellent. Vaultwarden is Bitwarden — same clients, same browser extensions, same mobile apps — but the server runs on my hardware, not theirs.
+
+The entire service uses under 10MB of RAM and stores data in a single SQLite file. It's the lightest service in my stack by far.
+
+```yaml
+vaultwarden:
+  image: vaultwarden/server:latest
+  container_name: vaultwarden
+  restart: unless-stopped
+  environment:
+    - WEBSOCKET_ENABLED=true
+    - SIGNUPS_ALLOWED=false
+    - ADMIN_TOKEN=${VAULTWARDEN_PASSWORD}
+  ports:
+    - "${HOST_IP:-10.0.0.101}:8222:80"
+    - "100.89.188.84:8222:80"
+  volumes:
+    - /home/jay739/docker_services/vaultwarden:/data
+  networks:
+    - proxy_net
+```
+
+`SIGNUPS_ALLOWED=false` is critical — this is a private instance, not a public one. New accounts are created through the admin panel only.
+
+### Backup is non-negotiable
+
+The `/data` directory contains the SQLite database and all attachments. I back this up nightly:
+
+```bash
+#!/bin/bash
+# Vaultwarden backup — runs via cron at 2 AM
+DATE=$(date +%Y%m%d)
+docker exec vaultwarden sqlite3 /data/db.sqlite3 ".backup '/data/db-backup-$DATE.sqlite3'"
+rsync -a ./vaultwarden/data/db-backup-*.sqlite3 /mnt/backup/vaultwarden/
+find /mnt/backup/vaultwarden/ -name "*.sqlite3" -mtime +14 -delete
+```
+
+Losing your password manager is a catastrophic failure mode. Two weeks of daily backups, off-server.
+
+---
+
+## <Camera /> Immich: Self-Hosted Google Photos
+
+### The Google Photos replacement
+
+Immich is a self-hosted photo and video management platform with ML-powered features. It's one of the most impressive self-hosted projects I've come across — the mobile app feels as polished as Google Photos.
+
+```yaml
+# From immich.yml
+immich-server:
+  image: ghcr.io/immich-app/immich-server:release
+  container_name: immich_server
+  restart: always
+  volumes:
+    - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+    - /mnt/internal_ssd/immich/photos/library:/mnt/import/library
+  depends_on:
+    database:
+      condition: service_healthy
+  networks:
+    - default
+    - proxy_net
+
+immich-machine-learning:
+  image: ghcr.io/immich-app/immich-machine-learning:release
+  container_name: immich_machine_learning
+  volumes:
+    - model-cache:/cache
+  restart: always
+
+database:
+  image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
+  container_name: immich_postgres
+  # Database only accessible internally — no external ports
+```
+
+### What makes it great
+
+- **~401GB** of photos and videos stored on the 3.6TB internal SSD
+- **ML-powered face recognition and object detection** via the dedicated machine learning container
+- **Mobile app**: Auto-backup from iOS and Android — seamless
+- **Dedicated PostgreSQL** with vector extensions for ML-powered search
+- **External library import**: Imported my entire Google Takeout archive
+
+### Monitoring
+
+I also run **Immich Power Tools** for advanced statistics and **JellyStat** for media analytics across the stack.
+
+---
+
+## <Note /> Paperless-NGX: The End of Paper Chaos
+
+### Problem it solves
+
+I had years of scanned documents (bills, tax forms, insurance papers) sitting in a flat folder structure with inconsistent names. Searching for anything required opening files one by one.
+
+Paperless-NGX ingests documents, runs OCR via Tesseract, extracts dates and content, and makes everything full-text searchable. It also auto-tags based on rules I define.
+
+```yaml
+paperless-ngx:
+  image: ghcr.io/paperless-ngx/paperless-ngx:latest
+  container_name: paperless-ngx
+  restart: unless-stopped
+  depends_on:
+    - paperless-redis
+    - paperless-db
+  environment:
+    - PAPERLESS_REDIS=redis://paperless-redis:6379
+    - PAPERLESS_DBHOST=paperless-db
+    - PAPERLESS_DBNAME=paperless
+    - PAPERLESS_DBUSER=paperless
+    - PAPERLESS_DBPASS=${PAPERLESS_DB_PASSWORD}
+    - PAPERLESS_OCR_LANGUAGE=eng
+    - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
+    - PAPERLESS_TIME_ZONE=America/New_York
+    - PAPERLESS_CONSUMER_POLLING=60
+  volumes:
+    - ./paperless/data:/usr/src/paperless/data
+    - ./paperless/media:/usr/src/paperless/media
+    - ./paperless/consume:/usr/src/paperless/consume
+    - ./paperless/export:/usr/src/paperless/export
+  networks:
+    - proxy_net
+```
+
+The `/consume` folder is the magic: anything dropped there gets processed automatically. I have the Nextcloud desktop client sync a local `Scan to Paperless` folder to this location. Scan from my phone → document appears in Paperless with OCR within minutes.
+
+---
+
+## <Book /> Trilium Notes: A Knowledge Base That Grows With You
+
+### Why not Obsidian?
+
+Obsidian is great. But Obsidian with sync costs $10/month, and its native sync is Obsidian-to-Obsidian only. Trilium runs entirely in the browser, syncs across all my devices through Tailscale, and has a hierarchical structure that suits how I actually think about notes.
+
+```yaml
+trilium:
+  image: triliumnext/trilium:latest
+  container_name: trilium
+  restart: unless-stopped
+  volumes:
+    - ./trilium/data:/home/node/trilium-data
+  networks:
+    - proxy_net
+```
+
+Minimal config — Trilium handles its own database, sync state, and encryption. I access it via `trilium.jay739.dev` from any device.
+
+### My note structure
+
+```
+Daily Notes
+  └── 2026-04 (auto-generated)
+Projects
+  ├── Batcave
+  ├── Portfolio
+  └── Research
+Reference
+  ├── Docker configs
+  ├── Cheat sheets
+  └── Interview prep
+Career
+  ├── Job applications
+  └── Resume versions
+```
+
+The daily notes template creates a new page each morning with sections for tasks, links, and notes. It's replaced my use of Google Keep, sticky notes, and random text files entirely.
+
+---
+
+## <Bookmark /> Linkwarden: Bookmarks That Don't Die
+
+### The problem with regular bookmarks
+
+Browser bookmarks are local, unsearchable at scale, and the pages they point to can disappear. I've lost valuable articles to link rot more times than I can count.
+
+Linkwarden archives the full page content at save time, making every bookmark permanently readable and full-text searchable.
+
+```yaml
+linkwarden:
+  image: ghcr.io/linkwarden/linkwarden:latest
+  container_name: linkwarden
+  restart: unless-stopped
+  depends_on:
+    - linkwarden-db
+  environment:
+    - DATABASE_URL=postgresql://linkwarden:${LINKWARDEN_DB_PASSWORD}@linkwarden-db:5432/linkwarden
+    - NEXTAUTH_SECRET=${LINKWARDEN_SECRET}
+    - NEXTAUTH_URL=https://links.jay739.dev
+  volumes:
+    - ./linkwarden/data:/data/data
+  networks:
+    - proxy_net
+
+linkwarden_postgres:
+  image: postgres:16-alpine
+  container_name: linkwarden_postgres
+  restart: unless-stopped
+  environment:
+    - POSTGRES_USER=linkwarden
+    - POSTGRES_PASSWORD=${LINKWARDEN_DB_PASSWORD}
+    - POSTGRES_DB=linkwarden
+  volumes:
+    - ./linkwarden/db:/var/lib/postgresql/data
+  networks:
+    - proxy_net
+
+linkwarden_meilisearch:
+  image: getmeili/meilisearch:v1.12.8
+  container_name: linkwarden_meilisearch
+  restart: unless-stopped
+  networks:
+    - proxy_net
+```
+
+Linkwarden uses **Meilisearch** for fast full-text search across all archived bookmarks.
+
+I use the browser extension for quick saves and tag everything on save. My collections: `AI/ML`, `DevOps`, `Career`, `Tools`, `Reading`, `Reference`. Browsing back through them is genuinely useful — the archived content means I can re-read an article even after the original site goes down.
+
+---
+
+## <Book /> BookStack: Documentation That Lasts
+
+### Where Trilium ends, BookStack begins
+
+Trilium is for personal notes — fast, hierarchical, and private. BookStack is for structured documentation I might share or reference formally.
+
+My BookStack has:
+- **Batcave runbook**: Container descriptions, ports, dependencies, maintenance procedures
+- **Service configs**: Templates and working configs for every service
+- **Network diagrams**: IP allocation, Tailscale topology, routing
+- **Incident log**: What broke, when, why, and what fixed it
+
+```yaml
+bookstack:
+  image: lscr.io/linuxserver/bookstack:latest
+  container_name: bookstack
+  restart: unless-stopped
+  depends_on:
+    - bookstack-db
+  environment:
+    - PUID=1000
+    - PGID=1000
+    - APP_URL=https://docs.jay739.dev
+    - DB_HOST=bookstack-db
+    - DB_DATABASE=bookstack
+    - DB_USERNAME=bookstack
+    - DB_PASSWORD=${BOOKSTACK_DB_PASSWORD}
+  volumes:
+    - ./bookstack/config:/config
+  networks:
+    - proxy_net
+
+bookstack-db:
+  image: mariadb:10.11
+  container_name: bookstack-db
+  restart: unless-stopped
+  environment:
+    - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    - MYSQL_DATABASE=bookstack
+    - MYSQL_USER=bookstack
+    - MYSQL_PASSWORD=${BOOKSTACK_DB_PASSWORD}
+  volumes:
+    - ./bookstack/db:/var/lib/mysql
+  networks:
+    - proxy_net
+```
+
+The BookStack runbook has saved me multiple times. When a container behaves unexpectedly at 2 AM, I don't try to remember port numbers — I open the runbook.
+
+---
+
+## <ChainLink /> How These Services Connect
+
+The productivity layer isn't seven isolated tools — it's a workflow:
+
+```
+Phone scan → Nextcloud sync → Paperless consume → OCR'd, tagged, searchable
+                                                      ↓
+                                              BookStack: important docs get pages
+                                                      ↓
+                                              Trilium: notes and context links back
+
+Interesting article → Linkwarden (browser ext) → archived + tagged
+                                                      ↓
+                                              Trilium note links to archived URL
+
+Any service issue → Netdata + Telegram bot alert → Trilium incident log
+                                                      ↓
+                                              BookStack runbook: resolution steps
+```
+
+The Tailscale VPN ties it all together — I access every service on `*.jay739.dev` from any device, any location, without any of it being publicly exposed.
+
+---
+
+## <BarChart /> Resource Usage Reality Check
+
+A common concern: "won't all these services crush a mini PC?"
+
+Here's the actual memory footprint on the Beelink SER8 (12GB RAM):
+
+| Service | Idle RAM |
+|---|---|
+| Nextcloud | ~180MB |
+| MariaDB (shared) | ~120MB |
+| Immich Server + ML | ~500MB |
+| Immich PostgreSQL | ~100MB |
+| Vaultwarden | ~12MB |
+| Paperless-NGX + Redis | ~215MB |
+| Trilium | ~80MB |
+| Linkwarden + Meilisearch | ~200MB |
+| BookStack | ~90MB |
+| Home Assistant | ~150MB |
+
+Total: ~1.6GB for the productivity layer. On a 12GB machine running 56 containers total, memory management matters — but with careful tuning, everything runs comfortably with ~4GB available.
+
+---
+
+## <Check /> What This Layer Replaced
+
+When I tallied up what I was paying before self-hosting this:
+
+- Google One (2TB storage) + Google Photos: $10/month
+- 1Password family: $5/month
+- Notion team: $8/month
+- iCloud+ for photos backup: $3/month
+
+That's $26/month — $312/year — for services that are now running on hardware I already own, under my control, with no per-seat limits. The Beelink itself paid for itself within the first year from subscription savings alone.
+
+---
+
+## <Rocket /> What's Next
+
+This layer, combined with Immich's 401GB photo library and the media stack from Part 4, means the Batcave handles nearly every aspect of my digital life — all self-hosted, all under my control.
+
+---
+
+[Part 4 ← Media Stack](./docker-series-part4)
+
+**— Jayakrishna**

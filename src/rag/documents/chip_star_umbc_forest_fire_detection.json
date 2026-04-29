@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_umbc_forest_fire_detection_2026",
+  "title": "STAR - UMBC Forest Fire Detection Project",
+  "content": "Project: UMBC Forest Fire Detection Using Satellite Imagery\n\nSituation:\n- Environmental monitoring use case required identifying wildfire risk from remote sensing imagery.\n\nTask:\n- Build a computer vision pipeline using satellite-derived features for classification and detection.\n\nAction:\n- Developed CNN-based modeling workflow on Sentinel-2 imagery inputs.\n- Incorporated remote sensing indices as part of feature or signal design strategy.\n- Tuned model training and evaluation for balanced performance.\n- Documented findings with an applied, domain-aware methodology.\n\nResult:\n- Source-reported strong classification performance in the project.\n- Reinforced capability to combine ML architecture with domain-specific signal engineering.",
+  "metadata": {
+    "source": "career-source career overview",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "umbc", "computer-vision", "satellite", "remote-sensing", "project"]
+  }
+}

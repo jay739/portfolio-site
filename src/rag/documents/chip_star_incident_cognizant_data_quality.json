@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_incident_cognizant_data_quality_2026",
+  "title": "STAR Incident - Cognizant Data Quality and Model Underperformance",
+  "content": "Incident: Early contract model underperformance driven by data issues\n\nSituation:\n- Initial model iterations for contract workflows showed weak gains despite complex modeling attempts.\n- Dataset imbalance and noisy inputs limited practical performance.\n\nTask:\n- Recover model effectiveness by diagnosing root causes and stabilizing the training and feature pipeline.\n\nAction:\n- Performed data distribution and quality analysis to identify imbalance and noise patterns.\n- Prioritized data cleaning, stratified splitting, and feature engineering over model complexity escalation.\n- Re-established baselines with simpler models before reintroducing advanced methods.\n- Tuned pipeline based on measured error patterns and domain-specific signal quality.\n\nResult:\n- Source narrative indicates meaningful accuracy recovery and stronger production readiness.\n- Incident reinforced a data-first debugging approach for enterprise ML workflows.",
+  "metadata": {
+    "source": "career-source career overview + cognizant deep dive",
+    "type": "incident",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "incident", "debugging", "cognizant", "data-quality", "model-performance", "nlp"]
+  }
+}

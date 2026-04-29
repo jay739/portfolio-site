@@ -1,0 +1,11 @@
+{
+  "id": "chip_internship_experience_facts_2026",
+  "title": "Internship Experience - Factual Source",
+  "content": "Infosys internship (2019):\n- Software Engineering Intern in a structured training and project environment.\n- Built full-stack features including authentication, browsing, rating, and analytics components in a movie database application context.\n- Early analytics and aggregation work helped shape a transition toward data science and ML-oriented problem solving.\n- Developed software engineering habits through code reviews, debugging incidents, and collaborative development practices.\n\nR/SEEK internship at UMBC (2025):\n- AI/ML programming internship focused on robotics and embedded edge AI.\n- Built real-time computer vision functionality under constrained hardware settings.\n- Worked at the intersection of ML models, embedded systems, and educational robotics use cases.\n- Gained practical experience with latency, safety, and interpretability considerations outside pure cloud-based ML workflows.\n\nCareer relevance of internship phases:\n- Infosys phase established software engineering and data-curiosity foundations.\n- R/SEEK phase expanded capabilities into edge AI and real-time applied ML.\n- Together they bookend the transition from engineering fundamentals to production and applied AI specialization.",
+  "metadata": {
+    "source": "career-source internships",
+    "type": "experience",
+    "date": "2026-04-03",
+    "tags": ["chip", "internships", "infosys", "rseek", "edge-ai", "software-foundation", "career-growth"]
+  }
+}

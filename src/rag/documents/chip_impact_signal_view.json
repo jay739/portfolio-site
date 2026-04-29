@@ -1,0 +1,11 @@
+{
+  "id": "chip_impact_signal_view_2026",
+  "title": "Impact Signal View - Metrics, Outcomes, and Engineering Performance",
+  "content": "Delivery and performance metrics:\n- Reduced ML inference latency from 450ms to under 90ms through batching and model optimization.\n- Improved workflow efficiency by 30-40% across NLP and document-processing pipelines.\n- Reduced manual legal/compliance review effort by ~35% with production NLP pipelines.\n- Reduced p99 latency by 40% and cut monthly cloud cost by 25% via AWS inference architecture changes.\n- Processed 1M+ text records/day in distributed PySpark workflows with stable throughput.\n\nInfrastructure and reliability metrics:\n- Built and operates Batcave with 56 containers and 36+ services on a hybrid-cloud architecture.\n- Reported platform uptime target/achievement around 99.9% in home-lab operations.\n- Supports a 177GB multi-database data layer (PostgreSQL, MariaDB, Redis, SQLite) for retrieval and inference workloads.\n\nAutomation and quality signals:\n- Processed 10,000+ audio files with approximately 95% deduplication accuracy in automation pipelines.\n- Built document AI pipeline with ~98% OCR accuracy in RAG-powered media workflow.\n- Implemented model-rigor practices including cross-validation, ablations, and SHAP-based interpretability in production delivery contexts.",
+  "metadata": {
+    "source": "profile+resume synthesis",
+    "type": "profile",
+    "date": "2026-04-03",
+    "tags": ["chip", "impact", "metrics", "outcomes", "signal-view", "engineering-performance", "kpi"]
+  }
+}

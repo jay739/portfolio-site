@@ -1,0 +1,104 @@
+---
+title: "What Running a Homelab Actually Teaches You That Work Doesn't"
+date: "2026-04-24"
+description: "Debugging at 1am with no escalation path, owning every layer of the stack, and the lessons you only learn when the consequences are yours."
+tags: ["Homelab", "DevOps", "Infrastructure", "Self-Hosted", "Career", "Learning"]
+---
+
+# <Home /> What Running a Homelab Actually Teaches You That Work Doesn't
+
+There's a version of this post that opens with a polished story about architecting distributed systems. This isn't that post.
+
+This post starts at 1:07am, with Jellyfin refusing to serve video, Nginx throwing 502s, and the sinking realisation that I am the on-call engineer, the L1 support, the L2 escalation, and the platform team — all at once. There is no ticket to raise. No Slack channel to ping. Just me, a terminal, and the knowledge that this is entirely my fault.
+
+That moment taught me more about infrastructure than two years of sprint cycles ever did.
+
+## <Flame /> The Setup (and Why It Gets Complicated Fast)
+
+What starts as "I'll just run a Plex server" has a tendency to metastasise. Mine grew into 40+ Docker services across a home server (Batcave), a VPS, and an Apple M4 Mac Mini — connected via Tailscale, fronted by Nginx, monitored by Prometheus, with Pi-hole handling DNS and Vault holding secrets.
+
+At some point you stop calling it a hobby and start calling it infrastructure.
+
+And that's exactly when the real learning begins.
+
+## <Clock /> Lesson 1: You Are the Entire On-Call Rotation
+
+At work, there's an escalation path. There's a runbook. There's someone more senior you can loop in. There's, at minimum, someone else to blame.
+
+In a homelab, the blast radius lands entirely on you — which turns out to be the best possible forcing function for actually learning to debug.
+
+When a service goes down at 1am you can't defer it. You start reading actual logs instead of skimming them. You learn what a healthy container looks like versus a crash-looping one. You discover that most outages have embarrassingly simple root causes hidden under layers of misleading symptoms.
+
+The discipline of staying calm, working methodically, and not rage-restarting things until you understand *why* they're broken — that's a skill you only develop when there's nobody else to hand it off to.
+
+## <Note /> Lesson 2: You Document for Future You, Not for the Process
+
+Corporate documentation exists for compliance, for audits, for onboarding. It's written for an audience. Homelab documentation is written for one person: yourself, at 1am, six months from now, having completely forgotten why you made a particular decision.
+
+That distinction changes everything about how you write it.
+
+When the audience is future-you, you stop writing what you *did* and start writing *why*. You note the edge case that nearly broke things. You document the specific error message and what actually fixed it — not the five things you tried first.
+
+I have a running doc for every service I run. Not because anyone asked me to, but because I've been burned enough times by my own past decisions to know it's cheaper than re-debugging the same thing twice.
+
+## <Chart /> Lesson 3: Cost Awareness Becomes Visceral
+
+Cloud infrastructure abstracts cost in a way that makes it very easy to be careless. Someone else is paying the AWS bill. The numbers are someone else's problem until they aren't.
+
+In a homelab, you are the finance department. You know exactly what the electricity bill looks like when you run a GPU workload overnight. You make real trade-offs: is this service worth the RAM it consumes? Is this redundancy worth the disk? Should I run this on the VPS or eat the latency and run it at home?
+
+These aren't abstract architectural discussions. They're Tuesday decisions with your own money.
+
+The result is a completely different relationship with resource efficiency. You profile things. You care about idle CPU. You actually turn off services you don't use.
+
+## <Network /> Lesson 4: Networking Stops Being Magic
+
+Most developers treat the network as a given. The request goes out, the response comes back, and everything in between is someone else's concern.
+
+Running your own reverse proxy, managing split DNS between Pi-hole and Tailscale, debugging why a container can reach the host network but not another container — you stop treating networking as magic and start understanding it as a set of specific, learnable rules.
+
+Subnets, DNS resolution order, port conflicts, certificate trust chains — these stop being interview topics and become things you've actually broken and fixed. That change in understanding is permanent.
+
+## <Warning /> Lesson 5: Failure Is the Curriculum
+
+At work, failure has career consequences. That shapes behaviour — you avoid the risky refactor, you don't touch the thing that's working, you don't experiment in production.
+
+In a homelab, failure has no career consequences. Worst case, a service is down until you fix it. That freedom changes what you're willing to try.
+
+I've broken DNS for my entire home network. I've corrupted a database with a bad migration. I've taken down a reverse proxy by fat-fingering a config. Every one of those incidents taught me something I couldn't have learned any other way — because I had no choice but to diagnose it, understand it, and fix it myself.
+
+Controlled failure in a low-stakes environment is one of the most efficient learning mechanisms that exists.
+
+## <Brain /> Lesson 6: You Think in Full Systems, Not Features
+
+Feature work in a job is necessarily siloed. You own a service, or a component, or a layer. That's healthy for teams but it creates blind spots for individuals.
+
+When you run everything yourself — the DNS, the reverse proxy, the application, the monitoring, the backups, the secrets management — you develop a full-system mental model that's genuinely rare.
+
+You stop thinking "my service returned a 500" and start thinking "which layer is this failing at, and what does the evidence tell me?" You understand how a bad deploy ripples through a stack. You can look at a problem from the infrastructure layer up or the application layer down.
+
+That breadth makes you a fundamentally different kind of engineer in a team environment.
+
+## <Shield /> Lesson 7: Security Is Your Problem Now
+
+No security team. No WAF. No one reviewing your firewall rules.
+
+When it's your server, your data, and your network, security stops being a compliance checkbox and becomes something you actually care about. You learn what attack surface means in practice. You put things behind Tailscale that don't need to be public. You rotate secrets. You audit your open ports.
+
+The threat model shifts when the data at risk is yours.
+
+## <Rocket /> The Part They Don't Tell You in Job Descriptions
+
+The skills that make someone genuinely good at infrastructure work — calm under pressure, systematic debugging, full-stack thinking, cost instinct, security awareness — these are hard to develop in environments that protect you from consequences.
+
+A homelab removes the protection. It makes everything your problem. And in doing so, it makes you better at the thing faster than almost anything else I've found.
+
+The 1am outages aren't a tax on the hobby. They're the point of it.
+
+---
+
+**Running a homelab of your own?** I'm always interested in comparing notes on setups, war stories, and what you've learned the hard way. Find me at [jay739.dev](https://jay739.dev) or reach out directly.
+
+**Related posts:**
+- [Monitoring 40+ Services with Telegram Alerts](/blog/monitoring-infrastructure-with-telegram)
+- [Migrating from DigitalOcean to OCI](/blog/migrating-do-to-oci)

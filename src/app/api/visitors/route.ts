@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-const COUNTER_FILE = '/tmp/visitor_count.txt';
+import {
+  formatVisitorPayload,
+  getNormalizedVisitorMetrics,
+  incrementVisitorMetrics,
+} from '@/lib/visitor-metrics';
 
-export async function GET(req: NextRequest) {
-  let count = 0;
-  try {
-    const data = await fs.readFile(COUNTER_FILE, 'utf8');
-    count = parseInt(data, 10) || 0;
-  } catch {}
-  count++;
-  await fs.writeFile(COUNTER_FILE, count.toString(), 'utf8');
-  return NextResponse.json({ count });
-} 
+// GET returns current count without mutating state
+export async function GET(_req: NextRequest) {
+  const metrics = await getNormalizedVisitorMetrics();
+  return NextResponse.json(formatVisitorPayload(metrics));
+}
+
+// POST increments and returns new count
+export async function POST(_req: NextRequest) {
+  const metrics = await incrementVisitorMetrics();
+  return NextResponse.json(formatVisitorPayload(metrics));
+}

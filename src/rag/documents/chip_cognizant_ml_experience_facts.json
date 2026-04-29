@@ -1,0 +1,11 @@
+{
+  "id": "chip_cognizant_ml_experience_facts_2026",
+  "title": "Cognizant ML Experience - Factual Source",
+  "content": "Role context:\n- Position: Machine Learning Engineer at Cognizant (January 2020 to July 2023).\n- Focus domain: Document intelligence, NLP pipelines, and enterprise ML deployment across regulated industries.\n\nProgression and ownership:\n- Early phase involved model development support, text preprocessing, feature extraction, and evaluation.\n- Mid phase moved to end-to-end project ownership for contract analysis and entity extraction workflows.\n- Senior phase included technical architecture, multi-project leadership, mentoring, and client-facing delivery.\n\nConsistent project patterns from source content:\n- Contract and legal document processing with entity extraction, classification, clause detection, and summarization.\n- Healthcare and insurance document intelligence requiring OCR, domain-adapted NLP, and strict reliability standards.\n- Scalable pipelines using cloud and containerized deployment patterns for high-volume processing.\n\nReported outcomes in the source guides:\n- Reduction of manual review or processing time through NLP automation.\n- Improved throughput, accuracy, and operational consistency in production environments.\n- Expansion from individual contributor execution to leadership in architecture and delivery.\n\nSkills and engineering themes emphasized:\n- Applied NLP model development and tuning for domain-specific corpora.\n- ML engineering discipline around deployment, uptime, and integration.\n- Collaboration across legal, healthcare, insurance, and enterprise stakeholder contexts.",
+  "metadata": {
+    "source": "career-source cognizant deep dive",
+    "type": "experience",
+    "date": "2026-04-03",
+    "tags": ["chip", "cognizant", "machine-learning", "nlp", "document-intelligence", "enterprise", "experience"]
+  }
+}

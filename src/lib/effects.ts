@@ -176,24 +176,6 @@ export function useSvgMorph(
   }, [paths, duration, elementId]);
 }
 
-// Confetti effect hook
-export function useConfetti() {
-  const triggerConfetti = async (options = { particleCount: 120, spread: 80, origin: { y: 0.7 } }) => {
-    if (typeof window === 'undefined') return;
-
-    if (!window.confetti) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
-      script.onload = () => window.confetti && window.confetti(options);
-      document.body.appendChild(script);
-    } else {
-      window.confetti(options);
-    }
-  };
-
-  return triggerConfetti;
-}
-
 // Theme-aware background hook
 export function useThemeAwareBg(
   elementId: string,

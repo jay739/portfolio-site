@@ -1,0 +1,11 @@
+{
+  "id": "chip_stakeholder_collaboration_facts_2026",
+  "title": "Stakeholder Collaboration and Communication - Factual Source",
+  "content": "Collaboration patterns documented in source content:\n- Regular alignment with product, operations, and client-facing teams during ML and GenAI deployments.\n- Translation of model behavior, limitations, and output confidence to non-technical stakeholders.\n- Participation in architecture discussions balancing compliance, cost, latency, and quality requirements.\n\nLeadership and teamwork themes:\n- Mentoring junior engineers and supporting onboarding through shared engineering practices.\n- Cross-functional delivery in regulated domains where explainability and auditability matter.\n- Progression from task execution to technical ownership and stakeholder influence.\n\nCommunication relevance for chatbot responses:\n- Supports prompts about teamwork style, leadership trajectory, and decision-making approach.\n- Provides grounding for narratives around balancing technical depth with business clarity.",
+  "metadata": {
+    "source": "career-source enigma + cognizant",
+    "type": "experience",
+    "date": "2026-04-03",
+    "tags": ["chip", "collaboration", "stakeholders", "leadership", "mentoring", "communication", "delivery"]
+  }
+}

@@ -1,4 +1,4 @@
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { useTheme } from 'next-themes';
 import { SkillsCard } from '../SkillsCard';
 import { getIconData } from '@/lib/icons';
@@ -29,27 +29,21 @@ jest.mock('framer-motion', () => ({
 }));
 
 describe('SkillsCard', () => {
-  const mockSkills = ['React', 'TypeScript', 'Node.js'];
+  const mockSkills = [
+    { name: 'React', url: 'https://reactjs.org' },
+    { name: 'TypeScript', url: 'https://typescriptlang.org' },
+    { name: 'Node.js', url: 'https://nodejs.org' }
+  ];
 
   beforeEach(() => {
-    // Reset all mocks
     jest.clearAllMocks();
-    jest.useFakeTimers();
-    
-    // Mock useTheme hook
-    (useTheme as jest.Mock).mockReturnValue({
-      theme: 'light',
-    });
 
-    // Mock getIconData
-    (getIconData as jest.Mock).mockImplementation((skill) => ({
-      label: skill,
-      url: `https://example.com/${skill.toLowerCase()}`,
+    (useTheme as jest.Mock).mockReturnValue({ theme: 'light' });
+
+    (getIconData as jest.Mock).mockImplementation((skillName) => ({
+      label: skillName,
+      url: `https://example.com/${skillName.toLowerCase()}`,
     }));
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it('renders the title and initial empty state', async () => {
@@ -61,171 +55,65 @@ describe('SkillsCard', () => {
     expect(screen.getByText('Frontend')).toBeInTheDocument();
   });
 
-  it('types out skills one by one', async () => {
-    render(<SkillsCard title="Frontend" skills={mockSkills} />);
-
-    // Initially mounted
+  it('renders all skills as links after mount', async () => {
     await act(async () => {
-      jest.advanceTimersByTime(0);
+      render(<SkillsCard title="Frontend" skills={mockSkills} />);
     });
 
-    // Check first skill typing
-    await act(async () => {
-      jest.advanceTimersByTime(50);
-    });
-
-    // Wait for first skill to start typing
-    await waitFor(() => {
-      const spans = screen.getAllByText((content, element) => {
-        return element.tagName.toLowerCase() === 'span' && content.length > 0;
-      });
-      expect(spans.length).toBeGreaterThan(0);
-    });
-
-    // Verify typing cursor is present
-    const cursor = screen.getByText('|');
-    expect(cursor).toHaveClass('animate-pulse');
-
-    // Complete typing first skill
-    await act(async () => {
-      for (let i = 0; i < mockSkills[0].length - 1; i++) {
-        jest.advanceTimersByTime(50);
-      }
-    });
-
-    // Wait for first skill to be complete
-    await waitFor(() => {
-      const spans = screen.getAllByText((content, element) => {
-        return element.tagName.toLowerCase() === 'span' && content === mockSkills[0];
-      });
-      expect(spans.length).toBeGreaterThan(0);
-    });
-
-    // Wait for delay between skills
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-    });
-
-    // Wait for second skill to start typing
-    await act(async () => {
-      jest.advanceTimersByTime(50);
-    });
-
-    // Complete typing second skill
-    await act(async () => {
-      for (let i = 0; i < mockSkills[1].length; i++) {
-        jest.advanceTimersByTime(50);
-      }
-    });
-
-    // Wait for final state
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-    });
-
-    // Wait for both skills to be present
-    await waitFor(() => {
-      const spans = screen.getAllByText((content, element) => {
-        return element.tagName.toLowerCase() === 'span' && content.trim() !== '' && content !== '|';
-      });
-      const skillTexts = spans.map(span => span.textContent);
-      expect(skillTexts).toContain(mockSkills[0]);
-      expect(skillTexts).toContain(mockSkills[1]);
-    });
-  });
-
-  it('shows typing cursor for current skill', async () => {
-    render(<SkillsCard title="Frontend" skills={mockSkills} />);
-
-    // Initially mounted
-    await act(async () => {
-      jest.advanceTimersByTime(0);
-    });
-
-    // Check for cursor while typing first skill
-    await act(async () => {
-      jest.advanceTimersByTime(50);
-    });
-    expect(screen.getByText('|')).toHaveClass('animate-pulse');
-  });
-
-  it('applies correct styling to active and completed skills', async () => {
-    render(<SkillsCard title="Frontend" skills={mockSkills} />);
-
-    // Initially mounted
-    await act(async () => {
-      jest.advanceTimersByTime(0);
-    });
-
-    // Type out first skill
-    for (let i = 1; i <= mockSkills[0].length; i++) {
-      await act(async () => {
-        jest.advanceTimersByTime(50);
-      });
+    for (const skill of mockSkills) {
+      const link = screen.getByRole('link', { name: skill.name });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute('href', skill.url);
     }
-
-    // Wait for delay between skills
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-    });
-
-    // Find the span element containing the completed skill
-    await waitFor(() => {
-      const spans = screen.getAllByText(/.+/);
-      const skillElement = spans.find(span => span.textContent === mockSkills[0]);
-      expect(skillElement?.closest('.bg-muted')).toBeInTheDocument();
-    }, { timeout: 1000 });
   });
 
-  it('handles custom delay prop', () => {
-    const delay = 1000;
-    render(<SkillsCard title="Frontend" skills={mockSkills} delay={delay} />);
-    
-    const container = screen.getByRole('heading', { name: 'Frontend' }).parentElement;
-    expect(container).toBeInTheDocument();
+  it('renders skill names in spans', async () => {
+    await act(async () => {
+      render(<SkillsCard title="Frontend" skills={mockSkills} />);
+    });
+
+    for (const skill of mockSkills) {
+      expect(screen.getByText(skill.name)).toBeInTheDocument();
+    }
+  });
+
+  it('renders skills with external link attributes', async () => {
+    await act(async () => {
+      render(<SkillsCard title="Frontend" skills={mockSkills} />);
+    });
+
+    const firstLink = screen.getByRole('link', { name: mockSkills[0].name });
+    expect(firstLink).toHaveAttribute('target', '_blank');
+    expect(firstLink).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('handles custom delay prop', async () => {
+    await act(async () => {
+      render(<SkillsCard title="Frontend" skills={mockSkills} delay={1000} />);
+    });
+    expect(screen.getByRole('heading', { name: 'Frontend' })).toBeInTheDocument();
   });
 
   it('renders skill icons with correct links', async () => {
-    render(<SkillsCard title="Frontend" skills={mockSkills} />);
-
-    // Initially mounted
     await act(async () => {
-      jest.advanceTimersByTime(0);
+      render(<SkillsCard title="Frontend" skills={mockSkills} />);
     });
 
-    // Type out first skill
-    for (let i = 1; i <= mockSkills[0].length; i++) {
-      await act(async () => {
-        jest.advanceTimersByTime(50);
-      });
-    }
-
-    // Check icon link
-    const iconLink = screen.getByRole('link', { name: mockSkills[0] });
-    expect(iconLink).toHaveAttribute('href', `https://example.com/${mockSkills[0].toLowerCase()}`);
+    const iconLink = screen.getByRole('link', { name: mockSkills[0].name });
+    expect(iconLink).toHaveAttribute('href', mockSkills[0].url);
     expect(iconLink).toHaveAttribute('target', '_blank');
     expect(iconLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('handles empty skills array', () => {
-    render(<SkillsCard title="Frontend" skills={[]} />);
+  it('handles empty skills array', async () => {
+    await act(async () => {
+      render(<SkillsCard title="Frontend" skills={[]} />);
+    });
     expect(screen.getByText('Frontend')).toBeInTheDocument();
   });
 
-  it('handles unmounting during typing animation', async () => {
+  it('unmounts cleanly without errors', async () => {
     const { unmount } = render(<SkillsCard title="Frontend" skills={mockSkills} />);
-
-    // Start typing
-    await act(async () => {
-      jest.advanceTimersByTime(50);
-    });
-
-    // Unmount during typing
-    unmount();
-
-    // Should not throw any errors
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-    });
+    await act(async () => { unmount(); });
   });
 }); 

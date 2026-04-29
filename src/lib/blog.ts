@@ -42,9 +42,9 @@ export function getBlogPosts(): BlogPost[] {
       return {
         slug,
         title: data.title,
-        excerpt: data.excerpt,
+        excerpt: data.excerpt || data.description || '',
         date: data.date,
-        category: data.category,
+        category: data.category || 'General',
         tags: data.tags || [],
         featured: data.featured || false,
         content,
@@ -70,9 +70,9 @@ export function getBlogPostMeta(): BlogPostMeta[] {
       return {
         slug,
         title: data.title,
-        excerpt: data.excerpt,
+        excerpt: data.excerpt || data.description || '',
         date: data.date,
-        category: data.category,
+        category: data.category || 'General',
         tags: data.tags || [],
         featured: data.featured || false,
         readingTime: stats.text,
@@ -85,7 +85,9 @@ export function getBlogPostMeta(): BlogPostMeta[] {
 
 export function getBlogPostBySlug(slug: string): BlogPost | null {
   try {
-    const fullPath = path.join(contentDirectory, `${slug}.mdx`);
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) return null;
+    const fullPath = path.resolve(contentDirectory, `${slug}.mdx`);
+    if (!fullPath.startsWith(contentDirectory)) return null;
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
     const stats = readingTime(content);
@@ -93,9 +95,9 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
     return {
       slug,
       title: data.title,
-      excerpt: data.excerpt,
+      excerpt: data.excerpt || data.description || '',
       date: data.date,
-      category: data.category,
+      category: data.category || 'General',
       tags: data.tags || [],
       featured: data.featured || false,
       content,

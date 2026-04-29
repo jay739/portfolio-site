@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_cognizant_contract_intelligence_2026",
+  "title": "STAR - Cognizant Contract Intelligence Pipeline",
+  "content": "Project: Cognizant Contract Intelligence and Legal NLP Pipeline\n\nSituation:\n- Legal and contract review workflows were highly manual and time-intensive in enterprise settings.\n- Document variety and clause complexity made standard automation approaches insufficient.\n\nTask:\n- Build an end-to-end NLP workflow for entity extraction, classification, clause identification, and summarization in production.\n\nAction:\n- Developed domain-focused extraction and classification pipeline components for contract text.\n- Combined model-based extraction with workflow-oriented validation and integration practices.\n- Iterated based on dataset and feature-quality constraints rather than only model complexity.\n- Delivered with production API and reliability expectations suitable for enterprise use.\n\nResult:\n- Source-reported reduction in manual legal review effort and improved processing consistency.\n- Strengthened progression from implementation support to project ownership and leadership.",
+  "metadata": {
+    "source": "career-source cognizant deep dive",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "cognizant", "contract", "nlp", "document-intelligence", "legal"]
+  }
+}

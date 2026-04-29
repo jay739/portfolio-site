@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_enigma_llm_cost_optimization_2026",
+  "title": "STAR - Enigma LLM Cost Optimization",
+  "content": "Project: Enigma LLM Inference Cost Optimization\n\nSituation:\n- LLM usage costs were scaling rapidly in production, creating pressure to reduce spend without harming response quality.\n\nTask:\n- Build a cost-control strategy that preserves quality and SLA targets while lowering monthly inference costs.\n\nAction:\n- Introduced model routing to send lower-complexity tasks to smaller or cheaper models.\n- Implemented caching strategies to reduce repeated inference calls for semantically similar requests.\n- Used task-specific model choices and selective replacement of premium model usage where feasible.\n- Balanced latency, quality, and cost with operational monitoring and iterative tuning.\n\nResult:\n- Source-reported substantial monthly cost reduction with maintained production quality targets.\n- Established repeatable cost-governance patterns for GenAI workloads.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "enigma", "llm", "cost-optimization", "model-routing", "caching"]
+  }
+}

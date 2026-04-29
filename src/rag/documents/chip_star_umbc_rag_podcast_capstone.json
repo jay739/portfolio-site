@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_umbc_rag_podcast_capstone_2026",
+  "title": "STAR - UMBC RAG Podcast Capstone",
+  "content": "Project: UMBC RAG-Powered Podcast Generation Capstone\n\nSituation:\n- Need to transform long-form book documents into coherent, voice-based outputs with contextual continuity.\n\nTask:\n- Design an end-to-end pipeline that combines OCR, retrieval context assembly, and audio generation.\n\nAction:\n- Built a retrieval-aware processing workflow for extracting and organizing source context.\n- Applied OCR and orchestration tooling to prepare documents for downstream generation stages.\n- Integrated generation pipeline components for multi-voice podcast-style output.\n- Evaluated output quality and iteration points through applied experimentation.\n\nResult:\n- Source-reported high OCR and workflow quality in capstone delivery.\n- Demonstrated practical RAG orchestration skills transferable to production GenAI systems.",
+  "metadata": {
+    "source": "career-source career overview",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "umbc", "capstone", "rag", "ocr", "pipeline", "genai"]
+  }
+}

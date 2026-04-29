@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_arch_rseek_edge_constraints_decision_2026",
+  "title": "STAR Architecture Decision - R/SEEK Edge AI Under Constraints",
+  "content": "Architecture Decision: Edge-first AI design under hardware constraints\n\nSituation:\n- Robotics internship environment required real-time behavior on limited embedded hardware.\n- Cloud-dependent designs were unsuitable for low-latency, classroom-ready operation.\n\nTask:\n- Choose a deployment and model strategy compatible with constrained compute and response-time needs.\n\nAction:\n- Prioritized edge-first inference patterns and efficient model behavior over heavyweight cloud assumptions.\n- Aligned model and control-loop design to hardware, battery, and latency limits.\n- Focused on practical reliability and safety behavior in real-time operation.\n- Validated design choices through applied testing in embedded conditions.\n\nResult:\n- Source narrative reports strong applied outcomes in edge AI internship work.\n- Decision expanded architecture fluency from cloud ML to embedded real-time systems.",
+  "metadata": {
+    "source": "career-source internships",
+    "type": "architecture",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "architecture", "decision", "rseek", "edge-ai", "embedded", "real-time"]
+  }
+}

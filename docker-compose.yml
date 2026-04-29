@@ -4,7 +4,7 @@ services:
     image: jayakrishnakonda/portfolio:latest
     container_name: portfolio
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     restart: unless-stopped
     env_file:
       - .env
@@ -14,6 +14,8 @@ services:
       - HOSTNAME=0.0.0.0
     volumes:
       - ./service-account.json:/app/service-account.json:ro
+      - ./gallery-data:/app/public/images/gallery
+      - ./content/blog:/app/content/blog:ro
     mem_limit: 2g
     memswap_limit: 3g
     networks:
@@ -22,7 +24,7 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -31,15 +33,17 @@ services:
   sentry-webhook:
     build:
       context: .
-      dockerfile: Dockerfile.webhook
+      dockerfile: docker/Dockerfile.webhook
     container_name: sentry-webhook
     ports:
-      - "3007:3007"
+      - "127.0.0.1:3007:3007"
     restart: unless-stopped
     env_file:
       - .env
     environment:
       - "NODE_ENV=production"
+    mem_limit: 512m
+    memswap_limit: 512m
     networks:
       - default
     labels:

@@ -8,21 +8,26 @@ series: "Home Server Chronicles"
 featured: false
 ---
 
-## 🎬 The Media Automation Layer
+## <Film /> The Media Automation Layer
 
 Welcome to **Part 4** of my Home Server Chronicles.
 
-In Part 3, I covered the infrastructure backbone (Portainer, VS Code Server, monitoring, and backups). In this part, I’m focusing on the media stack that runs on top of that foundation:
+In Part 3, I covered the infrastructure backbone (Portainer, VS Code Server, monitoring, and backups). In this part, I'm focusing on the media stack that runs on top of that foundation:
 
-- 📺 **Jellyfin** for streaming
-- 🔎 **Sonarr** for TV automation
-- 🎥 **Radarr** for movie automation
-- 🎵 **Lidarr** for music automation
-- 🧭 A clean workflow for quality profiles, folder structure, and reliability
+- <Film /> **Jellyfin** for streaming (~1.4TB movies, ~920GB TV)
+- <Search /> **Sonarr** for TV automation
+- <Camera /> **Radarr** for movie automation
+- <Music /> **Lidarr** + **Navidrome** for music (~165GB)
+- <Headphones /> **Audiobookshelf** for audiobooks/podcasts
+- <Search /> **Prowlarr** for indexer management
+- <Download /> **qBittorrent + Gluetun** for VPN-tunneled downloads
+- <Film /> **Jellyseerr** for media requests
+- <Talk /> **Bazarr** for subtitles
+- <Compass /> A clean workflow for quality profiles, folder structure, and reliability
 
 ---
 
-## 🧱 Stack Design Goals
+## <Cube /> Stack Design Goals
 
 My media layer is built around a few strict rules:
 
@@ -35,7 +40,7 @@ At a high level, every service sits in the same Docker network and shares the sa
 
 ---
 
-## 📁 Folder Strategy (Most Important)
+## <Folder /> Folder Strategy (Most Important)
 
 This is where most self-hosted media stacks break.  
 If paths differ between Sonarr/Radarr/Jellyfin/download clients, automation fails.
@@ -43,27 +48,25 @@ If paths differ between Sonarr/Radarr/Jellyfin/download clients, automation fail
 My structure is standardized:
 
 ```bash
-/srv/media/
-├── downloads/
-│   ├── incomplete/
-│   └── complete/
-├── movies/
-├── tv/
-└── music/
+/mnt/internal_ssd/media/
+├── incomplete/
+├── movies/        # ~1.4TB
+├── tv/            # ~920GB
+├── music/         # ~165GB
+└── audiobooks/
 ```
 
-Container mounts follow the same target path pattern:
+All media lives on the 3.6TB internal NVMe SSD (`/mnt/internal_ssd`). Container mounts follow the same target path pattern:
 
-- `downloads` -> `/data/downloads`
-- `movies` -> `/data/movies`
-- `tv` -> `/data/tv`
-- `music` -> `/data/music`
+- `movies` -> `/tv` or `/movies` (consistent across Sonarr/Radarr/Jellyfin)
+- `music` -> `/music` (Lidarr/Navidrome)
+- `audiobooks` -> `/audiobooks` (Audiobookshelf)
 
 This keeps import/move operations deterministic.
 
 ---
 
-## 📺 Jellyfin Configuration
+## <Film /> Jellyfin Configuration
 
 Jellyfin is my playback and metadata front-end.
 
@@ -82,15 +85,19 @@ jellyfin:
   container_name: jellyfin
   restart: unless-stopped
   volumes:
-    - ./jellyfin/config:/config
-    - ./jellyfin/cache:/cache
-    - /srv/media/movies:/data/movies:ro
-    - /srv/media/tv:/data/tv:ro
-    - /srv/media/music:/data/music:ro
+    - /home/jay739/docker_services/jellyfin/config:/config
+    - /home/jay739/docker_services/jellyfin/cache:/cache
+    - /mnt/internal_ssd/media/movies:/movies
+    - /mnt/internal_ssd/media/tv:/tv
+    - /mnt/internal_ssd/media/music:/music
   ports:
-    - "8096:8096"
+    - "${HOST_IP:-10.0.0.101}:8096:8096"
+    - "100.89.188.84:8096:8096"
   networks:
     - media_net
+    - proxy_net
+  labels:
+    - "com.centurylinklabs.watchtower.enable=true"
 ```
 
 ### Practical tuning I use
@@ -101,57 +108,90 @@ jellyfin:
 
 ---
 
-## 🔎 Sonarr + Radarr + Lidarr
+## <Search /> Sonarr + Radarr + Lidarr
 
 These services run the acquisition and organization loop.
 
 ### Sonarr (TV)
 
 - Profiles per show type (anime / standard)
-- Root folder: `/data/tv`
-- Imports from `/data/downloads/complete`
+- Root folder: `/tv`
+- Imports from download client via hardlinks when possible
 
 ### Radarr (Movies)
 
 - Separate quality profiles for archive vs high-priority titles
-- Root folder: `/data/movies`
+- Root folder: `/movies`
 - Custom formats kept simple to reduce bad matches
 
 ### Lidarr (Music)
 
-- Root folder: `/data/music`
+- Root folder: `/music`
 - Automation enabled but with stricter matching to avoid noisy releases
+
+### Prowlarr (Indexer Management)
+
+- Centralized indexer configuration shared across all *arr apps
+- Eliminates per-app indexer setup — add once, sync everywhere
+
+### Bazarr (Subtitles)
+
+- Automated subtitle downloads for TV and movies
+- Multiple subtitle providers configured for fallback
+
+### qBittorrent + Gluetun (VPN Downloads)
+
+- All download traffic routed through **Gluetun** VPN container
+- qBittorrent container shares Gluetun's network stack
+- Ensures download traffic is always VPN-tunneled
+
+### Navidrome (Music Streaming)
+
+- Dedicated music streaming server (separate from Lidarr's acquisition role)
+- Subsonic API compatible — works with mobile apps
+- Reads directly from `/mnt/internal_ssd/media/music`
+
+### Audiobookshelf
+
+- Audiobook and podcast management
+- Reads from `/mnt/internal_ssd/media/audiobooks`
+
+### Jellyseerr (Media Requests)
+
+- Clean request UI for users to request movies/TV shows
+- Integrates with Sonarr/Radarr for automated fulfillment
 
 ---
 
-## 🔄 Automation Flow
+## <Repeat /> Automation Flow
 
 My end-to-end flow is:
 
-1. Add item in Sonarr/Radarr/Lidarr
-2. Grab request sent to downloader
-3. Downloader places files into `downloads/complete`
-4. Arr app imports + renames + moves into final library folder
-5. Jellyfin scans and exposes content
+1. User requests via **Jellyseerr** (or directly in Sonarr/Radarr/Lidarr)
+2. **Prowlarr** provides indexer results to the *arr app
+3. Grab request sent to **qBittorrent** (routed through **Gluetun** VPN)
+4. Download completes, *arr app imports + renames + moves into final library folder
+5. **Bazarr** fetches subtitles for the new content
+6. **Jellyfin** scans and exposes content for streaming
 
 If paths are aligned, this is mostly hands-off.
 
 ---
 
-## 🛡️ Reliability & Operations
+## <Shield /> Reliability & Operations
 
 A few operational practices make this stable long-term:
 
 - `restart: unless-stopped` on all media services
 - Health checks and uptime alerts from monitoring stack
-- Staggered updates (don’t update all services at once)
+- Staggered updates (don't update all services at once)
 - Backup of app configs and DB files before upgrades
 
 For maintenance windows, I update automation services first, then Jellyfin after validation.
 
 ---
 
-## 📊 Monitoring Signals I Watch
+## <BarChart /> Monitoring Signals I Watch
 
 From my monitoring layer, I care most about:
 
@@ -164,7 +204,7 @@ These signals tell me when to clean up, rebalance storage, or adjust quality pro
 
 ---
 
-## ⚠️ Common Pitfalls I Avoid
+## <Warning /> Common Pitfalls I Avoid
 
 - Different host/container path mapping per service
 - Aggressive quality profiles that cause constant upgrades
@@ -175,7 +215,7 @@ Simple configurations outperform clever-but-fragile setups.
 
 ---
 
-## ✅ Outcomes So Far
+## <Check /> Outcomes So Far
 
 This media stack gives me:
 
@@ -186,18 +226,19 @@ This media stack gives me:
 
 ---
 
-## 🚀 What’s Next
+## <Rocket /> What's Next
 
-In **Part 5**, I’ll cover the productivity layer:
+In **Part 5**, I'll cover the productivity and photos layer:
 
-- ☁️ Nextcloud
-- 🔐 Vaultwarden
-- ⏱️ Uptime Kuma
-- Daily workflow integrations between personal cloud and development services
+- <Cloud /> **Nextcloud** — Personal cloud storage
+- <Camera /> **Immich** — Self-hosted Google Photos alternative (~401GB)
+- <Note /> **Paperless-NGX** — Document management and OCR
+- <Lock /> **Vaultwarden** — Password management
+- <Home /> **Home Assistant** — Home automation
 
 ---
 
-👈 [Part 3 ← Infrastructure Layer](./docker-series-part3)  
-👉 [Part 5 → Productivity Layer (Coming Soon)](#)
+[Part 3 ← Infrastructure Layer](./docker-series-part3)  
+[Part 5 → Productivity Layer](./docker-series-part5)
 
 **— Jayakrishna**

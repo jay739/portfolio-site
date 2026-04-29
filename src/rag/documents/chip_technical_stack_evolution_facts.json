@@ -1,0 +1,11 @@
+{
+  "id": "chip_technical_stack_evolution_facts_2026",
+  "title": "Technical Stack Evolution - Factual Source",
+  "content": "Stack evolution described in guides:\n- Early phase: full-stack engineering foundations with web and database systems.\n- ML phase: Python-centric modeling stack for NLP and document intelligence in enterprise projects.\n- Graduate phase: deep learning, distributed systems, cloud tooling, and statistical foundations strengthened through coursework and projects.\n- Current phase: GenAI production stack with RAG orchestration, retrieval systems, LLM tuning, and MLOps practices.\n\nRecurring platform capabilities:\n- Data processing and feature workflows for large document corpora.\n- Model development and evaluation across traditional ML and transformer-based approaches.\n- Deployment and operational tooling for production reliability, monitoring, and optimization.\n\nCareer interpretation value:\n- Demonstrates continuity from software foundations to production AI system architecture.\n- Enables prompt responses that explain not only what tools are used, but why the stack changed over time.",
+  "metadata": {
+    "source": "career-source career overview + experiences",
+    "type": "skills",
+    "date": "2026-04-03",
+    "tags": ["chip", "tech-stack", "evolution", "ml", "genai", "rag", "mlops", "career-growth"]
+  }
+}

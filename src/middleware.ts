@@ -61,8 +61,7 @@ export async function middleware(request: NextRequest) {
         );
       }
       
-      // Add user role to request headers for downstream use
-      response.headers.set('X-User-Role', token.role as string);
+      // Role available via token in downstream handlers — not exposed in response headers
     }
   }
 

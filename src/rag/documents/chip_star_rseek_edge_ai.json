@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_rseek_edge_ai_2026",
+  "title": "STAR - R/SEEK Edge AI Robotics Internship",
+  "content": "Project: R/SEEK Edge AI Robotics Work at UMBC\n\nSituation:\n- Educational robotics project required real-time AI behavior on constrained edge hardware.\n- Constraints included limited compute, latency sensitivity, and practical classroom-oriented usability.\n\nTask:\n- Build and tune edge AI functionality for autonomous behavior in embedded systems context.\n\nAction:\n- Worked on embedded computer vision and real-time inference patterns for robotics workflows.\n- Adapted model and system design to hardware limits and response-time requirements.\n- Integrated AI logic with control-system behavior for safe and practical operation.\n- Bridged cloud-trained ML concepts with on-device deployment realities.\n\nResult:\n- Source-reported strong applied performance in edge AI internship outcomes.\n- Expanded deployment capability beyond cloud-only ML into embedded and real-time systems.",
+  "metadata": {
+    "source": "career-source internships + career overview",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "rseek", "edge-ai", "robotics", "embedded-ml", "real-time"]
+  }
+}

@@ -4,17 +4,31 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 const tokens = new Tokens();
 
-// Secret key for CSRF token generation (should match your environment variable)
-const SECRET = process.env.CSRF_SECRET || 'your-csrf-secret';
+let secret: string | undefined;
+let hasWarnedAboutMissingSecret = false;
 
-const CSRF_SECRET = process.env.NEXTAUTH_SECRET || process.env.CSRF_SECRET || 'csrf-secret-change-in-production';
+function getSecret(): string {
+  if (secret) {
+    return secret;
+  }
+
+  const configuredSecret = process.env.NEXTAUTH_SECRET || process.env.CSRF_SECRET;
+  if (!configuredSecret && !hasWarnedAboutMissingSecret && process.env.NEXT_PHASE !== 'phase-production-build') {
+    hasWarnedAboutMissingSecret = true;
+    console.error('CRITICAL: CSRF_SECRET or NEXTAUTH_SECRET must be set. CSRF tokens will be insecure.');
+  }
+
+  const resolvedSecret = configuredSecret || require('crypto').randomBytes(32).toString('hex');
+  secret = resolvedSecret;
+  return resolvedSecret;
+}
 
 export function generateToken() {
-  return tokens.create(CSRF_SECRET);
+  return tokens.create(getSecret());
 }
 
 export function verifyToken(token: string) {
-  return tokens.verify(CSRF_SECRET, token);
+  return tokens.verify(getSecret(), token);
 }
 
 export function getTokenFromRequest(req: NextApiRequest | GetServerSidePropsContext['req']) {

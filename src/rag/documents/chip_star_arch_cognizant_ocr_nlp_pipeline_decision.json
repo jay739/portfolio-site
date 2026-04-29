@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_arch_cognizant_ocr_nlp_pipeline_decision_2026",
+  "title": "STAR Architecture Decision - Cognizant OCR plus NLP Pipeline",
+  "content": "Architecture Decision: OCR-first plus domain NLP for document intelligence\n\nSituation:\n- Enterprise document sets included scanned, noisy, and heterogeneous formats.\n- Downstream classification and extraction quality depended heavily on input normalization quality.\n\nTask:\n- Select an architecture that can robustly process mixed document formats at production scale.\n\nAction:\n- Chose OCR-centered preprocessing followed by domain-adapted NLP extraction and classification stages.\n- Added quality checks between stages to reduce error propagation.\n- Integrated outputs into API and operational pipelines for downstream consumers.\n- Tuned for workload volume, reliability requirements, and domain constraints.\n\nResult:\n- Source context highlights better extraction consistency and operational efficiency in enterprise workflows.\n- Decision became a repeatable pattern for high-volume document intelligence delivery.",
+  "metadata": {
+    "source": "career-source cognizant deep dive",
+    "type": "architecture",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "architecture", "decision", "cognizant", "ocr", "nlp", "document-pipeline"]
+  }
+}

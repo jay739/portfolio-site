@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_incident_enigma_latency_regression_2026",
+  "title": "STAR Incident - Enigma RAG Latency Regression",
+  "content": "Incident: End-to-end latency pressure in retrieval and generation pipeline\n\nSituation:\n- RAG workflows faced latency pressure that reduced responsiveness for operational users.\n- Pipeline stages were sequentially expensive under increasing document volume.\n\nTask:\n- Bring response times back to practical production levels without lowering output quality.\n\nAction:\n- Profiled stage-level bottlenecks across retrieval, generation, and post-processing steps.\n- Applied async or parallel execution where independent operations were possible.\n- Reduced repeated work through caching and more efficient request handling.\n- Rebalanced tradeoffs between retrieval depth, model selection, and execution cost.\n\nResult:\n- Source context reports substantial latency improvement and smoother user-facing performance.\n- Incident drove a reusable performance-tuning playbook for future pipeline updates.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "incident",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "incident", "debugging", "latency", "performance", "enigma", "rag"]
+  }
+}

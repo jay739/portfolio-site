@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_arch_enigma_hybrid_retrieval_decision_2026",
+  "title": "STAR Architecture Decision - Enigma Hybrid Retrieval",
+  "content": "Architecture Decision: Hybrid retrieval over single-mode search\n\nSituation:\n- Business discovery and document tasks needed both strict constraints and semantic understanding.\n- Single-mode retrieval approaches produced either low recall or low precision depending on query type.\n\nTask:\n- Choose an architecture that preserves hard business constraints while still capturing semantic intent.\n\nAction:\n- Evaluated retrieval modes and selected a hybrid pattern: structured filtering plus vector retrieval and reranking.\n- Separated query intent into hard filters and semantic components for better control.\n- Implemented ranking refinement to improve final answer relevance.\n- Added monitoring hooks to tune retrieval behavior with real usage feedback.\n\nResult:\n- Source narrative indicates stronger search usability and practical workflow performance.\n- Decision became a reference architecture for retrieval-heavy product features.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "architecture",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "architecture", "decision", "enigma", "hybrid-retrieval", "search", "reranking"]
+  }
+}

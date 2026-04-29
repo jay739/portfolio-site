@@ -1,0 +1,11 @@
+{
+  "id": "chip_skills_explainability_interaction_2026",
+  "title": "Skills Radar, Explainability, and Interaction - Structured Source",
+  "content": "Neural radar signals (top strengths):\n- Production GenAI and RAG system design using LangChain, LangGraph, LlamaIndex, FAISS, and local model serving.\n- MLOps and platform engineering across Docker/Kubernetes, CI/CD, model versioning, and drift-aware operations.\n- Data/ML depth in NLP, computer vision, and distributed processing with measurable optimization outcomes.\n\nExplainability and validation practices:\n- Uses SHAP-based feature interpretation, cross-validation, hyperparameter tuning, and ablation studies before deployment decisions.\n- Applies evaluation metrics and experimentation workflows (including A/B style thinking and quality benchmarking) to keep model claims evidence-backed.\n\nInteraction and user-experience orientation:\n- Builds full-stack AI experiences with clear API boundaries and operational telemetry for debugging and quality feedback.\n- Emphasizes practical UX behavior: reliable outputs, visible system state, and iterative improvements informed by usage and monitoring signals.",
+  "metadata": {
+    "source": "profile+resume synthesis",
+    "type": "profile",
+    "date": "2026-04-03",
+    "tags": ["chip", "skills", "neural-radar", "explainability", "interaction", "mlops", "genai"]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_incident_enigma_cost_spike_2026",
+  "title": "STAR Incident - Enigma LLM Cost Spike Response",
+  "content": "Incident: Rapid increase in LLM inference spend\n\nSituation:\n- Inference costs scaled faster than planned as production usage increased.\n- Unchecked spend threatened long-term sustainability of GenAI workflows.\n\nTask:\n- Reduce recurring inference costs while preserving acceptable output quality and SLA behavior.\n\nAction:\n- Introduced model-routing logic by task complexity.\n- Added semantic caching to reduce repeated expensive calls.\n- Shifted selected workflows toward fit-for-purpose models where quality remained acceptable.\n- Instrumented cost and quality monitoring for ongoing control-loop tuning.\n\nResult:\n- Source material reports large cost reduction while maintaining delivery expectations.\n- Incident converted into a stable cost-governance framework for LLM operations.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "incident",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "incident", "debugging", "cost", "llm", "routing", "caching", "enigma"]
+  }
+}

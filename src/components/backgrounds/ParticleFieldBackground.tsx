@@ -58,8 +58,8 @@ export default function ParticleFieldBackground() {
     if (!ctx) return;
 
     const isDark = resolvedTheme === 'dark';
-    const color = isDark ? '56, 189, 248' : '14, 116, 144';
-    const accent = isDark ? '232, 121, 249' : '147, 51, 234';
+    const color = isDark ? '255, 244, 230' : '140, 74, 29';
+    const accent = isDark ? '245, 158, 11' : '194, 65, 12';
 
     const draw = () => {
       const { w, h, dpr } = dimRef.current;
@@ -71,13 +71,35 @@ export default function ParticleFieldBackground() {
         p.y += p.vy;
         if (p.x < 0 || p.x > w) p.vx *= -1;
         if (p.y < 0 || p.y > h) p.vy *= -1;
+      });
+
+      for (let i = 0; i < particlesRef.current.length; i += 1) {
+        const a = particlesRef.current[i];
+        for (let j = i + 1; j < particlesRef.current.length; j += 1) {
+          const b = particlesRef.current[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            const alpha = (1 - dist / 120) * (isDark ? 0.12 : 0.08);
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(${accent}, ${alpha})`;
+            ctx.lineWidth = dist < 60 ? 1.1 : 0.7;
+            ctx.stroke();
+          }
+        }
+      }
+
+      particlesRef.current.forEach((p) => {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${color}, ${p.alpha * 0.75})`;
         ctx.fill();
 
-        // Add subtle data-node bloom for a denser neural field.
+        // Subtle node bloom for denser neural-field depth.
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 2.7, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${accent}, ${p.alpha * 0.08})`;
@@ -96,7 +118,7 @@ export default function ParticleFieldBackground() {
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ opacity: 0.92 }}
+        style={{ opacity: 0.96 }}
         aria-hidden="true"
       />
     </div>

@@ -1,0 +1,11 @@
+{
+  "id": "chip_enigma_genai_experience_facts_2026",
+  "title": "Enigma GenAI Experience - Factual Source",
+  "content": "Role context:\n- Position: Data Scientist in GenAI and ML at Enigma Technologies (from June 2025).\n- Scope: Production RAG systems, LLM fine-tuning, ML pipelines, model explainability, and stakeholder-facing delivery.\n\nCore responsibilities documented in source material:\n- Design and optimization of production RAG pipelines for large document intelligence workloads.\n- LLM fine-tuning and prompt strategy work for domain-specific extraction and classification.\n- Deployment and reliability practices in cloud-native ML environments.\n- Mentoring and communication across technical and non-technical stakeholders.\n\nRepresentative initiatives and outcomes:\n- Multi-stage document intelligence RAG pipeline for pre-processing, retrieval, extraction, and confidence-based review routing.\n- Reported impact includes lower analyst review burden and faster document processing throughput.\n- LLM cost optimization via model routing, caching, and selective replacement of premium API usage with task-specific models.\n- Semantic and hybrid retrieval systems for business discovery workflows, combining structured constraints with vector retrieval and reranking.\n\nTechnical themes highlighted:\n- Hybrid retrieval design, chunking strategy, and hallucination mitigation through validation layers.\n- Performance and cost tradeoff management in production inference paths.\n- Explainability and transparency in model outputs for compliance-sensitive business users.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "experience",
+    "date": "2026-04-03",
+    "tags": ["chip", "enigma", "genai", "rag", "llm", "production-ml", "cost-optimization", "experience"]
+  }
+}

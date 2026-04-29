@@ -1,34 +1,34 @@
 ---
 title: "🧱 Home Server Chronicles: My Docker-Powered Ecosystem — Part 2"
-description: "Deep dive into the backbone of secure external access: Nginx Proxy Manager, Authelia 2FA, and WireGuard VPN — the core services that make everything work."
+description: "Deep dive into the backbone of secure external access: Nginx Proxy Manager, Authentik SSO/2FA, and Tailscale VPN — the core services that make everything work."
 date: "2025-07-11"
-tags: ["Docker", "Self-Hosting", "Nginx", "Authelia", "WireGuard", "VPN", "2FA", "Reverse Proxy", "Security"]
+tags: ["Docker", "Self-Hosting", "Nginx", "Authentik", "Tailscale", "VPN", "2FA", "Reverse Proxy", "Security"]
 series: "Home Server Chronicles"
 ---
 
-## 🛡️ The Security Foundation
+## <Shield /> The Security Foundation
 
 Welcome to **Part 2** of my Home Server Chronicles! In Part 1, we explored the overall architecture and philosophy behind my Docker-powered ecosystem. Now, let's dive into the **core services** that form the backbone of secure external access.
 
 These three services work together to create a robust, secure gateway to my home lab:
 
-- 🌐 **Nginx Proxy Manager** — Reverse proxy with SSL termination
-- 🔐 **Authelia** — 2FA authentication gateway  
-- 🔒 **WireGuard (wg-easy)** — VPN tunnel for remote access
+- <Globe /> **Nginx Proxy Manager** — Reverse proxy with SSL termination
+- <Lock /> **Authentik** — SSO/2FA identity provider  
+- <Key /> **Tailscale** — Mesh VPN for remote access
 
 ---
 
-## 🌐 Nginx Proxy Manager: The Traffic Director
+## <Globe /> Nginx Proxy Manager: The Traffic Director
 
 ### Why NPM Over Traefik?
 
 I chose **Nginx Proxy Manager** over Traefik for several reasons:
 
-- 🎯 **Web UI**: Clean, intuitive interface for managing proxy hosts
-- 🔐 **Built-in SSL**: Automatic Let's Encrypt certificate generation
-- 📊 **Real-time logs**: Easy debugging with live access logs
-- 🎨 **Theme integration**: Works seamlessly with theme.park for dark mode
-- 🔧 **Flexibility**: Easy custom configurations and advanced routing
+- <Target /> **Web UI**: Clean, intuitive interface for managing proxy hosts
+- <Lock /> **Built-in SSL**: Automatic Let's Encrypt certificate generation
+- <BarChart /> **Real-time logs**: Easy debugging with live access logs
+- <Palette /> **Theme integration**: Works seamlessly with theme.park for dark mode
+- <Wrench /> **Flexibility**: Easy custom configurations and advanced routing
 
 ### Configuration
 
@@ -40,11 +40,11 @@ nginx-proxy-manager:
   container_name: nginx-proxy-manager
   restart: unless-stopped
   ports:
-    - "80:80"                  # ✅ PUBLIC - HTTP proxy hosts
-    - "443:443"                # ✅ PUBLIC - HTTPS proxy hosts
-    - "127.0.0.1:81:81"        # ✅ LOCALHOST - admin interface
-    - "10.0.0.110:81:81"       # ✅ LOCAL NETWORK - admin interface
-    - "100.89.188.84:81:81"    # ✅ TAILSCALE - admin interface
+    - "80:80"                  # PUBLIC - HTTP proxy hosts
+    - "443:443"                # PUBLIC - HTTPS proxy hosts
+    - "127.0.0.1:81:81"        # LOCALHOST - admin interface
+    - "${HOST_IP:-10.0.0.101}:81:81"       # LOCAL NETWORK - admin interface
+    - "100.89.188.84:81:81"    # TAILSCALE - admin interface
   environment:
     - DISABLE_IPV6=true
     - TP_THEME=dark
@@ -58,139 +58,137 @@ nginx-proxy-manager:
 
 ### Key Features in Action
 
-**🔗 Proxy Hosts**: Each service gets its own subdomain:
+**<ChainLink /> Proxy Hosts**: Each service gets its own subdomain:
 - `jellyfin.jay739.dev` → `jellyfin:8096`
 - `tools.jay739.dev` → `it-tools:80`
 - `notes.jay739.dev` → `paperless-ngx:8000`
 
-**🔐 SSL Certificates**: Automatically managed via Let's Encrypt:
+**<Lock /> SSL Certificates**: Automatically managed via Let's Encrypt:
 - Wildcard certificates for `*.jay739.dev`
 - Auto-renewal every 60 days
 - HTTP to HTTPS redirect enforced
 
-**🎨 Dark Theme**: Integration with theme.park for consistent dark mode across all services.
+**<Palette /> Dark Theme**: Integration with theme.park for consistent dark mode across all services.
 
 ---
 
-## 🔐 Authelia: The Authentication Guardian
+## <Lock /> Authentik: The Identity Provider
 
-### Two-Factor Authentication Everywhere
+### Full SSO with Two-Factor Authentication
 
-**Authelia** acts as a forward-auth middleware, protecting sensitive services with TOTP-based 2FA. It integrates seamlessly with Nginx Proxy Manager to add an authentication layer.
+**Authentik** is a self-hosted identity provider that acts as the SSO layer across all my services. It replaced Authelia early on because I needed richer features — SAML/OIDC support, user management UI, and application-level access policies. It integrates with Nginx Proxy Manager via forward-auth headers.
 
 ### Architecture
 
 ```
-User Request → NPM → Authelia (if protected) → Target Service
+User Request → NPM → Authentik (if protected) → Target Service
 ```
 
 ### Configuration
 
-In `infra.yml`, Authelia is configured with:
+In `infra.yml`, Authentik runs as a server + worker pair backed by its own PostgreSQL and Redis instances:
 
 ```yaml
-authelia:
-  image: authelia/authelia:latest
-  container_name: authelia
+authentik-server:
+  image: ghcr.io/goauthentik/server:latest
+  container_name: authentik-server
   restart: unless-stopped
-  volumes:
-    - ./authelia/config:/config
-    - ./authelia/secrets:/secrets
+  command: server
   environment:
-    - TZ=America/New_York  
+    - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+    - AUTHENTIK_POSTGRESQL__HOST=authentik-postgres
+    - AUTHENTIK_POSTGRESQL__NAME=authentik
+    - AUTHENTIK_POSTGRESQL__USER=authentik
+    - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DB_PASSWORD}
+    - AUTHENTIK_REDIS__HOST=authentik-redis
+  ports:
+    - "${HOST_IP:-10.0.0.101}:9001:9000"
+    - "100.89.188.84:9001:9000"
   depends_on:
-    - redis
+    - authentik-postgres
+    - authentik-redis
   networks:
     - proxy_net
-  ports:
-    - "10.0.0.110:9091:9091"     # ✅ LOCAL NETWORK ACCESS
-    - "100.89.188.84:9091:9091"  # ✅ TAILSCALE ACCESS
+
+authentik-worker:
+  image: ghcr.io/goauthentik/server:latest
+  container_name: authentik-worker
+  restart: unless-stopped
+  command: worker
+  # ... same env vars as server
 ```
 
 ### What Gets Protected?
 
 I use a tiered approach to security:
 
-**🔒 High Security (2FA Required)**:
+**<Lock /> High Security (SSO + 2FA Required)**:
 - Portainer (container management)
 - Nginx Proxy Manager admin
 - Vaultwarden (password manager)
-- VS Code Server
+- Immich (photo library)
 
-**🔓 Medium Security (Local Network Only)**:
+**<Key /> Medium Security (Local Network / Tailscale Only)**:
 - Jellyfin (media streaming)
-- Paperless-ngx (documents)
-- Homarr (dashboard)
+- Paperless-NGX (documents)
+- Homarr / Homepage (dashboards)
+- Open WebUI (LLM interface)
 
-**🌐 Public Access**:
-- Portfolio website
-- IT-Tools (utility tools)
-- Read-only services
+**<Globe /> Public Access**:
+- Portfolio website (jay739.dev)
+- IT-Tools, Vert, Paste (utility tools)
 
 ### Setup Process
 
-1. **Initial Configuration**: Users and groups defined in `users_database.yml`
-2. **TOTP Setup**: Each user scans QR code with Google Authenticator
-3. **Policy Rules**: Access control based on domains and user groups
-4. **Session Management**: Remember devices for 30 days
+1. **Initial Setup**: Admin account created on first boot, users/groups managed via Authentik admin UI
+2. **TOTP/WebAuthn**: Each user enrolls 2FA devices through the Authentik user dashboard
+3. **Application Providers**: Each service registered as an Authentik Application with proxy provider
+4. **Session Management**: Configurable session duration with remember-me support
 
 ---
 
-## 🔒 WireGuard VPN: The Secure Tunnel
+## <Key /> Tailscale: The Mesh VPN
 
-### Why WireGuard?
+### Why Tailscale?
 
-WireGuard provides the **secure tunnel** for remote access to my home lab. I use **wg-easy** for simplified management:
+Tailscale provides a **WireGuard-based mesh VPN** that connects all my devices without port forwarding or complex configuration:
 
-- 🚀 **Performance**: Modern, lightweight VPN protocol
-- 🔧 **Easy Management**: Web UI for client configuration
-- 📱 **Mobile Support**: Works great on iOS/Android
-- 🔐 **Security**: State-of-the-art cryptography
+- <Rocket /> **Zero Config**: No port forwarding, NAT traversal handled automatically
+- <Wrench /> **MagicDNS**: Automatic DNS for all devices on the tailnet
+- <Laptop /> **Cross-Platform**: Works on macOS, iOS, Android, Linux, Windows
+- <Lock /> **WireGuard Under the Hood**: State-of-the-art cryptography
+- <Globe /> **Exit Nodes**: Route traffic through any device on the tailnet
 
-### Configuration
+### Setup
 
-```yaml
-wg-easy:
-  image: weejewel/wg-easy
-  container_name: wg-easy
-  restart: unless-stopped
-  network_mode: host
-  environment:
-    - WG_HOST=${WG_HOST}
-    - PASSWORD=${WG_PASSWORD}
-    - WG_PORT=51820
-    - WG_ALLOWED_IPS=0.0.0.0/0
-    - WG_DEFAULT_DNS=172.25.0.7  # Points to Pi-hole
-  volumes:
-    - ./wg-easy:/etc/wireguard
-  cap_add:
-    - NET_ADMIN
-    - SYS_MODULE
+Tailscale runs natively on the host (not in a container) for best performance:
+
+```bash
+# Install and authenticate
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up --accept-routes --advertise-exit-node
 ```
 
 ### Network Layout
 
-My VPN setup creates a secure overlay network:
+My Tailscale tailnet connects 8 devices across multiple platforms:
 
 ```
-Internet → WireGuard (51820) → Home Network (10.0.0.0/24)
-                                      ↓
-                                Docker Networks
-                                      ↓
-                                 Services
+Batcave (100.89.188.84)  ←→  Oracle VPS (100.80.153.103)
+       ↕                              ↕
+MacBook Air (100.103.152.9)    iPhone (100.105.125.76)
+Mac Mini (100.104.170.37)      Pixel 7 (100.79.158.25)
 ```
 
-### Client Configuration
+The Oracle VPS acts as an **exit node**, and all services bind to both the LAN IP (`10.0.0.101`) and Tailscale IP (`100.89.188.84`) for multi-path access.
 
-Each device gets its own WireGuard configuration:
+### Split DNS
 
-- **Work Laptop**: Full tunnel for secure remote work
-- **Phone**: Split tunnel for accessing home services
-- **Tablet**: Media streaming and document access
+I use dnsmasq on Batcave with custom DNS records pointing `*.jay739.dev` to the LAN IP (`10.0.0.101`), so devices on the local network can reach services directly without depending on Tailscale. See my [Tailscale resilience post](./tailscale-resilient-homelab-networking) for how I eliminated Tailscale as a single point of failure.
 
 ---
 
-## 🚦 Traffic Flow: How It All Works Together
+## <Network /> Traffic Flow: How It All Works Together
 
 Here's the complete request flow for a protected service:
 
@@ -198,12 +196,12 @@ Here's the complete request flow for a protected service:
 flowchart TD
     A[User Request] --> B[Nginx Proxy Manager]
     B --> C{Protected Service?}
-    C -->|Yes| D[Authelia Authentication]
+    C -->|Yes| D[Authentik Authentication]
     C -->|No| E[Direct to Service]
     D --> F{Valid Session?}
     F -->|No| G[Login + 2FA]
     F -->|Yes| E
-    G --> H[TOTP Verification]
+    G --> H[TOTP/WebAuthn Verification]
     H --> E[Forward to Service]
     E --> I[Service Response]
     I --> J[User]
@@ -213,36 +211,36 @@ flowchart TD
 
 1. **Request**: User navigates to `portainer.jay739.dev`
 2. **NPM**: Nginx Proxy Manager receives request
-3. **Auth Check**: Forwards to Authelia for authentication
+3. **Auth Check**: Forward-auth header triggers Authentik
 4. **2FA**: User enters username/password + TOTP code
-5. **Session**: Authelia creates session cookie
+5. **Session**: Authentik creates session cookie
 6. **Forwarding**: Request forwarded to Portainer container
 7. **Response**: Portainer interface loads
 
 ---
 
-## 🎯 Access Patterns
+## <Target /> Access Patterns
 
 I've designed three distinct access patterns:
 
-### 🏠 Local Network (10.0.0.110)
+### <Home /> Local Network (10.0.0.101)
 - **Usage**: When I'm at home
 - **Security**: Reduced authentication for convenience
 - **Services**: All services accessible directly
 
-### 🌐 Internet (jay739.dev subdomains)
+### <Globe /> Internet (jay739.dev subdomains)
 - **Usage**: Public internet access
 - **Security**: Full 2FA protection for sensitive services
 - **Services**: Curated list of safe-to-expose services
 
-### 🔐 VPN Tunnel (100.89.188.84)
-- **Usage**: Remote work and administration
-- **Security**: VPN + 2FA for maximum security
-- **Services**: Full access to all services
+### <Lock /> Tailscale Mesh VPN (100.89.188.84)
+- **Usage**: Remote work and administration from anywhere
+- **Security**: WireGuard encryption + Authentik 2FA for maximum security
+- **Services**: Full access to all services via Tailscale IP bindings
 
 ---
 
-## 🔧 Management & Monitoring
+## <Wrench /> Management & Monitoring
 
 ### Nginx Proxy Manager Admin
 - **URL**: `https://npm.jay739.dev:81`
@@ -252,29 +250,30 @@ I've designed three distinct access patterns:
   - Custom location blocks
   - Fail2ban integration
 
-### Authelia Dashboard
-- **URL**: `https://auth.jay739.dev:9091`
+### Authentik Admin
+- **URL**: `https://auth.jay739.dev`
 - **Features**:
-  - User session management
-  - 2FA device enrollment
-  - Access attempt logs
-  - Policy testing
+  - Full user/group management UI
+  - Application provider configuration (proxy, OIDC, SAML)
+  - 2FA device enrollment (TOTP, WebAuthn)
+  - Flow designer for custom login experiences
+  - Event logs and audit trail
 
-### WireGuard Management
-- **URL**: `https://vpn.jay739.dev:51821`
+### Tailscale Admin
+- **URL**: [Tailscale Admin Console](https://login.tailscale.com/admin)
 - **Features**:
-  - Client configuration QR codes
-  - Bandwidth monitoring
-  - Connection status
-  - Easy client management
+  - Device management across the tailnet
+  - ACL policy configuration
+  - Exit node management
+  - MagicDNS and Split DNS settings
 
 ---
 
-## 🚨 Security Considerations
+## <Warning /> Security Considerations
 
 ### Defense in Depth
 - **Layer 1**: Firewall (ufw) blocks unnecessary ports
-- **Layer 2**: VPN tunnel for remote access
+- **Layer 2**: Tailscale mesh VPN for remote access
 - **Layer 3**: Reverse proxy with rate limiting
 - **Layer 4**: 2FA authentication for sensitive services
 - **Layer 5**: Container isolation and least privilege
@@ -299,44 +298,44 @@ bantime = 86400
 
 ---
 
-## 🎉 Benefits of This Stack
+## <Star /> Benefits of This Stack
 
 ### For Security
-- ✅ **Zero Trust**: Every request authenticated
-- ✅ **Encrypted Transit**: All traffic over HTTPS/VPN
-- ✅ **Audit Trail**: Complete access logging
-- ✅ **Isolation**: Services can't access each other unnecessarily
+- <Check /> **Zero Trust**: Every request authenticated
+- <Check /> **Encrypted Transit**: All traffic over HTTPS/VPN
+- <Check /> **Audit Trail**: Complete access logging
+- <Check /> **Isolation**: Services can't access each other unnecessarily
 
 ### For Convenience
-- ✅ **Single Sign-On**: One auth session for all services
-- ✅ **Custom Domains**: Memorable subdomains for each service
-- ✅ **Mobile Access**: Full functionality on phone/tablet
-- ✅ **Offline Capability**: VPN works even when internet is down
+- <Check /> **Single Sign-On**: One auth session for all services
+- <Check /> **Custom Domains**: Memorable subdomains for each service
+- <Check /> **Mobile Access**: Full functionality on phone/tablet
+- <Check /> **Offline Capability**: VPN works even when internet is down
 
 ### For Maintenance
-- ✅ **Centralized Management**: One interface for all proxy configs
-- ✅ **Automated SSL**: Set-and-forget certificate management
-- ✅ **Easy Troubleshooting**: Clear logs and error messages
-- ✅ **Backup/Restore**: Simple configuration file management
+- <Check /> **Centralized Management**: One interface for all proxy configs
+- <Check /> **Automated SSL**: Set-and-forget certificate management
+- <Check /> **Easy Troubleshooting**: Clear logs and error messages
+- <Check /> **Backup/Restore**: Simple configuration file management
 
 ---
 
-## 🚀 What's Next?
+## <Rocket /> What's Next?
 
 In **Part 3**, we'll explore the **Infrastructure Layer** — the tools that keep everything running smoothly:
 
-- 🐳 **Portainer**: Container management with a web UI
-- 💻 **VS Code Server**: Cloud-based development environment
-- 📊 **Netdata**: Real-time system monitoring
-- 🔄 **Watchtower**: Automated container updates
-- 💾 **Backup Strategy**: Protecting your data
+- <Docker /> **Portainer**: Container management with a web UI
+- <Laptop /> **VS Code Server**: Cloud-based development environment
+- <BarChart /> **Netdata**: Real-time system monitoring
+- <Repeat /> **Watchtower**: Automated container updates
+- <Save /> **Backup Strategy**: Protecting your data
 
 This foundation of core services makes everything else possible. With secure access, authentication, and VPN connectivity in place, we can confidently expose our services to the internet while maintaining tight security controls.
 
 ---
 
-👈 [Part 1 ← Introduction & Architecture](./docker-series-part1)  
-👉 [Part 3 → Infrastructure Layer (Coming Soon)](#)
+[Part 1 ← Introduction & Architecture](./docker-series-part1)  
+[Part 3 → Infrastructure Layer](./docker-series-part3)
 
 **Questions or want to replicate this setup? Feel free to reach out!**
 

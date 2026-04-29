@@ -1,3 +1,0 @@
-Contact: mailto:security@yourdomain.com
-Preferred-Languages: en
-Policy: https://yourdomain.com/security-policy 

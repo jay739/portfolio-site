@@ -12,7 +12,7 @@ export const timelineItems: TimelineItem[] = [
     title: 'Data Scientist — GenAI & ML',
     subtitle: 'Enigma Technologies',
     date: 'Jun 2025 - Present',
-    icon: '🤖',
+    icon: 'robot',
     description: 'Design and deploy production RAG pipelines and LLM fine-tuning workflows to automate large-scale document classification and entity extraction.',
     details: [
       'Reduced analyst review time by 30%+ through GenAI & RAG automation',
@@ -27,7 +27,7 @@ export const timelineItems: TimelineItem[] = [
     title: 'AI/ML Programming Intern',
     subtitle: 'R/SEEK — UMBC',
     date: 'Jan 2025 - Jun 2025',
-    icon: '💻',
+    icon: 'laptop-code',
     description: 'Developed real-time object recognition and motion tracking for autonomous RC car navigation.',
     details: [
       'Achieved 95% detection accuracy using YOLOv8 across dynamic test environments',
@@ -37,23 +37,24 @@ export const timelineItems: TimelineItem[] = [
     ]
   },
   {
-    title: 'Graduate Student',
-    subtitle: 'University of Maryland, Baltimore County',
+    title: 'M.S. Data Science — Graduate',
+    subtitle: 'University of Maryland, Baltimore County (UMBC)',
     date: 'Aug 2023 - Jun 2025',
-    icon: '🎓',
-    description: 'Master of Science in Data Science, focusing on machine learning, NLP, and cloud-native AI systems.',
+    icon: 'graduation-cap',
+    description: 'Master of Professional Studies in Data Science (GPA 3.91/4.0). Focused on machine learning, NLP, GenAI, and cloud-native AI systems.',
     details: [
-      'Completed capstone: RAG-powered Podcast Generator with 98% OCR accuracy',
-      'Built Financial Crisis Analysis Tool with FinBERT achieving 87% accuracy',
-      'Developed expertise in distributed systems, MLOps, and GenAI',
-      'Specialized in LangChain, PyTorch, TensorFlow, and AWS cloud infrastructure'
+      'Capstone: RAG-powered Podcast Generator — PDF → LLM → TTS pipeline achieving 98% OCR accuracy',
+      'Wildfire Detection project: AllCNN on Sentinel-2 satellite imagery, 91% accuracy and 88% F1-score',
+      'Financial Risk Suite: FinBERT classifier (87% accuracy) + 1,000+ Monte Carlo simulations for VaR',
+      'AI/ML Programming Intern at R/SEEK: YOLOv8 object detection (95% accuracy) on autonomous RC car',
+      'Coursework: Machine Learning, Practical Deep Learning, Big Data Processing, Ethical Issues in Data Science'
     ]
   },
   {
     title: 'Machine Learning Engineer',
     subtitle: 'Cognizant',
-    date: 'Jan 2020 - Jul 2023',
-    icon: '🔧',
+    date: 'Jun 2019 - Jul 2023',
+    icon: 'wrench',
     description: 'Delivered production NLP pipelines for contract and document intelligence — context extraction, semantic search, and text classification across 10M+ records.',
     details: [
       'Reduced manual legal and compliance review effort by 35% while meeting SLA targets',
@@ -68,7 +69,7 @@ export const timelineItems: TimelineItem[] = [
     title: 'Software Engineering Intern',
     subtitle: 'Infosys',
     date: 'Jan 2019 - May 2019',
-    icon: '💼',
+    icon: 'briefcase',
     description: 'Built full-stack applications and applied data analysis to evaluate user interaction patterns.',
     details: [
       'Developed real-time movie database application using Node.js and MongoDB',

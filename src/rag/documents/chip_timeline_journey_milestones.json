@@ -1,0 +1,11 @@
+{
+  "id": "chip_timeline_journey_milestones_2026",
+  "title": "Timeline Journey and Milestones - Structured Source",
+  "content": "Career journey summary:\n- Foundation stage: Software Engineering Intern at Infosys, followed by Machine Learning Engineer at Cognizant where he built production NLP/ML pipelines at enterprise scale.\n- Scale-up stage: Advanced model delivery with MLOps practices, distributed data processing, and cloud inference optimization.\n- Transition stage: M.S. in Data Science at UMBC (GPA 3.91/4.0), with hands-on AI/ML internships and applied research-driven implementation.\n- Current stage: Data Scientist at Enigma Technologies in a GenAI/ML role focused on production RAG and LLM-enabled automation workflows.\n\nKey milestones:\n- Built and operates Batcave, a 56-container hybrid-cloud AI platform with 36+ services and 177GB data footprint.\n- Improved core inference paths from around 450ms to under 90ms through pipeline and serving optimization.\n- Delivered workflow efficiency improvements of roughly 30-40% in NLP/document intelligence contexts.\n\nNarrative flow for prompts:\n- Skills to systems: strong ML/GenAI foundation translated into production-ready architectures.\n- Systems to outcomes: deployment, monitoring, and iteration tied to measurable performance and efficiency gains.\n- Outcomes to leadership: operates full-stack AI infrastructure with reliability, security, and automation discipline.",
+  "metadata": {
+    "source": "profile+resume synthesis",
+    "type": "profile",
+    "date": "2026-04-03",
+    "tags": ["chip", "timeline", "journey-map", "milestones", "narrative-flow", "career", "experience"]
+  }
+}

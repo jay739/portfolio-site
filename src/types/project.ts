@@ -12,4 +12,8 @@ export interface Project {
   learnings?: string[];
   featured?: boolean;
   viewHomeServer?: string; // Optional property for home server link
+  lifecycle?: string[];
+  proofPoints?: string[];
+  problemAreas?: string[];
+  summaryPdfLabel?: string;
 } 

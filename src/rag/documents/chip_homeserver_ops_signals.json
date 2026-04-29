@@ -1,0 +1,11 @@
+{
+  "id": "chip_homeserver_ops_signals_2026",
+  "title": "Home Server Ops Signals - Real-Time and Operational Insights",
+  "content": "Real-time signals tracked in Jayakrishna's home server operations:\n- Service health across a 56-container environment and 36+ active services.\n- Resource telemetry through Netdata (CPU, load, memory, I/O, network) with automated alerting workflows.\n- Deployment/update continuity using CI/CD and container update automation.\n\nOperational insights emphasized:\n- Reliability-first operations with high uptime targets and production-like alerting behavior.\n- Security posture improvements using automated vulnerability scanning and prioritized remediation planning.\n- Performance optimization from telemetry evidence rather than assumptions (latency, throughput, and service stability trends).\n\nInfrastructure characteristics used for decision-making:\n- Hybrid-cloud architecture with local-first operation and selective cloud optimization.\n- Multi-database backend for mixed workloads (retrieval, metadata, service state, and automation tasks).\n- Zero-trust access approach using identity, VPN segmentation, and monitored exposure boundaries.",
+  "metadata": {
+    "source": "profile+resume synthesis",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "homeserver", "real-time-signals", "ops-insight", "infrastructure", "netdata", "observability"]
+  }
+}

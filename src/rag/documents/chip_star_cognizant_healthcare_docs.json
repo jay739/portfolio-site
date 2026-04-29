@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_cognizant_healthcare_docs_2026",
+  "title": "STAR - Cognizant Healthcare Document Intelligence",
+  "content": "Project: Cognizant Healthcare Document Intelligence Pipeline\n\nSituation:\n- Healthcare document workflows required large-scale processing with strong quality and compliance requirements.\n- Inputs included scanned or semi-structured records, making extraction and classification challenging.\n\nTask:\n- Deliver a scalable OCR plus NLP system to classify documents and extract structured information for downstream operations.\n\nAction:\n- Implemented OCR-driven preprocessing and domain-adapted NLP stages for medical document understanding.\n- Designed classification and extraction steps with validation checks for data quality and consistency.\n- Built deployment and integration patterns suitable for high-volume operational environments.\n- Coordinated technical delivery in cross-functional, compliance-sensitive contexts.\n\nResult:\n- Source-reported improvement in processing efficiency and extraction quality for healthcare workflows.\n- Demonstrated ability to deliver reliable ML systems in regulated domains.",
+  "metadata": {
+    "source": "career-source cognizant deep dive",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "cognizant", "healthcare", "ocr", "nlp", "regulated-systems"]
+  }
+}

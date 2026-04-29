@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_incident_enigma_hallucination_control_2026",
+  "title": "STAR Incident - Enigma Hallucination Control in RAG Outputs",
+  "content": "Incident: Hallucination risk in production document extraction\n\nSituation:\n- Production RAG workflows generated occasional plausible but incorrect extracted values.\n- In compliance-oriented contexts, low-frequency factual errors still created high operational risk.\n\nTask:\n- Reduce hallucination-related extraction errors while keeping throughput and latency within operational targets.\n\nAction:\n- Added structured output validation layers and post-extraction consistency checks.\n- Introduced confidence-aware routing and fallback handling for low-certainty outputs.\n- Tightened retrieval quality with chunking and metadata filter tuning to improve evidence relevance.\n- Monitored quality signals and iterated on retrieval-plus-validation behavior in production.\n\nResult:\n- Source-guided narrative indicates improved factual reliability and stronger trust in automated outputs.\n- Established repeatable guardrail patterns for future RAG features.",
+  "metadata": {
+    "source": "career-source enigma deep dive",
+    "type": "incident",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "incident", "debugging", "enigma", "hallucination", "rag", "validation"]
+  }
+}

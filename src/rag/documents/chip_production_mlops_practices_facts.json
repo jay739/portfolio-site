@@ -1,0 +1,11 @@
+{
+  "id": "chip_production_mlops_practices_facts_2026",
+  "title": "Production ML and MLOps Practices - Factual Source",
+  "content": "Production practices reflected across the career guides:\n- End-to-end ownership from data preprocessing and model training to deployment, monitoring, and iteration.\n- Cloud-native ML delivery patterns including containerized workloads and API-based integration.\n- Reliability-focused practices such as confidence gating, fallback pathways, and incident response discipline.\n\nRAG and LLM operational practices highlighted:\n- Retrieval quality tuning through chunking and ranking strategy updates.\n- Validation layers for structured extraction outputs to reduce factual errors.\n- Cost-performance balancing through model routing and caching strategies.\n\nCross-role engineering principles:\n- Align model outputs with downstream business workflows and SLA expectations.\n- Prioritize measurable operational outcomes, not just benchmark metrics.\n- Maintain explainability and stakeholder trust in high-impact, compliance-sensitive contexts.",
+  "metadata": {
+    "source": "career-source enigma + cognizant + career overview",
+    "type": "skills",
+    "date": "2026-04-03",
+    "tags": ["chip", "mlops", "production", "reliability", "deployment", "monitoring", "rag", "llm"]
+  }
+}

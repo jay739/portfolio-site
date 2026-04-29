@@ -1,0 +1,11 @@
+{
+  "id": "chip_blog_articles_guides_systems_2026",
+  "title": "Blog Articles, Guides, and Systems Themes - Structured Source",
+  "content": "Article themes reflected in published content:\n- Infrastructure migration and reliability operations (for example, cloud migration and arm64 optimization topics).\n- Practical containerization patterns and production deployment workflows.\n- Monitoring, alerting, and automation patterns for continuous operations.\n\nGuide-style focus:\n- Stepwise implementation guidance for Docker and CI/CD practices.\n- Troubleshooting and optimization notes grounded in real operations rather than theoretical examples.\n\nSystems perspective:\n- Connects application behavior to infrastructure constraints and observability data.\n- Prioritizes reproducible workflows, operational visibility, and secure service exposure patterns.\n\nReader value premise:\n- Content aims for practical transfer: what to implement, why it matters in production, and how to verify outcomes with telemetry.",
+  "metadata": {
+    "source": "profile+blog synthesis",
+    "type": "blog",
+    "date": "2026-04-03",
+    "tags": ["chip", "blog", "articles", "guides", "systems", "knowledge-sharing", "devops"]
+  }
+}

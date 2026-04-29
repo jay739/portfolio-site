@@ -7,6 +7,17 @@ const config: Config = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   darkMode: 'class',
+  safelist: [
+    'bg-black/40',
+    'bg-black/50',
+    'bg-black/70',
+    'backdrop-blur-md',
+    'backdrop-blur-lg',
+    'backdrop-blur-sm',
+    'cursor-pointer',
+    'cursor-not-allowed',
+    'cursor-zoom-out',
+  ],
   theme: {
     container: {
       center: true,

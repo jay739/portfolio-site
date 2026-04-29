@@ -1,0 +1,11 @@
+{
+  "id": "chip_domain_impact_matrix_facts_2026",
+  "title": "Domain Impact Matrix - Factual Source",
+  "content": "Domain exposure and impact framing:\n- Financial and banking contexts: document classification, entity extraction, and risk-related workflow support.\n- Insurance contexts: contract and claims-oriented automation with compliance-sensitive processing.\n- Healthcare contexts: OCR and NLP systems for medical document interpretation and structured extraction.\n- Enterprise knowledge contexts: semantic retrieval and search across large text corpora.\n\nConsistent delivery pattern across domains:\n- Start from domain constraints and document characteristics.\n- Build tailored extraction and classification pipelines.\n- Integrate outputs into existing operational workflows.\n- Measure impact through efficiency, quality, and reliability improvements.\n\nNarrative utility for retrieval:\n- Helps answer prompts about industry breadth and transferability of ML practices.\n- Supports concrete explanations of how similar engineering methods adapt to different domains.",
+  "metadata": {
+    "source": "career-source cognizant + enigma",
+    "type": "experience",
+    "date": "2026-04-03",
+    "tags": ["chip", "domains", "industry", "banking", "insurance", "healthcare", "enterprise", "impact"]
+  }
+}

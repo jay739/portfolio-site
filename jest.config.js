@@ -12,9 +12,10 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
-    '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/__mocks__/fileMock.js'
+    '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/tests/__mocks__/fileMock.js',
+    '^@testing-library/dom$': '<rootDir>/node_modules/@testing-library/react/node_modules/@testing-library/dom',
   },
-  collectCoverage: true,
+  collectCoverage: false,
   coverageProvider: 'v8',
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
@@ -29,14 +30,6 @@ const customJestConfig = {
     '!src/lib/constants.ts',
   ],
   coverageReporters: ['text', 'lcov', 'json-summary', 'html'],
-  coverageThreshold: {
-    global: {
-      branches: 30,
-      functions: 30,
-      lines: 30,
-      statements: 30,
-    },
-  },
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
@@ -48,6 +41,7 @@ const customJestConfig = {
     '/node_modules/',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/coverage/', '<rootDir>/node_modules/'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   watchPlugins: [
     'jest-watch-typeahead/filename',

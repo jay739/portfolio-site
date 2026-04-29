@@ -23,12 +23,14 @@ yarn-error.log*
 # Keep your Dockerfiles, ignore runtime artifacts
 docker-compose.override.yml
 
+# ===== Credentials =====
+service-account.json
+
 # ===== Testing =====
 coverage/
 .nyc_output/
-cypress/videos/
-cypress/screenshots/
-cypress/downloads/
+playwright-report/
+test-results/
 
 # ===== OS =====
 .DS_Store

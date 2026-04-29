@@ -287,8 +287,8 @@ export function getIconData(name: string) {
   return iconData;
 }
 
-// Dynamic icon component
-export function DynamicIcon({ name, className = '', size = 24 }: { name: string, className?: string, size?: number }): JSX.Element {
+// Dynamic icon component — defaults to amber to match the site theme
+export function DynamicIcon({ name, className = 'text-amber-400', size = 24 }: { name: string, className?: string, size?: number }): JSX.Element {
   const { icon: IconComponent } = getIconData(name);
   return React.createElement(IconComponent, { className, style: { fontSize: size } });
 }

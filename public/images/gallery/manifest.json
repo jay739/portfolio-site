@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1776135605077-0m7mal",
+    "filename": "1776135605077-0m7mal.png",
+    "prompt": "a minimalistic modern workspace with a large ultrawide monitor displaying a beautiful AI-generated artwork, soft warm ambient lighting, clean desk setup, mechanical keyboard, subtle reflections on the",
+    "style": "anime",
+    "speedMode": "quality",
+    "width": 1024,
+    "height": 768,
+    "seed": 1019348658,
+    "model": "sd_xl_turbo_1.0_fp16.safetensors",
+    "createdAt": "2026-04-14T03:00:05.080Z"
+  },
+  {
+    "id": "1776128207253-o668ug",
+    "filename": "1776128207253-o668ug.png",
+    "prompt": "a person standing in front of a mirror, but the reflection shows a different version of them from the past and future simultaneously, one side younger and hopeful, the other older and worn, subtle ble",
+    "style": "cinematic",
+    "speedMode": "quality",
+    "width": 1024,
+    "height": 768,
+    "seed": 3642860951,
+    "model": "sd_xl_turbo_1.0_fp16.safetensors",
+    "createdAt": "2026-04-14T00:56:47.256Z"
+  },
+  {
+    "id": "1776123635070-fbxj0u",
+    "filename": "1776123635070-fbxj0u.png",
+    "prompt": "A lone astronaut standing on a cliff edge of an alien planet, looking at a massive ringed planet in the sky",
+    "style": "photorealistic",
+    "speedMode": "fast",
+    "width": 512,
+    "height": 384,
+    "seed": 971123132,
+    "model": "sd_turbo.safetensors",
+    "createdAt": "2026-04-13T23:40:35.071Z"
+  },
+  {
+    "id": "1776123634874-m5636s",
+    "filename": "1776123634874-m5636s.png",
+    "prompt": "An enchanted forest with bioluminescent mushrooms and fireflies, a narrow path leading to a glowing ancient tree",
+    "style": "none",
+    "speedMode": "balanced",
+    "width": 512,
+    "height": 640,
+    "seed": 299119674,
+    "model": "v1-5-pruned-emaonly.safetensors",
+    "createdAt": "2026-04-13T23:40:34.876Z"
+  },
+  {
+    "id": "1776123511900-lu12sd",
+    "filename": "1776123511900-lu12sd.png",
+    "prompt": "A cyberpunk street market at night, neon signs in Japanese, rain reflections on the ground, steam rising from food stalls",
+    "style": "cyberpunk",
+    "speedMode": "fast",
+    "width": 512,
+    "height": 384,
+    "seed": 0,
+    "model": "",
+    "createdAt": "2026-04-13T23:38:31.902Z"
+  },
+  {
+    "id": "1776123510360-ys7uy3",
+    "filename": "1776123510360-ys7uy3.png",
+    "prompt": "A majestic Japanese temple at sunset with cherry blossoms floating in the wind, golden hour lighting, peaceful zen garden",
+    "style": "cinematic",
+    "speedMode": "balanced",
+    "width": 640,
+    "height": 512,
+    "seed": 0,
+    "model": "",
+    "createdAt": "2026-04-13T23:38:30.362Z"
+  }
+]

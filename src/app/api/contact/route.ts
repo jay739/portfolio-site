@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { validateCsrfToken } from '@/lib/csrf';
-import { rateLimit } from '@/lib/rate-limit';
+import { getClientIpFromHeaders, rateLimit } from '@/lib/rate-limit';
 import { handleAPIError, Errors } from '@/lib/error-handling';
 
-// Server-side validation schemas
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 interface ContactFormData {
   name: string;
   email: string;
@@ -179,9 +187,10 @@ const limiter = rateLimit({
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIpFromHeaders(request.headers);
     // Rate limiting - stricter for contact forms
     try {
-      await limiter.check(3, 'CONTACT_FORM'); // Only 3 requests per minute
+      await limiter.check(3, `CONTACT_FORM:${ip}`);
     } catch {
       throw Errors.TooManyRequests('Too many contact form submissions. Please wait before trying again.');
     }
@@ -271,23 +280,23 @@ Time: ${new Date().toISOString()}
             
             <div style="margin-bottom: 20px;">
               <strong style="color: #374151;">Name:</strong>
-              <span style="margin-left: 10px; color: #6b7280;">${name}</span>
+              <span style="margin-left: 10px; color: #6b7280;">${escapeHtml(name)}</span>
             </div>
             
             <div style="margin-bottom: 20px;">
               <strong style="color: #374151;">Email:</strong>
-              <a href="mailto:${email}" style="margin-left: 10px; color: #2563eb; text-decoration: none;">${email}</a>
+              <a href="mailto:${escapeHtml(email)}" style="margin-left: 10px; color: #2563eb; text-decoration: none;">${escapeHtml(email)}</a>
             </div>
             
             <div style="margin-bottom: 20px;">
               <strong style="color: #374151;">Subject:</strong>
-              <span style="margin-left: 10px; color: #6b7280;">${subject}</span>
+              <span style="margin-left: 10px; color: #6b7280;">${escapeHtml(subject)}</span>
             </div>
             
             <div style="margin-bottom: 30px;">
               <strong style="color: #374151;">Message:</strong>
               <div style="margin-top: 10px; padding: 15px; background-color: #f3f4f6; border-radius: 5px; border-left: 4px solid #2563eb;">
-                ${message.replace(/\n/g, '<br>')}
+                ${escapeHtml(message).replace(/\n/g, '<br>')}
               </div>
             </div>
             

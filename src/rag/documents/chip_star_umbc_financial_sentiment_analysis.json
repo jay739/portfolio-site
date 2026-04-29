@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_umbc_financial_sentiment_analysis_2026",
+  "title": "STAR - UMBC Financial Sentiment Analysis Project",
+  "content": "Project: UMBC Financial Crisis and Sentiment Analysis Workflow\n\nSituation:\n- Financial risk analysis use case required extracting meaningful signals from noisy textual and market-related inputs.\n\nTask:\n- Build an applied NLP and simulation workflow to support sentiment-driven risk interpretation.\n\nAction:\n- Implemented sentiment analysis stages using finance-oriented NLP modeling approaches.\n- Combined sentiment outputs with simulation or scenario analysis components for risk framing.\n- Structured the pipeline to connect model outputs with interpretable decision context.\n- Evaluated output quality with task-relevant performance and consistency checks.\n\nResult:\n- Source-reported solid sentiment modeling outcomes in academic project context.\n- Added experience in translating NLP signals into financially meaningful narratives.",
+  "metadata": {
+    "source": "career-source career overview",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "umbc", "finance", "sentiment", "nlp", "risk-analysis", "project"]
+  }
+}

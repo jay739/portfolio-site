@@ -1,15 +1,15 @@
 ---
 title: "Building a Real-Time Infrastructure Monitoring System with Telegram Alerts"
 date: "2024-10-22"
-description: "How I built an advanced monitoring system that sends real-time alerts to Telegram for 38+ services running across my infrastructure"
+description: "How I built an advanced monitoring system that sends real-time alerts to Telegram for 56+ containers running across my infrastructure"
 tags: ["DevOps", "Monitoring", "Telegram", "Docker", "Infrastructure", "Python"]
 ---
 
-# 🔍 Building a Real-Time Infrastructure Monitoring System with Telegram Alerts
+# <Search /> Building a Real-Time Infrastructure Monitoring System with Telegram Alerts
 
-Managing a complex infrastructure with **38+ microservices** across multiple domains requires robust monitoring. Here's how I built a comprehensive alerting system that keeps me informed about the health of my entire stack via Telegram.
+Managing a complex infrastructure with **56 containers running 36+ services** across multiple domains requires robust monitoring. Here's how I built a comprehensive alerting system that keeps me informed about the health of my entire stack via Telegram.
 
-## �� The Challenge
+## <Flame /> The Challenge
 
 When you're running critical services like:
 - **Media servers** (Jellyfin, Plex alternatives)
@@ -20,12 +20,12 @@ When you're running critical services like:
 
 You need to know **immediately** when something goes wrong. Email alerts get lost, SMS costs money, and checking dashboards manually isn't scalable.
 
-## 💡 The Solution: Telegram Bot Integration
+## <Bulb /> The Solution: Telegram Bot Integration
 
 I built an enhanced Telegram bot that:
 
 ### Real-Time Alerts
-- **Service health monitoring** - Continuous checks for all 38+ services
+- **Service health monitoring** - Continuous checks for all 56+ containers
 - **Docker container status** - Tracks container restarts and failures
 - **Network connectivity** - Monitors Tailscale VPN and proxy connectivity
 - **Resource usage** - CPU, memory, and disk space warnings
@@ -48,15 +48,15 @@ I built an enhanced Telegram bot that:
 - **Network analytics** - Traffic patterns and anomaly detection
 - **Backup verification** - Ensures critical data is being backed up
 
-## 🏗️ Architecture
+## <Tools /> Architecture
 
 The system runs as a containerized service:
 
 ```yaml
 services:
-  batcave-alerts-bot:
-    image: enhanced-telegram-bot
-    container_name: batcave-alerts-bot
+  batcave-webhook-listener:
+    image: batcave-notifications_webhook-listener
+    container_name: batcave-webhook-listener
     restart: unless-stopped
     environment:
       - TELEGRAM_BOT_TOKEN=${BOT_TOKEN}
@@ -67,11 +67,11 @@ services:
       - "9090:9090"  # Prometheus metrics
 ```
 
-## 📊 Monitoring Coverage
+## <BarChart /> Monitoring Coverage
 
 ### Infrastructure Layer
 - **Reverse Proxy** - Nginx Proxy Manager health
-- **DNS Resolution** - All 38 subdomain availability
+- **DNS Resolution** - All 40+ subdomain availability
 - **SSL Certificates** - Expiration warnings
 - **Tailscale Network** - VPN connectivity status
 
@@ -87,7 +87,7 @@ services:
 - **Disk Space** - Critical alerts at >90% capacity
 - **Network I/O** - Unusual traffic pattern detection
 
-## 🚀 Deployment Strategy
+## <Rocket /> Deployment Strategy
 
 Using Docker Compose for easy deployment:
 
@@ -102,7 +102,7 @@ The bot includes:
 - **Network isolation** - Secure communication channels
 - **Rolling updates** - Zero-downtime deployments
 
-## 📈 Benefits Realized
+## <Chart /> Benefits Realized
 
 Since implementing this system:
 
@@ -111,14 +111,14 @@ Since implementing this system:
 3. **Proactive Maintenance** - Trend analysis prevents failures
 4. **Peace of Mind** - 24/7 monitoring without manual checks
 
-## 🔐 Security Considerations
+## <Lock /> Security Considerations
 
 - **Encrypted communications** - TLS for all external connections
 - **Token management** - Secrets stored in Vault
 - **Rate limiting** - Prevents alert spam and abuse
 - **Access control** - Restricted to authorized chat IDs
 
-## 🎓 Lessons Learned
+## <Degree /> Lessons Learned
 
 ### What Worked Well
 - Telegram's API is incredibly reliable
@@ -131,7 +131,7 @@ Since implementing this system:
 - **Network complexity** - Tailscale routing required special handling
 - **False positives** - Implemented retry logic before alerting
 
-## 🔮 Future Enhancements
+## <Star /> Future Enhancements
 
 Planning to add:
 - **AI-powered anomaly detection** - Machine learning for pattern recognition
@@ -139,7 +139,7 @@ Planning to add:
 - **Mobile app integration** - Native push notifications
 - **Team collaboration** - Multi-user support with role-based access
 
-## 💻 Tech Stack
+## <Laptop /> Tech Stack
 
 - **Python 3.11** - Core application logic
 - **python-telegram-bot** - Telegram API wrapper
@@ -148,7 +148,7 @@ Planning to add:
 - **Docker** - Containerization
 - **Tailscale** - Secure networking
 
-## 📝 Code Example: Service Health Check
+## <Note /> Code Example: Service Health Check
 
 ```python
 async def check_service_health(service_url):
@@ -170,7 +170,7 @@ async def check_service_health(service_url):
         return {"status": "down"}
 ```
 
-## 🎯 Conclusion
+## <Target /> Conclusion
 
 Building a comprehensive monitoring system doesn't have to be expensive or complicated. With open-source tools and a bit of Python scripting, you can achieve enterprise-grade monitoring for your home lab or production infrastructure.
 

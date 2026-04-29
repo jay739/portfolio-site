@@ -30,6 +30,7 @@ interface NetdataFetchOptions {
 }
 
 function normalizeNetdataData(rawData: any): NetdataDataPoint[] {
+  // Check for direct result format (old API)
   const directResult = rawData?.data?.result;
   if (Array.isArray(directResult)) {
     return directResult
@@ -44,12 +45,18 @@ function normalizeNetdataData(rawData: any): NetdataDataPoint[] {
       );
   }
 
-  const labels = Array.isArray(rawData?.labels)
+  // Check for new API v3 format: result.labels and result.data
+  const labels = Array.isArray(rawData?.result?.labels)
+    ? rawData.result.labels
+    : Array.isArray(rawData?.labels)
     ? rawData.labels
     : Array.isArray(rawData?.data?.labels)
     ? rawData.data.labels
     : [];
-  const rows = Array.isArray(rawData?.data)
+  
+  const rows = Array.isArray(rawData?.result?.data)
+    ? rawData.result.data
+    : Array.isArray(rawData?.data)
     ? rawData.data
     : Array.isArray(rawData?.data?.data)
     ? rawData.data.data
@@ -70,7 +77,9 @@ function normalizeNetdataData(rawData: any): NetdataDataPoint[] {
     const timestamp = rawTs > 1e12 ? Math.floor(rawTs / 1000) : rawTs;
 
     dimensions.forEach((dim: string, index: number) => {
-      const value = Number(row[index + 1]);
+      // Handle both simple values and array values [value, annotation, point_annotation]
+      const valueData = row[index + 1];
+      const value = Array.isArray(valueData) ? Number(valueData[0]) : Number(valueData);
       if (!Number.isFinite(value)) return;
       points.push({
         dimension: dim || 'value',
@@ -182,7 +191,8 @@ export async function fetchNetdataMetrics(
     url.searchParams.append('points', points.toString());
     url.searchParams.append('time_group', 'average');
     url.searchParams.append('time_resampling', '0');
-    url.searchParams.append('options', 'jsonwrap|nonzero|ms');
+    // Keep zero values so idle but healthy services still return datapoints.
+    url.searchParams.append('options', 'jsonwrap|ms');
     url.searchParams.append('contexts', '*');
     url.searchParams.append('nodes', '*');
     url.searchParams.append('instances', '*');

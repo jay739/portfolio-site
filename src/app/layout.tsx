@@ -5,17 +5,39 @@ import ClientLayout from '@/components/layout/ClientLayout'
 import * as Sentry from '@sentry/nextjs'
 
 export function generateMetadata(): Metadata {
+  const title = 'Jayakrishna Konda - Portfolio'
+  const description = 'ML/AI engineer building production RAG pipelines, LLM systems, MLOps workflows, and self-hosted AI infrastructure.'
+
   return {
-    title: 'Jayakrishna Konda - Portfolio',
-    description: 'Full Stack Developer & DevOps Engineer specializing in AI/ML, Data Science, and Home Server solutions.',
+    metadataBase: new URL('https://jay739.dev'),
+    title,
+    description,
     keywords: ['Full Stack Developer', 'DevOps Engineer', 'AI/ML Engineer', 'Data Science', 'Home Server'],
     authors: [{ name: 'Jayakrishna Konda' }],
+    alternates: {
+      canonical: '/',
+    },
     openGraph: {
       type: 'website',
       locale: 'en_US',
       url: 'https://jay739.dev',
-      title: 'Jayakrishna Konda - Portfolio',
-      description: 'Full Stack Developer & DevOps Engineer specializing in AI/ML, Data Science, and Home Server solutions.',
+      title,
+      description,
+      siteName: 'Jayakrishna Konda Portfolio',
+      images: [
+        {
+          url: '/opengraph-image',
+          width: 1200,
+          height: 630,
+          alt: 'Jayakrishna Konda portfolio preview',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/opengraph-image'],
     },
     other: {
       ...Sentry.getTraceData()

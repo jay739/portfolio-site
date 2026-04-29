@@ -1,14 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { rateLimit } from '@/lib/rate-limit';
+import { getClientIpFromHeaders, rateLimit } from '@/lib/rate-limit';
 import { handleAPIError, Errors } from '@/lib/error-handling';
 import { validateCsrfToken } from '@/lib/csrf';
 import { cookies } from 'next/headers';
 
 const CACHE_DURATION = 30000; // 30 seconds
 const MAX_POINTS = 100;
+const publicGetLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 1000 });
 
 // Cache for available charts
 let chartsCache: { data: any; timestamp: number } | null = null;
+const netdataResponseCache = new Map<string, { data: any; timestamp: number }>();
+
+async function fetchJsonWithRetry(
+  url: string,
+  headers: Record<string, string>,
+  timeoutMs = 8000,
+  attempts = 2
+): Promise<any> {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (!response.ok) {
+        throw new Error(`Netdata HTTP ${response.status} ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) {
+        await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+      }
+    }
+  }
+  throw lastError;
+}
 
 // Helper to filter and transform chart data
 function filterChartData(data: any, dimensions?: string[]) {
@@ -39,95 +68,160 @@ function createBasicAuthHeader(username: string, password: string) {
 }
 
 // Map of service names to their corresponding Netdata charts
-const SERVICE_CHARTS: Record<string, { chart: string; dimensions?: string[] }> = {
-  'system': {
-    chart: 'system.cpu',
-    dimensions: ['user', 'system', 'idle']
+const SERVICE_CHARTS: Record<string, {
+  context: string;
+  scopeInstance?: string;
+  dimensions?: string[];
+  fallbackContext?: string;
+  fallbackScopeInstance?: string;
+}> = {
+  // System metrics - public-facing only
+  'cpu': {
+    context: 'system.cpu',
+    dimensions: ['user', 'system']
   },
-  'memory': {
-    chart: 'system.ram',
-    dimensions: ['used', 'free', 'cached', 'buffers']
+  'load': {
+    context: 'system.load',
+    dimensions: ['load1', 'load5', 'load15']
   },
-  'storage': {
-    chart: 'disk_space./',
-    dimensions: ['used', 'avail']
+  'uptime': {
+    context: 'system.uptime',
+    dimensions: ['uptime']
   },
   'network': {
-    chart: 'netdata.statsd_packets',
-    dimensions: ['tcp', 'udp']
+    // Use system.net to avoid hard-coding interface names (eth0/enp*/ens*).
+    context: 'system.net',
+    dimensions: ['received', 'sent']
   },
-  'docker': {
-    chart: 'docker_local.containers_state',
-    dimensions: ['running', 'paused', 'exited']
+  'processes': {
+    context: 'system.active_processes',
+    dimensions: ['active']
   },
-  'portainer': {
-    chart: 'app.portainer_cpu_utilization',
-    dimensions: ['user', 'system']
+  // Container CPU/Memory metrics — using cgroup app metrics
+  'jellyfin': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.jellyfin_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.jellyfin_uptime'
   },
-  'signal-api': {
-    chart: 'app.signal-cli-rest-api_cpu_utilization',
-    dimensions: ['user', 'system']
+  'navidrome': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.navidrome_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.navidrome_uptime'
   },
-  'netdata': {
-    chart: 'docker_local.container_netdata_state',
-    dimensions: ['running', 'paused', 'exited']
+  'audiobookshelf': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.audiobookshelf_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.audiobookshelf_uptime'
   },
-  'watchtower': {
-    chart: 'docker_local.container_watchtower_state',
-    dimensions: ['running', 'paused', 'exited']
+  'nextcloud': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.nextcloud_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.nextcloud_uptime'
   },
-  'nginx-proxy-manager': {
-    chart: 'docker_local.container_nginx-proxy-manager_state',
-    dimensions: ['running', 'paused', 'exited']
+  'immich': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.immich_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.immich_uptime'
+  },
+  'paperless-ngx': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.paperless-ngx_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.paperless-ngx_uptime'
   },
   'homeassistant': {
-    chart: 'docker_local.container_homeassistant_state',
-    dimensions: ['running', 'paused', 'exited']
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.homeassistant_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.homeassistant_uptime'
   },
   'vaultwarden': {
-    chart: 'docker_local.container_vaultwarden_state',
-    dimensions: ['running', 'paused', 'exited']
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.vaultwarden_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.vaultwarden_uptime'
   },
-  'vscode': {
-    chart: 'docker_local.container_vscode_state',
-    dimensions: ['running', 'paused', 'exited']
+  'trilium': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.trilium_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.trilium_uptime'
   },
-  'radarr': {
-    chart: 'docker_local.container_radarr_state',
-    dimensions: ['running', 'paused', 'exited']
-  },
-  'sonarr': {
-    chart: 'docker_local.container_sonarr_state',
-    dimensions: ['running', 'paused', 'exited']
-  },
-  'pihole': {
-    chart: 'docker_local.container_pihole_state',
-    dimensions: ['running', 'paused', 'exited']
+  'linkwarden': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.linkwarden_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.linkwarden_uptime'
   },
   'homarr': {
-    chart: 'docker_local.container_homarr_state',
-    dimensions: ['running', 'paused', 'exited']
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.homarr_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.homarr_uptime'
+  },
+  'portainer': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.portainer_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.portainer_uptime'
+  },
+  'grafana': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.grafana_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.grafana_uptime'
+  },
+  'prometheus': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.prometheus_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.prometheus_uptime'
+  },
+  'wallos': {
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.wallos_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.wallos_uptime'
   },
   'open-webui': {
-    chart: 'docker_local.container_open-webui_state',
-    dimensions: ['running', 'paused', 'exited']
+    context: 'app.cpu_utilization',
+    scopeInstance: 'app.open-webui_cpu_utilization',
+    dimensions: ['user', 'system'],
+    fallbackContext: 'app.uptime',
+    fallbackScopeInstance: 'app.open-webui_uptime'
   },
-  'wg-easy': {
-    chart: 'docker_local.container_wg-easy_state',
-    dimensions: ['running', 'paused', 'exited']
-  },
-  'duckdns': {
-    chart: 'docker_local.container_duckdns_state',
-    dimensions: ['running', 'paused', 'exited']
-  },
-  'kuma-bot': {
-    chart: 'docker_local.container_kuma-bot_state',
-    dimensions: ['running', 'paused', 'exited']
-  }
 };
 
 export async function GET(request: NextRequest, { params }: { params: { service: string } }) {
+  let requestUrlForCache = '';
   try {
+    const ip = getClientIpFromHeaders(request.headers);
+    try {
+      await publicGetLimiter.check(60, `netdata:${ip}`);
+    } catch {
+      return NextResponse.json({ error: 'Too many telemetry requests. Please slow down.' }, { status: 429 });
+    }
+
     const { service } = params;
     const { searchParams } = new URL(request.url);
     const points = searchParams.get('points') || '1';
@@ -143,20 +237,26 @@ export async function GET(request: NextRequest, { params }: { params: { service:
 
     // Build Netdata API URL using v3
     const netdataUrl = process.env.NETDATA_URL || 'https://metrics.jay739.dev';
+    // URL logged only in dev to avoid leaking internal hostnames in production
     const url = new URL(`${netdataUrl}/api/v3/data`);
+    requestUrlForCache = url.toString();
     
     // Add query parameters matching the successful request
     url.searchParams.append('format', 'json2');
     url.searchParams.append('points', points);
     url.searchParams.append('time_group', 'average');
     url.searchParams.append('time_resampling', '0');
-    url.searchParams.append('options', 'jsonwrap|nonzero|ms');
+    // Keep zero values so idle but healthy services are still visible in charts/status.
+    url.searchParams.append('options', 'jsonwrap|ms');
     
     // Add chart-specific parameters
     url.searchParams.append('contexts', '*');
     url.searchParams.append('nodes', '*');
     url.searchParams.append('instances', '*');
-    url.searchParams.append('scope_contexts', chartInfo.chart);
+    url.searchParams.append('scope_contexts', chartInfo.context);
+    if (chartInfo.scopeInstance) {
+      url.searchParams.append('scope_instances', chartInfo.scopeInstance);
+    }
     
     if (dimension) {
       url.searchParams.append('dimensions', dimension);
@@ -169,121 +269,157 @@ export async function GET(request: NextRequest, { params }: { params: { service:
     if (before) {
       url.searchParams.append('before', before);
     }
+    requestUrlForCache = url.toString();
 
     // Try to get auth from cookie first
     const cookieStore = cookies();
     let authHeader = cookieStore.get('netdata_auth')?.value;
 
-    // If no cookie, try env variables
+    // If no cookie, try env variables (auth is optional - Tailscale provides network-level security)
     if (!authHeader) {
       const netdataApiKey = process.env.NETDATA_API_KEY;
-      if (!netdataApiKey) {
-        throw Errors.Internal('NETDATA_API_KEY not set');
-      }
-      const [username, password] = netdataApiKey.split(':');
-      if (!username || !password) {
-        throw Errors.Internal('Invalid NETDATA_API_KEY format. Expected "username:password"');
-      }
-      authHeader = Buffer.from(`${username}:${password}`).toString('base64');
-    }
-
-    // Log request details (without sensitive info)
-    console.log('Netdata Request:', {
-      url: url.toString(),
-      service,
-      chart: chartInfo.chart,
-      points,
-      dimension,
-      hasAuth: !!authHeader,
-      cookies: request.cookies.getAll().map(c => c.name)
-    });
-
-    // Make the request with exact headers from browser
-    const response = await fetch(url.toString(), {
-      headers: {
-        'Accept': '*/*',
-        'Authorization': `Basic ${authHeader}`,
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'User-Agent': 'Netdata/v3',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Cookie': request.headers.get('cookie') || ''
-      },
-      credentials: 'include'
-    });
-
-    // Log response details
-    console.log('Netdata Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries())
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Authentication failed:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-
-      // If auth failed and we were using cookie, try env variables
-      if (response.status === 401 && cookieStore.get('netdata_auth')) {
-        cookieStore.delete('netdata_auth');
-        const netdataApiKey = process.env.NETDATA_API_KEY;
-        if (netdataApiKey) {
-          const [username, password] = netdataApiKey.split(':');
-          if (username && password) {
-            const retryAuth = Buffer.from(`${username}:${password}`).toString('base64');
-            const retryResponse = await fetch(url.toString(), {
-            headers: {
-              'Accept': '*/*',
-              'Authorization': `Basic ${retryAuth}`,
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache',
-              'User-Agent': 'Netdata/v3',
-              'Accept-Encoding': 'gzip, deflate, br'
-            }
-          });
-
-          if (retryResponse.ok) {
-            const data = await retryResponse.json();
-            return NextResponse.json(data, {
-              headers: {
-                'Cache-Control': 'no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Access-Control-Allow-Credentials': 'true',
-                'Access-Control-Allow-Origin': '*'
-              }
-            });
-          }
+      if (netdataApiKey) {
+        const [username, password] = netdataApiKey.split(':');
+        if (username && password) {
+          authHeader = Buffer.from(`${username}:${password}`).toString('base64');
         }
       }
     }
 
-      throw Errors.Internal(`Failed to authenticate with Netdata: ${response.status} ${response.statusText}`);
+    // Build request headers - auth is optional
+    const requestHeaders: Record<string, string> = {
+      'Accept': '*/*',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+      'User-Agent': 'Netdata/v3',
+      'Accept-Encoding': 'gzip, deflate, br',
+    };
+    if (authHeader) {
+      requestHeaders['Authorization'] = `Basic ${authHeader}`;
     }
 
-    const data = await response.json();
+    // Make the request
+    let data = await fetchJsonWithRetry(requestUrlForCache, requestHeaders, 8000, 2);
+    netdataResponseCache.set(requestUrlForCache, { data, timestamp: Date.now() });
+
+    // If no datapoints found for app CPU context, retry with uptime fallback.
+    const resultRows = data?.result?.data;
+    if (
+      chartInfo.fallbackContext &&
+      chartInfo.fallbackScopeInstance &&
+      Array.isArray(resultRows) &&
+      resultRows.length === 0
+    ) {
+      const fallbackUrl = new URL(`${netdataUrl}/api/v3/data`);
+      fallbackUrl.searchParams.append('format', 'json2');
+      fallbackUrl.searchParams.append('points', points);
+      fallbackUrl.searchParams.append('time_group', 'average');
+      fallbackUrl.searchParams.append('time_resampling', '0');
+      fallbackUrl.searchParams.append('options', 'jsonwrap|ms');
+      fallbackUrl.searchParams.append('contexts', '*');
+      fallbackUrl.searchParams.append('nodes', '*');
+      fallbackUrl.searchParams.append('instances', '*');
+      fallbackUrl.searchParams.append('scope_contexts', chartInfo.fallbackContext);
+      fallbackUrl.searchParams.append('scope_instances', chartInfo.fallbackScopeInstance);
+
+      try {
+        data = await fetchJsonWithRetry(fallbackUrl.toString(), requestHeaders, 8000, 2);
+        netdataResponseCache.set(fallbackUrl.toString(), { data, timestamp: Date.now() });
+      } catch {
+        // keep original data when fallback fails
+      }
+    }
+    const origin = request.headers.get('origin') || '';
+    const ALLOWED_ORIGINS = ['https://jay739.dev', 'https://www.jay739.dev'];
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : '';
     return NextResponse.json(data, {
       headers: {
         'Cache-Control': 'no-store, must-revalidate',
         'Pragma': 'no-cache',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Allow-Origin': '*'
+        ...(allowedOrigin ? {
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Allow-Origin': allowedOrigin,
+        } : {}),
       }
     });
   } catch (error) {
-    return handleAPIError(error);
+    console.error('[Netdata API] Exception:', error);
+
+    const origin = request.headers.get('origin') || '';
+    const ALLOWED_ORIGINS = ['https://jay739.dev', 'https://www.jay739.dev'];
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : '';
+    const corsHeaders: Record<string, string> = allowedOrigin
+      ? { 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Origin': allowedOrigin }
+      : {};
+
+    const stale = requestUrlForCache ? netdataResponseCache.get(requestUrlForCache) : null;
+    if (stale && Date.now() - stale.timestamp <= CACHE_DURATION) {
+      return NextResponse.json(
+        {
+          ...stale.data,
+          meta: {
+            ...(stale.data?.meta || {}),
+            upstream: 'stale',
+            service: params.service,
+          },
+        },
+        {
+          status: 200,
+          headers: {
+            'Cache-Control': 'no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            ...corsHeaders,
+          }
+        }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        api: 3,
+        result: {
+          labels: ['time'],
+          data: []
+        },
+        meta: {
+          upstream: 'down',
+          service: params.service
+        }
+      },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          ...corsHeaders,
+        }
+      }
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Get credentials from request body
+    const ip = getClientIpFromHeaders(request.headers);
+    // CSRF validation
+    const csrfToken = request.headers.get('x-csrf-token');
+    if (!csrfToken) {
+      throw Errors.Forbidden('CSRF token missing');
+    }
+    if (!validateCsrfToken(csrfToken)) {
+      throw Errors.Forbidden('Invalid CSRF token');
+    }
+
+    // Rate limiting
+    const postLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500 });
+    try {
+      await postLimiter.check(5, `NETDATA_POST:${ip}`);
+    } catch {
+      throw Errors.TooManyRequests();
+    }
+
     const { username, password } = await request.json();
     
-    // Create auth header
     const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
     
     // Test credentials against Netdata
@@ -317,6 +453,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const ip = getClientIpFromHeaders(request.headers);
     // CSRF validation for PUT requests
     const token = request.headers.get('x-csrf-token');
     if (!token) {
@@ -333,7 +470,7 @@ export async function PUT(request: NextRequest) {
     });
     
     try {
-      await limiter.check(5, 'NETDATA_PUT');
+      await limiter.check(5, `NETDATA_PUT:${ip}`);
     } catch {
       throw Errors.TooManyRequests();
     }
@@ -352,6 +489,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const ip = getClientIpFromHeaders(request.headers);
     // CSRF validation for DELETE requests
     const token = request.headers.get('x-csrf-token');
     if (!token) {
@@ -368,7 +506,7 @@ export async function DELETE(request: NextRequest) {
     });
     
     try {
-      await limiter.check(5, 'NETDATA_DELETE');
+      await limiter.check(5, `NETDATA_DELETE:${ip}`);
     } catch {
       throw Errors.TooManyRequests();
     }

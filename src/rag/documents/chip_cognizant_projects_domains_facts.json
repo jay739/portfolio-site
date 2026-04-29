@@ -1,0 +1,11 @@
+{
+  "id": "chip_cognizant_projects_domains_facts_2026",
+  "title": "Cognizant Projects and Domains - Factual Source",
+  "content": "Cognizant domain exposure described in guides:\n- Banking and financial services document processing workflows.\n- Insurance and healthcare document intelligence with compliance-sensitive requirements.\n- Legal and enterprise text analytics use cases involving extraction, classification, and semantic search.\n\nCommon system architecture patterns:\n- OCR plus NLP pipelines for scanned and semi-structured documents.\n- Domain-adapted models for entity extraction and classification in specialized vocabularies.\n- Production API integration and cloud deployment for high-volume workloads.\n\nRole growth reflected in project delivery:\n- Progression from implementation-focused tasks to end-to-end ownership.\n- Expansion into technical leadership, mentoring, and stakeholder communication.\n- Repeated emphasis on measurable efficiency gains and operational reliability improvements.",
+  "metadata": {
+    "source": "career-source cognizant deep dive",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "cognizant", "domains", "banking", "insurance", "healthcare", "legal", "nlp"]
+  }
+}

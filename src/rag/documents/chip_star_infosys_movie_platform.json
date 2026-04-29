@@ -1,0 +1,11 @@
+{
+  "id": "chip_star_infosys_movie_platform_2026",
+  "title": "STAR - Infosys Full-Stack Movie Platform",
+  "content": "Project: Infosys Internship Movie Database and Analytics Platform\n\nSituation:\n- Internship project required a collaborative full-stack build with user-facing features and live interaction patterns.\n\nTask:\n- Build core application capabilities and contribute value beyond baseline requirements.\n\nAction:\n- Implemented key features including authentication, browsing, ratings, and real-time updates in a team setting.\n- Added analytics-oriented exploration using database aggregation to surface user behavior patterns.\n- Presented findings and technical implementation clearly to mentors and reviewers.\n- Incorporated code-review feedback and engineering best practices during iterative development.\n\nResult:\n- Project delivery was successfully completed in a structured internship environment.\n- The analytics contribution became an early catalyst for transitioning from software engineering toward data science and ML.",
+  "metadata": {
+    "source": "career-source internships",
+    "type": "project",
+    "date": "2026-04-03",
+    "tags": ["chip", "star", "infosys", "internship", "full-stack", "analytics", "career-transition"]
+  }
+}

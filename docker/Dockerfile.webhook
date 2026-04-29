@@ -1,0 +1,27 @@
+# Sentry Telegram Webhook Service
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Patch all Alpine CVEs before installing app deps
+RUN apk upgrade --no-cache
+
+# Pin dependency versions for reproducible builds
+RUN npm init -y && npm install express@4 axios@1
+
+# Create non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN chown -R appuser:appgroup /app
+
+# Copy webhook script
+COPY docker/sentry-webhook.js ./sentry-telegram-webhook.js
+
+EXPOSE 3007
+
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3007/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+
+CMD ["node", "sentry-telegram-webhook.js"]
+

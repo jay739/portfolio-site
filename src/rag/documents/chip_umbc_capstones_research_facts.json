@@ -1,0 +1,11 @@
+{
+  "id": "chip_umbc_capstones_research_facts_2026",
+  "title": "UMBC Capstones and Applied Research - Factual Source",
+  "content": "Academic context from career overview:\n- M.S. Data Science at UMBC (2023-2025) with advanced coursework in ML, NLP, deep learning, distributed systems, cloud, and statistical learning.\n\nCapstone and project themes listed in source material:\n- RAG-powered podcast generation pipeline with OCR, retrieval orchestration, and multi-voice synthesis.\n- Forest fire detection using Sentinel-2 imagery with CNN-based modeling and remote-sensing indices.\n- Financial crisis analysis workflow using sentiment modeling and simulation-driven risk analysis.\n\nCareer relevance of these projects:\n- Reinforced the bridge between formal theory and production implementation.\n- Strengthened end-to-end skills across data preparation, modeling, evaluation, and operationalization.\n- Provided practical foundations that map directly to later GenAI and production ML work.",
+  "metadata": {
+    "source": "career-source career overview",
+    "type": "education",
+    "date": "2026-04-03",
+    "tags": ["chip", "umbc", "capstone", "research", "data-science", "nlp", "computer-vision", "finance"]
+  }
+}

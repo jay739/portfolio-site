@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
+import { FaEye } from 'react-icons/fa';
 
 function TimeWidget() {
   const [now, setNow] = useState<string | null>(null);
@@ -18,11 +19,11 @@ function TimeWidget() {
 function VisitorCount() {
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
-    fetch('/api/visitors').then(r => r.json()).then(d => setCount(d.count));
+    fetch('/api/total-visitors?readonly=true').then(r => r.json()).then(d => setCount(d.totalVisitors ?? d.count));
   }, []);
   return (
     <span className="ml-4 text-sm text-pink-500 dark:text-pink-300 font-mono">
-      {count !== null ? `👁️ ${count} visitors` : '...'}
+      {count !== null ? <><FaEye className="inline text-amber-400 mr-1" />{count} visitors</> : '...'}
     </span>
   );
 }
