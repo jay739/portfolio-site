@@ -17,6 +17,8 @@ service-account.json
 .idea
 .DS_Store
 .claude
+.husky
+*.sh
 
 # Dependencies and build output
 node_modules
