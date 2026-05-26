@@ -75,6 +75,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/src/rag ./src/rag
 COPY --from=builder /app/content/blog ./content/blog
 
+# Install sharp in the runner stage for Next.js image optimization in standalone mode
+RUN npm install sharp@0.32.6
+
 # Set permissions for the non-root user
 RUN chown -R appuser:appgroup /app
 

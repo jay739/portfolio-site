@@ -154,12 +154,9 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <p className="text-xs md:text-sm font-medium px-2.5 py-1 rounded-full inline-block border neural-float"
-            style={{
-              color: resolvedTheme === 'light' ? '#92400e' : '#fcd34d',
-              background: resolvedTheme === 'light' ? 'rgba(254,243,199,0.75)' : 'rgba(120,53,15,0.28)',
-              borderColor: resolvedTheme === 'light' ? 'rgba(245,158,11,0.4)' : 'rgba(251,191,36,0.38)'
-            }}>
+          <p
+            className="text-xs md:text-sm font-medium px-2.5 py-1 rounded-full inline-block border neural-float text-amber-800 bg-amber-50/80 border-amber-400/50 dark:text-amber-300 dark:bg-amber-900/30 dark:border-amber-400/40"
+          >
             <FaStar className="inline text-amber-400 mr-1" /> {visitorMessage || 'Welcome!'} <FaStar className="inline text-amber-400 ml-1" />
           </p>
         </motion.div>
@@ -177,24 +174,25 @@ export default function Hero() {
           <h1
             className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-2"
             style={{
-              color: resolvedTheme === 'light' ? '#111827' : '#ffffff',
-              textShadow: resolvedTheme === 'light' ? '0 6px 20px rgba(245,158,11,0.2)' : '0 0 40px rgba(245,158,11,0.38), 0 2px 10px rgba(0,0,0,0.8)'
+              // CSS variable, not React state — stays correct even before
+              // next-themes hydrates resolvedTheme on first paint.
+              color: 'var(--neural-text-strong)',
+              textShadow: '0 6px 22px rgba(245,158,11,0.22)',
             }}
           >
             {name}
           </h1>
           <h2
             className="text-xs sm:text-sm md:text-base mb-2 font-medium"
-            style={{ color: resolvedTheme === 'light' ? '#334155' : '#d1d5db' }}
+            style={{ color: 'var(--neural-text-body)' }}
           >
             {greeting}
           </h2>
-          <div 
-            className="text-sm sm:text-base md:text-xl mb-4 max-w-lg mx-auto font-mono"
-            role="status" 
+          <div
+            className="text-sm sm:text-base md:text-xl mb-4 max-w-lg mx-auto font-mono text-amber-700 dark:text-amber-400"
+            role="status"
             aria-live="polite"
             aria-label="Current role"
-            style={{ color: resolvedTheme === 'light' ? '#b45309' : '#fbbf24' }}
           >
             {typewriterText}
             <span className="blinking-cursor ml-0.5" aria-hidden="true">|</span>

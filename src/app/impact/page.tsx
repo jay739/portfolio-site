@@ -101,7 +101,7 @@ export default function ImpactPage() {
       />
 
       {/* ── Career highlights ── */}
-      <section id="impact-highlights" className="w-full neural-card neural-glow-border p-4 sm:p-6 md:p-8 bg-gradient-to-br from-amber-950/25 via-slate-950/70 to-slate-950/80">
+      <section id="impact-highlights" className="w-full neural-card neural-glow-border p-4 sm:p-6 md:p-8">
         <div className="mb-3 flex justify-end">
           <SectionDeepLink id="impact-highlights" title="Impact highlights" />
         </div>

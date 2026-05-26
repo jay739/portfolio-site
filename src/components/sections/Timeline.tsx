@@ -54,7 +54,7 @@ function getOrgLink(subtitle?: string): string | null {
 
 export default function Timeline({ items }: TimelineProps) {
   const [mounted, setMounted] = useState(false);
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [expanded, setExpanded] = useState<number[]>([]);
   const pathRef = useRef<SVGPathElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -170,7 +170,7 @@ export default function Timeline({ items }: TimelineProps) {
           <path
             ref={pathRef}
             d={morphPaths[0]}
-            fill={`url(#timeline-gradient-${theme === 'dark' ? 'dark' : 'light'})`}
+            fill={`url(#timeline-gradient-${resolvedTheme === 'light' ? 'light' : 'dark'})`}
           />
         </svg>
         <div className="relative w-full neural-card neural-glow-border p-4 sm:p-8">

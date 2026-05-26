@@ -52,7 +52,34 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Space Grotesk', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
     letter-spacing: -0.01em;
-    background-color: #030303;
+    background-color: var(--neural-page-bg);
+  }
+
+  /* Smooth crossfade on theme switch. Targets only color-bearing properties so
+     transforms / opacity animations elsewhere are untouched. Element-specific
+     transitions (e.g. .neural-card's own cubic-bezier) override this globally
+     by virtue of higher specificity. Material-standard ease and a longer
+     duration give the swap a deliberate feel. */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, color, border-color, fill, stroke, box-shadow, text-decoration-color, outline-color;
+    transition-duration: 260ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Keep body/html at the same short duration as everything else, so a rapid
+     re-toggle doesn't catch the page mid-fade with a different cadence than
+     its content. */
+  html,
+  body {
+    transition: background-color 260ms cubic-bezier(0.4, 0, 0.2, 1), color 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition: none !important;
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -412,23 +439,33 @@
   animation: gradientBG 6s ease-in-out infinite;
 } 
 
-/* Neural Theme System */
+/* Neural Theme System
+   :root holds the LIGHT theme; .dark overrides for the dark theme.
+   The site ships dark by default (next-themes defaultTheme="dark"),
+   but the theme toggle now switches to this light palette. */
 :root {
+  /* Tint colors used inside rgba() for borders, gradients and glows.
+     In light mode they need to be dark enough to stay visible on white. */
+  --neural-purple: 71, 85, 105;
+  --neural-blue: 100, 116, 139;
+  --neural-cyan: 51, 65, 85;
+  --neural-magenta: 120, 113, 140;
+  --neural-surface: rgba(255, 255, 255, 0.86);
+  --neural-surface-soft: rgba(248, 250, 252, 0.80);
+  --neural-pill-bg: rgba(15, 23, 42, 0.05);
+  --neural-pill-border: rgba(15, 23, 42, 0.14);
+  --neural-pill-text: rgb(30, 41, 59);
+  --neural-text-strong: rgb(15, 23, 42);
+  --neural-text-body: rgb(51, 65, 85);
+  --neural-text-muted: rgb(100, 116, 139);
+  --neural-page-bg: #faf3e6;
+}
+
+.dark {
   --neural-purple: 210, 215, 228;
   --neural-blue: 165, 172, 192;
   --neural-cyan: 225, 228, 238;
   --neural-magenta: 145, 152, 172;
-  --neural-surface: rgba(20, 20, 22, 0.82);
-  --neural-surface-soft: rgba(14, 14, 16, 0.72);
-  --neural-pill-bg: rgba(255, 255, 255, 0.06);
-  --neural-pill-border: rgba(255, 255, 255, 0.16);
-  --neural-pill-text: rgb(220, 222, 230);
-  --neural-text-strong: rgb(248, 250, 252);
-  --neural-text-body: rgb(203, 213, 225);
-  --neural-text-muted: rgb(148, 163, 184);
-}
-
-.dark {
   --neural-surface: rgba(8, 8, 10, 0.84);
   --neural-surface-soft: rgba(14, 14, 16, 0.7);
   --neural-pill-bg: rgba(255, 255, 255, 0.06);
@@ -437,6 +474,7 @@
   --neural-text-strong: rgb(248, 250, 252);
   --neural-text-body: rgb(203, 213, 225);
   --neural-text-muted: rgb(148, 163, 184);
+  --neural-page-bg: #030303;
 }
 
 .neural-page-shell {
@@ -937,18 +975,80 @@ main[data-page-background="true"] .neural-card-soft {
   color: var(--neural-text-muted) !important;
 }
 
+/* --- Light theme bridge ---------------------------------------------------
+   The site's components were authored dark-first with hardcoded Tailwind
+   utilities (text-white, text-slate-*, bg-slate-9xx, border-slate-*).
+   These rules only apply when the light theme is active (html is NOT .dark),
+   so dark mode renders exactly as before. They remap those utilities onto the
+   theme-aware neural variables. Substring selectors also catch opacity
+   variants (e.g. bg-slate-900/45). */
+/* Substring selectors so opacity variants (e.g. text-slate-200/90) also match. */
+html:not(.dark) body :where([class*='text-white'], [class*='text-slate-1'], [class*='text-slate-2'], [class*='text-slate-3'], [class*='text-gray-1'], [class*='text-gray-2']) {
+  color: var(--neural-text-strong) !important;
+}
+html:not(.dark) body :where([class*='text-slate-4'], [class*='text-slate-5'], [class*='text-slate-6']) {
+  color: var(--neural-text-muted) !important;
+}
+html:not(.dark) body :where([class*='bg-slate-9'], [class*='bg-slate-8'], [class*='bg-gray-9'], [class*='bg-gray-8'], [class*='bg-black']) {
+  background-color: var(--neural-surface-soft) !important;
+}
+html:not(.dark) body :where([class*='border-slate-'], [class*='border-gray-7'], [class*='border-gray-8']) {
+  border-color: rgba(var(--neural-blue), 0.30) !important;
+}
+/* Divider/hairline elements that lean on white-alpha fills */
+html:not(.dark) body :where([class*='bg-white/']) {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Light theme: warm accent text was tuned for dark backgrounds and washes
+   out on white. Deepen the light tints (-100..-400) to a readable -800.
+   Substring selectors also catch opacity variants (e.g. text-amber-200/80). */
+html:not(.dark) body :where([class*='text-amber-1'], [class*='text-amber-2'], [class*='text-amber-3'], [class*='text-amber-4'], [class*='text-orange-1'], [class*='text-orange-2'], [class*='text-orange-3'], [class*='text-orange-4']) {
+  color: rgb(146, 64, 14) !important;
+}
+/* Cool accent text — sky/blue/indigo light tints become a readable deep blue */
+html:not(.dark) body :where([class*='text-sky-1'], [class*='text-sky-2'], [class*='text-sky-3'], [class*='text-sky-4'], [class*='text-blue-1'], [class*='text-blue-2'], [class*='text-blue-3'], [class*='text-blue-4'], [class*='text-indigo-2'], [class*='text-indigo-3'], [class*='text-indigo-4']) {
+  color: rgb(30, 64, 175) !important;
+}
+/* Cool greens (emerald/green/teal) — used for status/live indicators */
+html:not(.dark) body :where([class*='text-emerald-2'], [class*='text-emerald-3'], [class*='text-emerald-4'], [class*='text-green-2'], [class*='text-green-3'], [class*='text-green-4'], [class*='text-teal-2'], [class*='text-teal-3'], [class*='text-teal-4']) {
+  color: rgb(4, 120, 87) !important;
+}
+
+/* NavBar exemption: the navbar keeps its amber/orange gradient surface in BOTH
+   themes (signature brand). On that dark-orange surface we need *light* text,
+   not the bridge's deepened amber. Restore the original Tailwind colors so the
+   nav stays readable in light mode. */
+html:not(.dark) .brand-nav :where([class*='text-amber-50'], [class*='text-amber-100'], [class*='text-amber-200'], [class*='text-amber-300']) {
+  color: rgb(255, 251, 235) !important;
+}
+html:not(.dark) .brand-nav :where(.text-white, [class*='text-white']) {
+  color: #ffffff !important;
+}
+/* Mobile menu and toggle button sit on the same orange surface — keep them light too. */
+html:not(.dark) .brand-nav :where([class*='border-amber-']) {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+/* Pill / control-button accent text (class-driven, not utilities) */
+html:not(.dark) body :where(.neural-pill, .neural-pill-intro.is-active) {
+  color: rgb(146, 64, 14);
+}
+html:not(.dark) body :where(.neural-pill:hover, .neural-pill-intro:hover, .neural-control-btn:hover, .neural-control-btn-ghost:hover) {
+  color: rgb(124, 45, 18);
+}
 
 /* Neural shell extras */
 :root {
-  --neural-grid-line: rgba(255, 255, 255, 0.04);
-  --neural-focus-ring: rgba(255, 255, 255, 0.8);
-  --neural-shadow-deep: 0 26px 70px rgba(0, 0, 0, 0.65);
+  --neural-grid-line: rgba(15, 23, 42, 0.06);
+  --neural-focus-ring: rgba(30, 41, 59, 0.85);
+  --neural-shadow-deep: 0 26px 70px rgba(15, 23, 42, 0.18);
 }
 
 .dark {
   --neural-grid-line: rgba(255, 255, 255, 0.04);
   --neural-surface: rgba(8, 8, 8, 0.82);
   --neural-surface-soft: rgba(16, 16, 16, 0.68);
+  --neural-focus-ring: rgba(255, 255, 255, 0.8);
   --neural-shadow-deep: 0 28px 80px rgba(0, 0, 0, 0.72);
 }
 

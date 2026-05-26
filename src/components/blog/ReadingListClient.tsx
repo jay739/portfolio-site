@@ -48,7 +48,7 @@ export default function ReadingListClient({ allPosts }: { allPosts: BlogPostMeta
   return (
     <section className="w-full grid gap-5 xl:grid-cols-3">
       <div className="xl:col-span-2 space-y-5">
-        <div className="neural-card neural-glow-border bg-gradient-to-br from-sky-950/25 via-slate-950/75 to-slate-950/85 p-5 sm:p-6">
+        <div className="neural-card neural-glow-border bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 dark:from-sky-950/25 dark:via-slate-950/75 dark:to-slate-950/85 p-5 sm:p-6">
           <h2 className="neural-section-title text-xl">Bookmarked Posts</h2>
           <div className="mt-4 space-y-3">
             {bookmarkedPosts.length > 0 ? bookmarkedPosts.map((post) => post && (
@@ -66,7 +66,7 @@ export default function ReadingListClient({ allPosts }: { allPosts: BlogPostMeta
             )}
           </div>
         </div>
-        <div className="neural-card neural-glow-border bg-gradient-to-br from-slate-950/65 via-slate-950/85 to-indigo-950/25 p-5 sm:p-6">
+        <div className="neural-card neural-glow-border bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950/65 dark:via-slate-950/85 dark:to-indigo-950/25 p-5 sm:p-6">
           <h2 className="neural-section-title text-xl">Recent Reading</h2>
           <div className="mt-4 space-y-3">
             {recentlyVisitedPosts.length > 0 ? recentlyVisitedPosts.map((post) => post && (
@@ -85,7 +85,7 @@ export default function ReadingListClient({ allPosts }: { allPosts: BlogPostMeta
           </div>
         </div>
       </div>
-      <aside className="neural-card neural-glow-border bg-gradient-to-br from-amber-950/20 via-slate-950/80 to-slate-950/90 p-5 sm:p-6">
+      <aside className="neural-card neural-glow-border bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 dark:from-amber-950/20 dark:via-slate-950/80 dark:to-slate-950/90 p-5 sm:p-6">
         <h2 className="neural-section-title text-xl">Since Last Visit</h2>
         <div className="mt-4 space-y-3">
           {updatesSinceLastVisit.length > 0 ? updatesSinceLastVisit.map((update) => (

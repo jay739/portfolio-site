@@ -26,6 +26,9 @@ docker-compose.override.yml
 # ===== Credentials =====
 service-account.json
 
+# ===== Dynamic Data =====
+gallery-data/
+
 # ===== Testing =====
 coverage/
 .nyc_output/

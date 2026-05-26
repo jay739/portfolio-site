@@ -8,6 +8,7 @@ import { useTheme } from 'next-themes';
 import { useScrollLock } from '@/hooks/useScrollLock';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import OnboardingHint from '@/components/ui/OnboardingHint';
+import PodcastGeneratorModal from '@/components/ui/PodcastGeneratorModal';
 import {
   FaBolt, FaBalanceScale, FaGem, FaFlask, FaTimes, FaPalette,
   FaCamera, FaFilm, FaStar, FaBuilding, FaGamepad,
@@ -18,16 +19,16 @@ import {
 interface Tool {
   title: string;
   description: string;
-  action: 'coming-soon' | 'open-chatbot' | 'open-image-generator';
+  action: 'coming-soon' | 'open-chatbot' | 'open-image-generator' | 'open-podcast-generator';
   enabled: boolean;
 }
 
 const tools: Tool[] = [
   {
     title: 'PDF to Podcast',
-    description: 'Convert PDFs into audio podcasts using LLMs and TTS models. (Coming soon)',
-    action: 'coming-soon',
-    enabled: false,
+    description: 'Upload a PDF, get back a multi-host podcast with transcript. Ollama + MARS5-TTS on Apple M4.',
+    action: 'open-podcast-generator',
+    enabled: true,
   },
   {
     title: 'RAG Chatbot',
@@ -74,7 +75,7 @@ export default function AiToolsLab() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [urlStateReady, setUrlStateReady] = useState(false);
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const svgRef = useRef<SVGSVGElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<number>();
@@ -83,6 +84,9 @@ export default function AiToolsLab() {
   const lastMorphTime = useRef(performance.now());
   const morphDuration = 4000;
   const [toolFilter, setToolFilter] = useState<'all' | 'live' | 'soon'>('all');
+
+  // Podcast generator
+  const [podcastOpen, setPodcastOpen] = useState(false);
 
   // Image generator state
   const [imgModalOpen, setImgModalOpen] = useState(false);
@@ -250,6 +254,9 @@ export default function AiToolsLab() {
       setImgMeta(null);
       setImgSaved(false);
       setImgModalOpen(true);
+    }
+    if (tool.action === 'open-podcast-generator') {
+      setPodcastOpen(true);
     }
   };
 
@@ -525,7 +532,7 @@ export default function AiToolsLab() {
         <path
           ref={pathRef}
           d={morphPaths[0]}
-          fill={`url(#ai-gradient-${theme === 'dark' ? 'dark' : 'light'})`}
+          fill={`url(#ai-gradient-${resolvedTheme === 'light' ? 'light' : 'dark'})`}
         />
       </svg>
 
@@ -1107,6 +1114,7 @@ export default function AiToolsLab() {
     <>
       {renderSection}
       {modals && createPortal(modals, document.body)}
+      <PodcastGeneratorModal open={podcastOpen} onClose={() => setPodcastOpen(false)} />
     </>
   );
 }

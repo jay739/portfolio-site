@@ -12,7 +12,7 @@ import OnboardingHint from '@/components/ui/OnboardingHint';
 import { pushSiteFeedback, recordRecentView } from '@/lib/site-ux';
 import GuidedEmptyState from '@/components/ui/GuidedEmptyState';
 
-interface GalleryItem {
+export interface GalleryItem {
   id: string;
   filename: string;
   prompt: string;

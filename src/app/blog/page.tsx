@@ -1,9 +1,16 @@
 import React, { Suspense } from 'react';
-
-export const dynamic = 'force-dynamic';
+import type { Metadata } from 'next';
 import { getBlogPostMeta, getFeaturedPosts } from '@/lib/blog';
 import BlogListingClient from '@/components/blog/BlogListingClient';
 import RouteNextSteps from '@/components/layout/RouteNextSteps';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = pageMetadata({
+  title: 'Blog',
+  description:
+    'Technical writing on software engineering, AI/ML systems, MLOps, Docker, and self-hosted infrastructure.',
+  path: '/blog',
+});
 
 export default function BlogPage() {
   const allPosts = getBlogPostMeta();

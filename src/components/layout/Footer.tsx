@@ -1,23 +1,19 @@
 'use client';
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { DynamicIcon } from '@/lib/icons';
 
 export default function Footer() {
-  const [year, setYear] = useState<number | null>(null);
-  useEffect(() => {
-    setYear(new Date().getFullYear());
-  }, []);
+  // Computed server-side so the year renders correctly on first paint.
+  const year = new Date().getFullYear();
   return (
-    <footer className="relative py-8 bg-black/78 border-t border-amber-400/20 backdrop-blur-2xl">
+    <footer className="relative py-8 bg-slate-100/85 dark:bg-black/80 border-t border-amber-500/30 dark:border-amber-400/20 backdrop-blur-2xl">
       <div className="container mx-auto px-4 flex flex-col items-center justify-center text-center">
-        <p className="text-slate-200">
-          © {year ?? ''} Jayakrishna Konda. All rights reserved.
+        <p className="text-slate-700 dark:text-slate-200">
+          © {year} Jayakrishna Konda. All rights reserved.
         </p>
         <a
           href="mailto:contact@jay739.dev"
-          className="mt-2 text-amber-200 hover:text-amber-100 transition-colors neural-pill text-xs"
+          className="mt-2 text-amber-800 dark:text-amber-200 hover:text-amber-700 dark:hover:text-amber-100 transition-colors neural-pill text-xs"
         >
           contact@jay739.dev
         </a>

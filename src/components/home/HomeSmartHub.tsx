@@ -45,7 +45,7 @@ export default function HomeSmartHub({ latestPost }: { latestPost?: BlogPostMeta
   return (
     <section className="w-full px-2 sm:px-6">
       <div className="grid gap-5 lg:grid-cols-[1.15fr,0.85fr]">
-        <div className="rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-slate-950/80 via-slate-900/75 to-slate-950/80 p-5 sm:p-6">
+        <div className="rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-white via-slate-50 to-white dark:from-slate-950/80 dark:via-slate-900/75 dark:to-slate-950/80 p-5 sm:p-6">
           <p className="text-[11px] uppercase tracking-widest text-amber-300">Smart Hub</p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-100">Start where your last visit left off</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -75,14 +75,14 @@ export default function HomeSmartHub({ latestPost }: { latestPost?: BlogPostMeta
         </div>
 
         <div className="grid gap-5">
-          <Link href={`/projects?project=${projectSlug(featuredProject.title)}`} className="rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-orange-950/50 via-slate-950/70 to-slate-950/80 p-5 transition hover:border-amber-400/25">
+          <Link href={`/projects?project=${projectSlug(featuredProject.title)}`} className="rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/50 dark:via-slate-950/70 dark:to-slate-950/80 p-5 transition hover:border-amber-400/25">
             <p className="text-[11px] uppercase tracking-widest text-orange-300">Featured build</p>
             <h3 className="mt-2 text-xl font-semibold text-slate-100">{featuredProject.title}</h3>
             <p className="mt-2 text-sm text-slate-400 line-clamp-3">{featuredProject.description}</p>
           </Link>
 
           {latestPost && (
-            <Link href={`/blog/${latestPost.slug}`} className="rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-sky-950/45 via-slate-950/75 to-slate-950/85 p-5 transition hover:border-sky-400/30">
+            <Link href={`/blog/${latestPost.slug}`} className="rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 dark:from-sky-950/45 dark:via-slate-950/75 dark:to-slate-950/85 p-5 transition hover:border-sky-400/30">
               <p className="text-[11px] uppercase tracking-widest text-sky-300">Latest note</p>
               <h3 className="mt-2 text-xl font-semibold text-slate-100">{latestPost.title}</h3>
               <p className="mt-2 text-sm text-slate-400 line-clamp-3">{latestPost.excerpt}</p>
@@ -90,7 +90,7 @@ export default function HomeSmartHub({ latestPost }: { latestPost?: BlogPostMeta
             </Link>
           )}
 
-          <div className="rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-sky-950/40 via-slate-950/70 to-slate-950/80 p-5">
+          <div className="rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-sky-50 via-slate-50 to-sky-100 dark:from-sky-950/40 dark:via-slate-950/70 dark:to-slate-950/80 p-5">
             <p className="text-[11px] uppercase tracking-widest text-sky-300">New since last visit</p>
             <div className="mt-3 space-y-2">
               {unseenUpdates.length > 0 ? unseenUpdates.map((update) => (

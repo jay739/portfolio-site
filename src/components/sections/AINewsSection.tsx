@@ -322,7 +322,7 @@ export default function AINewsSection() {
   });
 
   return (
-    <section className="w-full mt-0 mb-16 rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-indigo-950/25 via-slate-950/85 to-slate-950/90 p-4 sm:p-8 neural-card neural-glow-border" id="ai-news">
+    <section className="w-full mt-0 mb-16 rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-indigo-50 via-blue-50 to-indigo-100 dark:from-indigo-950/25 dark:via-slate-950/85 dark:to-slate-950/90 p-4 sm:p-8 neural-card neural-glow-border" id="ai-news">
       {/* Header */}
       <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
         <div className="flex items-center gap-2">

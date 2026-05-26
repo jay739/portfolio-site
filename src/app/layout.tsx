@@ -5,12 +5,15 @@ import ClientLayout from '@/components/layout/ClientLayout'
 import * as Sentry from '@sentry/nextjs'
 
 export function generateMetadata(): Metadata {
-  const title = 'Jayakrishna Konda - Portfolio'
+  const title = 'Jayakrishna Konda — ML/AI Engineer'
   const description = 'ML/AI engineer building production RAG pipelines, LLM systems, MLOps workflows, and self-hosted AI infrastructure.'
 
   return {
     metadataBase: new URL('https://jay739.dev'),
-    title,
+    title: {
+      default: title,
+      template: '%s — Jayakrishna Konda',
+    },
     description,
     keywords: ['Full Stack Developer', 'DevOps Engineer', 'AI/ML Engineer', 'Data Science', 'Home Server'],
     authors: [{ name: 'Jayakrishna Konda' }],
@@ -53,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@300..700&display=swap"

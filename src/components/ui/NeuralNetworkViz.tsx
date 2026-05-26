@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { FaCompass } from 'react-icons/fa';
 
 // ─── Category colors ─────────────────────────────────────────────────────────
@@ -272,6 +273,11 @@ export default function NeuralNetworkViz({
   activeRef.current = isActive;
   const modeRef = useRef(mode);
   modeRef.current = mode;
+  // Live theme flag — read inside the rAF draw loop so a theme switch
+  // recolors the canvas without restarting the animation.
+  const { resolvedTheme } = useTheme();
+  const darkRef = useRef(isDark);
+  darkRef.current = resolvedTheme ? resolvedTheme !== 'light' : isDark;
 
   useEffect(() => {
     activeCategoriesRef.current = activeCategories;
@@ -485,25 +491,27 @@ export default function NeuralNetworkViz({
       ctx.globalAlpha = mapOpacity;
 
       if (!transparentBackground) {
-        // Pitch black base
-        ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        const dark = darkRef.current;
+        // Theme base — pitch black for dark, soft light grey for light
+        ctx.fillStyle = dark ? 'rgba(0, 0, 0, 1)' : 'rgba(238, 241, 246, 1)';
         ctx.fillRect(0, 0, w, h);
 
-        // Subtle amber-tinted vignette — bright at center, dark at edges
+        // Subtle vignette — bright at center, dark at edges
         const vignette = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.72);
-        if (isDark) {
+        if (dark) {
           vignette.addColorStop(0,   'rgba(30, 12, 0, 0.55)');
           vignette.addColorStop(0.5, 'rgba(10, 5, 0, 0.30)');
           vignette.addColorStop(1,   'rgba(0, 0, 0, 0.88)');
         } else {
-          vignette.addColorStop(0, 'rgba(245, 247, 255, 0.92)');
-          vignette.addColorStop(1, 'rgba(220, 225, 240, 0.97)');
+          vignette.addColorStop(0,   'rgba(255, 250, 244, 0.55)');
+          vignette.addColorStop(0.5, 'rgba(244, 246, 250, 0.25)');
+          vignette.addColorStop(1,   'rgba(212, 218, 230, 0.55)');
         }
         ctx.fillStyle = vignette;
         ctx.fillRect(0, 0, w, h);
 
         // Fine dot-grid for depth
-        ctx.strokeStyle = 'rgba(245, 158, 11, 0.055)';
+        ctx.strokeStyle = dark ? 'rgba(245, 158, 11, 0.055)' : 'rgba(120, 53, 15, 0.07)';
         ctx.lineWidth = 0.5;
         const gridStep = 36;
         for (let gx = 0; gx < w; gx += gridStep) {
@@ -514,8 +522,8 @@ export default function NeuralNetworkViz({
         }
 
         // Scanline overlay (very subtle horizontal bands)
+        ctx.fillStyle = dark ? 'rgba(0, 0, 0, 0.06)' : 'rgba(15, 23, 42, 0.035)';
         for (let sy = 0; sy < h; sy += 3) {
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
           ctx.fillRect(0, sy, w, 1);
         }
       }
@@ -571,7 +579,9 @@ export default function NeuralNetworkViz({
           ctx.font = `bold 9px Inter, sans-serif`;
           ctx.textBaseline = 'middle';
           ctx.fillText(zd.label, xCenter, pillY + 9);
-          ctx.fillStyle = `rgba(255,247,237,${0.75 * fade})`;
+          ctx.fillStyle = darkRef.current
+            ? `rgba(255,247,237,${0.75 * fade})`
+            : `rgba(51,65,85,${0.85 * fade})`;
           ctx.font = `600 10px Inter, sans-serif`;
           ctx.fillText(zd.sub, xCenter, pillY + 22);
         });
@@ -745,7 +755,9 @@ export default function NeuralNetworkViz({
         }
         ctx.fillStyle = node.hovered
           ? `rgba(${brightR},${brightG},${brightB},${categoryVisible ? 1 : 0.4})`
-          : `rgba(220,228,240,${categoryVisible ? 0.92 : 0.35})`;
+          : darkRef.current
+            ? `rgba(220,228,240,${categoryVisible ? 0.92 : 0.35})`
+            : `rgba(30,41,59,${categoryVisible ? 0.95 : 0.4})`;
         ctx.fillText(node.label, node.x, node.y + labelR);
         ctx.shadowBlur = 0;
 

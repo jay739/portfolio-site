@@ -1,10 +1,9 @@
 import React, { Suspense } from 'react';
-
-export const dynamic = 'force-dynamic';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import { getBlogPostBySlug, getBlogPostMeta } from '@/lib/blog';
+import { getBlogPostBySlug, getBlogPostMeta, getAllSlugs } from '@/lib/blog';
 import { getRelatedProjectsForPost, getRelatedSkillsForPost } from '@/lib/blog-relations';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { mdxIconComponents } from '@/components/blog/MdxIcons';
@@ -18,6 +17,44 @@ import RecentViewTracker from '@/components/ui/RecentViewTracker';
 interface BlogPostPageProps {
   params: {
     slug: string;
+  };
+}
+
+export function generateStaticParams() {
+  return getAllSlugs().map((slug) => ({ slug }));
+}
+
+export function generateMetadata({ params }: BlogPostPageProps): Metadata {
+  const post = getBlogPostBySlug(params.slug);
+
+  if (!post) {
+    return { title: 'Post Not Found' };
+  }
+
+  const path = `/blog/${post.slug}`;
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    keywords: post.tags,
+    alternates: { canonical: path },
+    openGraph: {
+      type: 'article',
+      url: `https://jay739.dev${path}`,
+      title: post.title,
+      description: post.excerpt,
+      siteName: 'Jayakrishna Konda Portfolio',
+      publishedTime: post.date,
+      authors: ['Jayakrishna Konda'],
+      tags: post.tags,
+      images: ['/opengraph-image'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+      images: ['/opengraph-image'],
+    },
   };
 }
 
@@ -141,7 +178,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             )}
 
             {/* Article Content */}
-            <div className="prose prose-lg prose-invert max-w-none">
+            <div className="prose prose-lg dark:prose-invert max-w-none">
               <Suspense fallback={<div className="text-slate-400 animate-pulse">Loading article…</div>}>
                 <MDXRemote source={post.content} components={mdxIconComponents} />
               </Suspense>

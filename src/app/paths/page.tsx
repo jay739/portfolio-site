@@ -13,7 +13,7 @@ export default function PathsPage() {
         chips={['Guided Paths', 'Curated Journeys', 'Audience-Aware']}
         theme="projects"
       />
-      <section className="w-full neural-card neural-glow-border p-4 sm:p-6 md:p-8 bg-gradient-to-br from-orange-950/30 via-slate-950/70 to-slate-950/80">
+      <section className="w-full neural-card neural-glow-border p-4 sm:p-6 md:p-8 bg-gradient-to-br from-orange-50 via-slate-50 to-orange-100 dark:from-orange-950/30 dark:via-slate-950/70 dark:to-slate-950/80">
         <div className="mb-6 grid gap-4 rounded-3xl border border-orange-400/10 bg-orange-500/5 p-4 sm:grid-cols-[1.1fr,0.9fr] sm:p-5">
           <div>
             <p className="text-[11px] uppercase tracking-widest text-orange-300">Choose your route</p>
@@ -25,7 +25,7 @@ export default function PathsPage() {
         </div>
         <div className="grid gap-5 lg:grid-cols-3">
           {sitePaths.map((path) => (
-            <article id={path.id} key={path.id} className="rounded-[26px] border border-slate-700/60 bg-gradient-to-br from-slate-950/55 via-slate-950/35 to-slate-900/55 p-5 scroll-mt-28">
+            <article id={path.id} key={path.id} className="rounded-[26px] border border-slate-700/60 bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950/55 dark:via-slate-950/35 dark:to-slate-900/55 p-5 scroll-mt-28">
               <p className="text-[11px] uppercase tracking-widest text-amber-300">{path.audience}</p>
               <h2 className="mt-2 text-xl font-semibold text-slate-100">{path.title}</h2>
               <p className="mt-2 text-sm text-slate-400">{path.description}</p>

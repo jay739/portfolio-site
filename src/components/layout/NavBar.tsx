@@ -292,7 +292,7 @@ export default function NavBar() {
 
   return (
     <div
-      className={`fixed inset-x-0 top-0 z-50 pointer-events-none transition-[padding] duration-500 ease-out ${
+      className={`brand-nav fixed inset-x-0 top-0 z-50 pointer-events-none transition-[padding] duration-500 ease-out ${
         isScrolled ? 'px-4 sm:px-6 md:px-10 pt-2 sm:pt-3' : 'px-1 pt-1'
       }`}
     >
@@ -371,15 +371,14 @@ export default function NavBar() {
                 </AnimatePresence>
               </motion.a>
             ))}
-            {/* Theme toggle - commented out, dark mode is default for now
             <button
+              type="button"
               onClick={toggleTheme}
               aria-label={resolvedTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-              className="p-2 rounded-md text-slate-300 hover:text-amber-200 hover:bg-amber-500/10 transition-colors"
+              className="shrink-0 ml-1 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/[0.08] text-amber-100/80 transition-all duration-200 hover:text-white hover:border-amber-400/35 hover:bg-amber-500/[0.16] focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300/70"
             >
-              {resolvedTheme === 'dark' ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+              {resolvedTheme === 'dark' ? <SunIcon className="w-4 h-4" /> : <MoonIcon className="w-4 h-4" />}
             </button>
-            */}
           </div>
           </div>
 
@@ -463,9 +462,27 @@ export default function NavBar() {
                 </div>
                 <motion.div
                   variants={mobileMenuItemVariants}
-                  className="mt-2 pt-2 border-t border-amber-500/20 text-center text-[10px] text-amber-300/50 tracking-wider uppercase"
+                  className="mt-2 pt-2 border-t border-amber-500/20 flex items-center justify-between"
                 >
-                  jay739.dev
+                  <span className="text-[10px] text-amber-300/50 tracking-wider uppercase">
+                    jay739.dev
+                  </span>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    aria-label={resolvedTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/[0.08] px-2.5 py-1.5 text-[11px] font-medium text-amber-100/80 transition-colors hover:text-white hover:bg-amber-500/[0.16] focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300/70"
+                  >
+                    {resolvedTheme === 'dark' ? (
+                      <>
+                        <SunIcon className="w-3.5 h-3.5" /> Light
+                      </>
+                    ) : (
+                      <>
+                        <MoonIcon className="w-3.5 h-3.5" /> Dark
+                      </>
+                    )}
+                  </button>
                 </motion.div>
               </div>
             </motion.div>

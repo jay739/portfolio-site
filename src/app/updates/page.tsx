@@ -19,7 +19,7 @@ export default function UpdatesPage() {
         chips={['Changelog', 'Recent Improvements', 'Portfolio Updates']}
         theme="blog"
       />
-      <section className="w-full neural-card neural-glow-border p-4 sm:p-6 md:p-8 bg-gradient-to-br from-sky-950/30 via-slate-950/70 to-slate-950/80">
+      <section className="w-full neural-card neural-glow-border p-4 sm:p-6 md:p-8 bg-gradient-to-br from-sky-50 via-slate-50 to-sky-100 dark:from-sky-950/30 dark:via-slate-950/70 dark:to-slate-950/80">
         <div className="space-y-4">
           {siteUpdates.map((update) => (
             <article key={`${update.date}-${update.title}`} className="rounded-2xl border border-slate-700/55 bg-slate-950/35 p-5">

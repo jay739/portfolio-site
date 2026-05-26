@@ -121,21 +121,22 @@ export const projects: Project[] = [
   },
   {
     title: 'RAG-powered Podcast Generator',
-    description: 'Designing an AI-generated podcast engine that converts book PDFs into character-voiced audio. Uses OCR, NLP, character identification, and TTS models for multi-voice narration.',
+    description: 'AI podcast engine that turns PDFs into multi-host audio with transcripts. Flask + Ollama for transcript generation, FAISS retrieval, MARS5-TTS on Apple M4 Metal for voices. Live as the "PDF to Podcast" tool in the AI Lab.',
     tags: ['RAG', 'NLP', 'OCR', 'TTS', 'LangChain', 'Ollama', 'Data Science', 'Python'],
     github: 'https://github.com/jay739/PodcastAI',
+    demo: 'https://jay739.dev/ai-tools?tool=podcast-generator',
     images: [
-      
+
       '/images/projects/podcast-2.png',
       '/images/projects/podcast-1.png',
       '/images/projects/podcast-3.png',
       '/images/projects/podcast-4.png',
     ],
-    techStack: ['Python', 'LangChain', 'Ollama', 'TTS', 'OCR'],
-    challenges: ['Extracting clean text from PDFs', 'Voice assignment to characters'],
-    learnings: ['Text-to-speech synthesis', 'Prompt engineering'],
-    lifecycle: ['Idea', 'Building'],
-    proofPoints: ['Multi-voice narration pipeline', 'RAG + OCR workflow'],
+    techStack: ['Python', 'Flask', 'Ollama', 'FAISS', 'MARS5-TTS', 'PyMuPDF', 'pydub', 'Next.js'],
+    challenges: ['Extracting clean text from PDFs', 'Voice assignment to characters', 'Bounding generation time on a single-GPU host', 'Safely exposing a Mac Mini service to a public web tool'],
+    learnings: ['Text-to-speech synthesis on Metal', 'Prompt engineering for dialogue', 'Single-tenant job queueing across HTTP', 'CORS + Tailscale-fronted private services'],
+    lifecycle: ['Idea', 'Built', 'Deployed'],
+    proofPoints: ['Multi-voice narration pipeline', 'RAG + OCR workflow', 'One-job concurrency on M4 GPU', 'Public web UI proxied to private Mac Mini backend'],
     problemAreas: ['Document understanding', 'Podcast generation', 'Narration automation'],
   },
   {

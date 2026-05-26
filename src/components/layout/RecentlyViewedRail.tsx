@@ -18,7 +18,7 @@ export default function RecentlyViewedRail() {
   if (items.length === 0) return null;
 
   return (
-    <section className="px-2 pb-6 sm:px-6">
+    <section className="neural-themed px-2 pb-6 sm:px-6">
       <div className="mx-auto w-full neural-card-soft rounded-2xl border border-slate-700/60 p-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
           <History className="h-4 w-4 text-amber-300" />

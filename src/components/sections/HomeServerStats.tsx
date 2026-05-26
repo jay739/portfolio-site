@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { fetchNetdataMetrics } from '@/lib/netdata';
 import { motion } from 'framer-motion';
@@ -147,6 +148,27 @@ function PulsingDot() {
 export default function HomeServerStats() {
   const router = useRouter();
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
+  // Recharts takes colors via JS props, not CSS, so we resolve them off the
+  // active theme. Lines/strokes stay amber/orange (they read on both bgs);
+  // ticks and axis labels swap from light amber (legible on dark) to deep
+  // amber-800/orange-800 (legible on a light surface).
+  const isLight = resolvedTheme === 'light';
+  const chartC = {
+    tick: isLight ? '#92400e' : '#fcd34d',
+    axisLabel: isLight ? '#9a3412' : '#fdba74',
+    grid: isLight ? 'rgba(120, 53, 15, 0.16)' : 'rgba(245, 158, 11, 0.14)',
+    legend: isLight ? '#92400e' : '#fcd34d',
+    tooltipBg: isLight ? 'rgba(255, 251, 235, 0.96)' : 'rgba(15, 23, 42, 0.94)',
+    tooltipBorder: isLight ? 'rgba(180, 83, 9, 0.35)' : 'rgba(245, 158, 11, 0.35)',
+    tooltipText: isLight ? '#1e293b' : '#fef3c7',
+  };
+  const tooltipStyle = {
+    backgroundColor: chartC.tooltipBg,
+    border: `1px solid ${chartC.tooltipBorder}`,
+    borderRadius: 8,
+    color: chartC.tooltipText,
+  };
   const [cpu, setCpu] = useState<any[]>([]);
   const [load, setLoad] = useState<any[]>([]);
   const [processes, setProcesses] = useState<any[]>([]);
@@ -824,11 +846,11 @@ export default function HomeServerStats() {
                       <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.1}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="timestamp" angle={-30} textAnchor="end" interval={3} height={40} tick={{ fill: '#fcd34d', fontSize: 12 }} label={{ value: 'Time', position: 'insideBottom', offset: -25, fill: '#fdba74' }} />
-                  <YAxis tick={{ fill: '#fcd34d', fontSize: 12 }} label={{ value: '%', angle: -90, position: 'insideLeft', offset: 10, fill: '#fdba74' }} />
-                  <Tooltip contentStyle={{ background: '#111111', color: '#fff7ed', borderRadius: 8, border: '1px solid rgba(245,158,11,0.25)' }} />
-                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, color: '#fcd34d' }} />
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(245,158,11,0.14)" />
+                  <XAxis dataKey="timestamp" angle={-30} textAnchor="end" interval={3} height={40} tick={{ fill: chartC.tick, fontSize: 12 }} label={{ value: 'Time', position: 'insideBottom', offset: -25, fill: chartC.axisLabel }} />
+                  <YAxis tick={{ fill: chartC.tick, fontSize: 12 }} label={{ value: '%', angle: -90, position: 'insideLeft', offset: 10, fill: chartC.axisLabel }} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, color: chartC.legend }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartC.grid} />
                   <Area type="monotone" dataKey="value" stroke="#f59e0b" fillOpacity={1} fill="url(#colorCpu)" name="CPU" isAnimationActive animationDuration={800} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
@@ -843,11 +865,11 @@ export default function HomeServerStats() {
               ) : (
               <ResponsiveContainer width="100%" height={350}>
                 <LineChart data={load} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
-                  <XAxis dataKey="timestamp" angle={-30} textAnchor="end" interval={3} height={40} tick={{ fill: '#fcd34d', fontSize: 12 }} label={{ value: 'Time', position: 'insideBottom', offset: -25, fill: '#fdba74' }} />
-                  <YAxis tick={{ fill: '#fcd34d', fontSize: 12 }} label={{ value: 'Load', angle: -90, position: 'insideLeft', offset: 10, fill: '#fdba74' }} />
-                  <Tooltip contentStyle={{ background: '#111111', color: '#fff7ed', borderRadius: 8, border: '1px solid rgba(245,158,11,0.25)' }} />
-                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, color: '#fcd34d' }} />
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(245,158,11,0.14)" />
+                  <XAxis dataKey="timestamp" angle={-30} textAnchor="end" interval={3} height={40} tick={{ fill: chartC.tick, fontSize: 12 }} label={{ value: 'Time', position: 'insideBottom', offset: -25, fill: chartC.axisLabel }} />
+                  <YAxis tick={{ fill: chartC.tick, fontSize: 12 }} label={{ value: 'Load', angle: -90, position: 'insideLeft', offset: 10, fill: chartC.axisLabel }} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, color: chartC.legend }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartC.grid} />
                   <Line type="monotone" dataKey="load1" stroke="#f59e0b" name="Load 1m" isAnimationActive animationDuration={800} strokeWidth={2.2} dot={false} />
                   <Line type="monotone" dataKey="load5" stroke="#fb923c" name="Load 5m" isAnimationActive animationDuration={800} strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="load15" stroke="#fde68a" name="Load 15m" isAnimationActive animationDuration={800} strokeWidth={2} dot={false} />
@@ -873,11 +895,11 @@ export default function HomeServerStats() {
                       <stop offset="95%" stopColor="#ea580c" stopOpacity={0.1}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="timestamp" angle={-30} textAnchor="end" interval={3} height={40} tick={{ fill: '#fcd34d', fontSize: 12 }} label={{ value: 'Time', position: 'insideBottom', offset: -25, fill: '#fdba74' }} />
-                  <YAxis tick={{ fill: '#fcd34d', fontSize: 12 }} label={{ value: 'Rate', angle: -90, position: 'insideLeft', offset: 10, fill: '#fdba74' }} />
-                  <Tooltip contentStyle={{ background: '#111111', color: '#fff7ed', borderRadius: 8, border: '1px solid rgba(245,158,11,0.25)' }} />
-                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, color: '#fcd34d' }} />
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(245,158,11,0.14)" />
+                  <XAxis dataKey="timestamp" angle={-30} textAnchor="end" interval={3} height={40} tick={{ fill: chartC.tick, fontSize: 12 }} label={{ value: 'Time', position: 'insideBottom', offset: -25, fill: chartC.axisLabel }} />
+                  <YAxis tick={{ fill: chartC.tick, fontSize: 12 }} label={{ value: 'Rate', angle: -90, position: 'insideLeft', offset: 10, fill: chartC.axisLabel }} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, color: chartC.legend }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartC.grid} />
                   <Area type="monotone" dataKey="value" stroke="#ea580c" fillOpacity={1} fill="url(#colorTCP)" name={networkInLabel} isAnimationActive animationDuration={800} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
@@ -898,11 +920,11 @@ export default function HomeServerStats() {
                       <stop offset="95%" stopColor="#fbbf24" stopOpacity={0.1}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="timestamp" angle={-30} textAnchor="end" interval={3} height={40} tick={{ fill: '#fcd34d', fontSize: 12 }} label={{ value: 'Time', position: 'insideBottom', offset: -25, fill: '#fdba74' }} />
-                  <YAxis tick={{ fill: '#fcd34d', fontSize: 12 }} label={{ value: 'Rate', angle: -90, position: 'insideLeft', offset: 10, fill: '#fdba74' }} />
-                  <Tooltip contentStyle={{ background: '#111111', color: '#fff7ed', borderRadius: 8, border: '1px solid rgba(245,158,11,0.25)' }} />
-                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, color: '#fcd34d' }} />
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(245,158,11,0.14)" />
+                  <XAxis dataKey="timestamp" angle={-30} textAnchor="end" interval={3} height={40} tick={{ fill: chartC.tick, fontSize: 12 }} label={{ value: 'Time', position: 'insideBottom', offset: -25, fill: chartC.axisLabel }} />
+                  <YAxis tick={{ fill: chartC.tick, fontSize: 12 }} label={{ value: 'Rate', angle: -90, position: 'insideLeft', offset: 10, fill: chartC.axisLabel }} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, color: chartC.legend }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartC.grid} />
                   <Area type="monotone" dataKey="value" stroke="#fbbf24" fillOpacity={1} fill="url(#colorUDP)" name={networkOutLabel} isAnimationActive animationDuration={800} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>

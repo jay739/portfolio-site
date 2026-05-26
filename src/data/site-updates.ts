@@ -9,6 +9,46 @@ export interface SiteUpdate {
 
 export const siteUpdates: SiteUpdate[] = [
   {
+    id: 'podcast-gallery',
+    date: 'May 2026',
+    title: 'AI Showcase now includes Podcasts',
+    details: 'The /gallery page picked up a second section for AI-generated podcasts. Saved episodes show host tags, the TTS engine and Ollama model used, an inline audio player, and an expandable transcript. Save-to-showcase is gated by the same admin password as the image gallery.',
+    href: '/gallery#podcasts',
+    timestamp: '2026-05-19T20:00:00.000Z',
+  },
+  {
+    id: 'podcast-tool-tts-picker',
+    date: 'May 2026',
+    title: 'PDF to Podcast: voice engine picker + 10× speedup',
+    details: 'The PDF to Podcast tool now exposes three TTS engines in the UI: Piper (fastest, ~30s synth), Kokoro-82M (balanced, MPS-accelerated), and Bark (highest quality, slower). End-to-end time for a typical PDF drops from ~20 min on Bark to ~1m 46s on Piper. Backend runs Ollama qwen2.5:14b for transcript generation with proper context-window sizing.',
+    href: '/ai-tools',
+    timestamp: '2026-05-19T18:00:00.000Z',
+  },
+  {
+    id: 'pdf-to-podcast-launch',
+    date: 'May 2026',
+    title: 'PDF to Podcast tool is live',
+    details: 'Upload a PDF, pick 2–3 hosts, and the Mac Mini renders a multi-voice podcast with transcript. Self-hosted Flask + Ollama + Piper/Kokoro/Bark TTS on the Apple M4. One concurrent job site-wide, IP rate-limited. Proxied through the portfolio over Tailscale.',
+    href: '/ai-tools?tool=podcast-generator',
+    timestamp: '2026-05-19T12:00:00.000Z',
+  },
+  {
+    id: 'blog-rss-feed',
+    date: 'May 2026',
+    title: 'RSS Feed for the Blog',
+    details: 'The blog now publishes a standard RSS 2.0 feed at /rss.xml — sourced directly from the MDX content with reading-time metadata. Subscribe in any reader, or wire it into the GitHub profile README so the latest posts auto-sync there.',
+    href: '/rss.xml',
+    timestamp: '2026-05-18T12:00:00.000Z',
+  },
+  {
+    id: 'blog-lifetime-software-deals',
+    date: 'May 2026',
+    title: 'New Post: The Quiet Math of Lifetime Software Deals',
+    details: 'A reflection on which lifetime purchases (Infuse Pro, Niagara, Poweramp, Symfonium, No Man’s Sky) actually survived years of use, why companies offer the deals in the first place, and the psychology and acquisition risk behind them — with references to Kahneman, Thaler, Tien Tzuo, Hermann Simon, and Doctorow’s enshittification thesis.',
+    href: '/blog/lifetime-software-deals',
+    timestamp: '2026-05-12T12:00:00.000Z',
+  },
+  {
     id: 'homelab-ops-architecture',
     date: 'April 2026',
     title: 'Operations Command Architecture',

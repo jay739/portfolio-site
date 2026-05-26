@@ -1,6 +1,15 @@
+import type { Metadata } from 'next';
 import NeuralPageIntro from '@/components/ui/NeuralPageIntro';
 import ReadingListClient from '@/components/blog/ReadingListClient';
 import { getBlogPostMeta } from '@/lib/blog';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = pageMetadata({
+  title: 'Reading List',
+  description:
+    'A personal reading workspace — bookmarks, revisit history, and recent changelog updates across the portfolio.',
+  path: '/reading-list',
+});
 
 export default function ReadingListPage() {
   const allPosts = getBlogPostMeta();
@@ -13,7 +22,7 @@ export default function ReadingListPage() {
         chips={['Bookmarks', 'History', 'Since Last Visit']}
         theme="blog"
       />
-      <section className="w-full rounded-[28px] border border-sky-400/10 bg-gradient-to-br from-sky-950/20 via-slate-950/70 to-slate-950/85 px-4 py-5 sm:px-6">
+      <section className="w-full rounded-[28px] border border-sky-400/10 bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 dark:from-sky-950/20 dark:via-slate-950/70 dark:to-slate-950/85 px-4 py-5 sm:px-6">
         <div className="grid gap-3 sm:grid-cols-[1.2fr,0.8fr] sm:items-end">
           <div>
             <p className="text-[11px] uppercase tracking-widest text-sky-300">Local reading workspace</p>

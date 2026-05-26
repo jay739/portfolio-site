@@ -95,61 +95,66 @@ export default function NeuralPageIntro({
     );
   };
 
+  // Each theme tab gets a tinted gradient panel + matching kicker color.
+  // `panel` lists the gradient stops with light defaults and `dark:` overrides
+  // so the intro panel reads on both themes (Tailwind gradient stops compile
+  // to CSS vars that can't be tweened by a runtime bridge — they must be
+  // declared with explicit dark: variants here).
   const themeStyles: Record<NonNullable<NeuralPageIntroProps['theme']>, { panel: string; glow: string; kicker: string }> = {
     default: {
-      panel: 'from-slate-950/70 via-slate-900/70 to-slate-950/70',
-      glow: 'from-amber-500/10 via-transparent to-transparent',
-      kicker: 'text-amber-300',
+      panel: 'from-slate-50 via-white to-slate-100 dark:from-slate-950/70 dark:via-slate-900/70 dark:to-slate-950/70',
+      glow: 'from-amber-300/30 via-transparent to-transparent dark:from-amber-500/10',
+      kicker: 'text-amber-800 dark:text-amber-300',
     },
     projects: {
-      panel: 'from-orange-950/70 via-amber-950/55 to-slate-950/70',
-      glow: 'from-orange-500/12 via-transparent to-transparent',
-      kicker: 'text-orange-300',
+      panel: 'from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/70 dark:via-amber-950/55 dark:to-slate-950/70',
+      glow: 'from-orange-300/35 via-transparent to-transparent dark:from-orange-500/12',
+      kicker: 'text-orange-800 dark:text-orange-300',
     },
     blog: {
-      panel: 'from-sky-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-sky-500/12 via-transparent to-transparent',
-      kicker: 'text-sky-300',
+      panel: 'from-sky-50 via-blue-50 to-sky-100 dark:from-sky-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-sky-300/35 via-transparent to-transparent dark:from-sky-500/12',
+      kicker: 'text-sky-800 dark:text-sky-300',
     },
     skills: {
-      panel: 'from-teal-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-teal-400/12 via-transparent to-transparent',
-      kicker: 'text-teal-300',
+      panel: 'from-teal-50 via-emerald-50 to-teal-100 dark:from-teal-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-teal-300/35 via-transparent to-transparent dark:from-teal-400/12',
+      kicker: 'text-teal-800 dark:text-teal-300',
     },
     gallery: {
-      panel: 'from-fuchsia-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-fuchsia-400/12 via-transparent to-transparent',
-      kicker: 'text-fuchsia-300',
+      panel: 'from-fuchsia-50 via-pink-50 to-fuchsia-100 dark:from-fuchsia-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-fuchsia-300/35 via-transparent to-transparent dark:from-fuchsia-400/12',
+      kicker: 'text-fuchsia-800 dark:text-fuchsia-300',
     },
     'ai-tools': {
-      panel: 'from-violet-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-violet-400/12 via-transparent to-transparent',
-      kicker: 'text-violet-300',
+      panel: 'from-violet-50 via-purple-50 to-violet-100 dark:from-violet-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-violet-300/35 via-transparent to-transparent dark:from-violet-400/12',
+      kicker: 'text-violet-800 dark:text-violet-300',
     },
     'ai-news': {
-      panel: 'from-indigo-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-indigo-400/12 via-transparent to-transparent',
-      kicker: 'text-indigo-300',
+      panel: 'from-indigo-50 via-blue-50 to-indigo-100 dark:from-indigo-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-indigo-300/35 via-transparent to-transparent dark:from-indigo-400/12',
+      kicker: 'text-indigo-800 dark:text-indigo-300',
     },
     homeserver: {
-      panel: 'from-emerald-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-emerald-400/12 via-transparent to-transparent',
-      kicker: 'text-emerald-300',
+      panel: 'from-emerald-50 via-green-50 to-emerald-100 dark:from-emerald-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-emerald-300/35 via-transparent to-transparent dark:from-emerald-400/12',
+      kicker: 'text-emerald-800 dark:text-emerald-300',
     },
     impact: {
-      panel: 'from-amber-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-amber-400/12 via-transparent to-transparent',
-      kicker: 'text-amber-300',
+      panel: 'from-amber-50 via-yellow-50 to-amber-100 dark:from-amber-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-amber-300/35 via-transparent to-transparent dark:from-amber-400/12',
+      kicker: 'text-amber-800 dark:text-amber-300',
     },
     timeline: {
-      panel: 'from-cyan-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-cyan-400/12 via-transparent to-transparent',
-      kicker: 'text-cyan-300',
+      panel: 'from-cyan-50 via-sky-50 to-cyan-100 dark:from-cyan-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-cyan-300/35 via-transparent to-transparent dark:from-cyan-400/12',
+      kicker: 'text-cyan-800 dark:text-cyan-300',
     },
     contact: {
-      panel: 'from-rose-950/70 via-slate-950/70 to-slate-950/70',
-      glow: 'from-rose-400/12 via-transparent to-transparent',
-      kicker: 'text-rose-300',
+      panel: 'from-rose-50 via-pink-50 to-rose-100 dark:from-rose-950/70 dark:via-slate-950/70 dark:to-slate-950/70',
+      glow: 'from-rose-300/35 via-transparent to-transparent dark:from-rose-400/12',
+      kicker: 'text-rose-800 dark:text-rose-300',
     },
   };
 

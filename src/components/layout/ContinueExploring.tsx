@@ -91,7 +91,7 @@ export default function ContinueExploring() {
   const links = exploreMap[pathname] ?? defaultLinks;
 
   return (
-    <section className="relative px-2 pb-6 sm:px-6">
+    <section className="neural-themed relative px-2 pb-6 sm:px-6">
       <div className="w-full neural-card neural-glow-border rounded-[28px] p-4 sm:p-6 md:p-8">
         <div className="mb-5 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-400/25 bg-amber-500/10 text-amber-300">

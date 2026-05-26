@@ -1,6 +1,41 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { projects } from '@/data/projects';
 import { projectSlug } from '@/lib/project-utils';
+
+export function generateStaticParams() {
+  return projects.map((entry) => ({ slug: projectSlug(entry.title) }));
+}
+
+export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+  const project = projects.find((entry) => projectSlug(entry.title) === params.slug);
+
+  if (!project) {
+    return { title: 'Project Not Found' };
+  }
+
+  const path = `/projects/brief/${params.slug}`;
+
+  return {
+    title: project.title,
+    description: project.description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: 'article',
+      url: `https://jay739.dev${path}`,
+      title: `${project.title} — Jayakrishna Konda`,
+      description: project.description,
+      siteName: 'Jayakrishna Konda Portfolio',
+      images: ['/opengraph-image'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${project.title} — Jayakrishna Konda`,
+      description: project.description,
+      images: ['/opengraph-image'],
+    },
+  };
+}
 
 export default function ProjectBriefPage({ params }: { params: { slug: string } }) {
   const project = projects.find((entry) => projectSlug(entry.title) === params.slug);

@@ -110,7 +110,13 @@ export default function BlogListingClient({ allPosts, featuredPosts }: BlogListi
       />
 
         {/* Controls */}
-        <div className="mb-6 flex flex-wrap items-center gap-1 rounded-2xl px-4 py-2.5" style={{ background: 'rgba(8,14,32,0.6)', border: '1px solid rgba(99,102,241,0.15)' }}>
+        <div
+          className="mb-6 flex flex-wrap items-center gap-1 rounded-2xl px-4 py-2.5 border"
+          style={{
+            background: 'var(--neural-surface-soft)',
+            borderColor: 'rgba(var(--neural-blue), 0.2)',
+          }}
+        >
           {/* Search */}
           <div className="relative flex-1 min-w-[160px]">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
