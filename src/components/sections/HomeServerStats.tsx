@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
@@ -136,14 +136,6 @@ function CircularProgress({ progress }: { progress: number }) {
   );
 }
 
-function PulsingDot() {
-  return (
-    <span className="relative flex h-3 w-3 mr-1">
-      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
-      <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-400"></span>
-    </span>
-  );
-}
 
 export default function HomeServerStats() {
   const router = useRouter();
@@ -169,12 +161,32 @@ export default function HomeServerStats() {
     borderRadius: 8,
     color: chartC.tooltipText,
   };
-  const [cpu, setCpu] = useState<any[]>([]);
-  const [load, setLoad] = useState<any[]>([]);
-  const [processes, setProcesses] = useState<any[]>([]);
-  const [uptime, setUptime] = useState<any[]>([]);
-  const [networkIn, setNetworkIn] = useState<any[]>([]);
-  const [networkOut, setNetworkOut] = useState<any[]>([]);
+  interface CpuChartData {
+    timestamp: string;
+    value: number;
+  }
+  interface LoadChartData {
+    timestamp: string;
+    load1: number | null;
+    load5: number | null;
+    load15: number | null;
+  }
+  interface SimpleChartData {
+    timestamp: string;
+    value: number;
+  }
+  interface ServiceMetricPoint {
+    dimension: string;
+    value: number;
+    timestamp: number;
+  }
+
+  const [cpu, setCpu] = useState<CpuChartData[]>([]);
+  const [load, setLoad] = useState<LoadChartData[]>([]);
+  const [processes, setProcesses] = useState<SimpleChartData[]>([]);
+  const [uptime, setUptime] = useState<SimpleChartData[]>([]);
+  const [networkIn, setNetworkIn] = useState<SimpleChartData[]>([]);
+  const [networkOut, setNetworkOut] = useState<SimpleChartData[]>([]);
   const [networkInLabel, setNetworkInLabel] = useState('Received (KB/s)');
   const [networkOutLabel, setNetworkOutLabel] = useState('Sent (KB/s)');
   const [networkInSource, setNetworkInSource] = useState('received');
@@ -191,6 +203,7 @@ export default function HomeServerStats() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshMode, setLastRefreshMode] = useState<'initial' | 'background' | 'manual'>('initial');
   const [lastGoodUpdate, setLastGoodUpdate] = useState<number | null>(null);
+  const lastGoodUpdateRef = useRef<number | null>(null);
   const [liteMode, setLiteMode] = useState(false);
   const [urlStateReady, setUrlStateReady] = useState(false);
   const [serviceQuery, setServiceQuery] = useState('');
@@ -206,65 +219,7 @@ export default function HomeServerStats() {
     return value;
   };
 
-  const fetchFirstAvailableDimension = async (
-    service: string,
-    candidates: string[],
-    after = 0,
-    before = 0,
-    points = 20,
-  ) => {
-    for (const dimension of candidates) {
-      const data = await fetchNetdataMetrics(service, dimension, after, before, points);
-      if (data.length > 0) {
-        return { data, dimension };
-      }
-    }
-    return { data: [] as any[], dimension: candidates[0] };
-  };
-
-  const fetchServiceStatus = async (service: string, after: number, points: number) => {
-    const url = new URL(`/api/netdata/${encodeURIComponent(service)}`, window.location.origin);
-    url.searchParams.append('points', String(points));
-    url.searchParams.append('after', String(after));
-    const response = await fetch(url.toString(), {
-      credentials: 'include',
-      headers: {
-        'Accept': '*/*',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
-    });
-
-    if (!response.ok) {
-      return { service, running: false, monitored: false, cpuUsage: 0, upstreamDown: true };
-    }
-
-    const raw = await response.json();
-    const labels: string[] = Array.isArray(raw?.result?.labels) ? raw.result.labels : [];
-    const rows: any[] = Array.isArray(raw?.result?.data) ? raw.result.data : [];
-    const upstreamDown = raw?.meta?.upstream === 'down';
-
-    // A service is only considered monitored if Netdata returned actual dimension labels
-    // (e.g. ['time','user','system']). A bare ['time'] response means the instance doesn't
-    // exist on this node (batcave services not visible from the OCI VPS Netdata).
-    const monitored = labels.length >= 2 && !upstreamDown;
-    const running = rows.length > 0;
-
-    let cpuUsage = 0;
-    const latestRow = rows[rows.length - 1];
-    if (Array.isArray(latestRow) && latestRow.length > 1) {
-      for (let i = 1; i < latestRow.length; i += 1) {
-        const value = Number(Array.isArray(latestRow[i]) ? latestRow[i][0] : latestRow[i]);
-        if (Number.isFinite(value)) {
-          cpuUsage += value;
-        }
-      }
-    }
-
-    return { service, running, monitored, cpuUsage, upstreamDown };
-  };
-
-  const fetchData = async (mode: 'initial' | 'background' | 'manual' = 'initial') => {
+  const fetchData = useCallback(async (mode: 'initial' | 'background' | 'manual' = 'initial') => {
     setLastRefreshMode(mode);
     if (mode === 'initial') {
       setIsInitialLoading(true);
@@ -273,6 +228,65 @@ export default function HomeServerStats() {
     } else {
       setIsRefreshing(true);
     }
+
+    const fetchFirstAvailableDimension = async (
+      service: string,
+      candidates: string[],
+      after = 0,
+      before = 0,
+      points = 20,
+    ) => {
+      for (const dimension of candidates) {
+        const data = await fetchNetdataMetrics(service, dimension, after, before, points);
+        if (data.length > 0) {
+          return { data, dimension };
+        }
+      }
+      return { data: [] as ServiceMetricPoint[], dimension: candidates[0] };
+    };
+
+    const fetchServiceStatus = async (service: string, after: number, points: number) => {
+      const url = new URL(`/api/netdata/${encodeURIComponent(service)}`, window.location.origin);
+      url.searchParams.append('points', String(points));
+      url.searchParams.append('after', String(after));
+      const response = await fetch(url.toString(), {
+        credentials: 'include',
+        headers: {
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        return { service, running: false, monitored: false, cpuUsage: 0, upstreamDown: true };
+      }
+
+      const raw = await response.json();
+      const labels: string[] = Array.isArray(raw?.result?.labels) ? raw.result.labels : [];
+      const rows: unknown[][] = Array.isArray(raw?.result?.data) ? raw.result.data : [];
+      const upstreamDown = raw?.meta?.upstream === 'down';
+
+      // A service is only considered monitored if Netdata returned actual dimension labels
+      // (e.g. ['time','user','system']). A bare ['time'] response means the instance doesn't
+      // exist on this node (batcave services not visible from the OCI VPS Netdata).
+      const monitored = labels.length >= 2 && !upstreamDown;
+      const running = rows.length > 0;
+
+      let cpuUsage = 0;
+      const latestRow = rows[rows.length - 1];
+      if (Array.isArray(latestRow) && latestRow.length > 1) {
+        for (let i = 1; i < latestRow.length; i += 1) {
+          const val = latestRow[i];
+          const value = Number(Array.isArray(val) ? val[0] : val);
+          if (Number.isFinite(value)) {
+            cpuUsage += value;
+          }
+        }
+      }
+
+      return { service, running, monitored, cpuUsage, upstreamDown };
+    };
 
     try {
       const [cpuResult, loadResult, networkResult, processesResult, uptimeResult] = await Promise.allSettled([
@@ -361,56 +375,85 @@ export default function HomeServerStats() {
           row.load15 = entry.value;
           byTimestamp.set(entry.timestamp, row);
         });
-        setLoad(
-          Array.from(byTimestamp.entries())
-            .sort((a, b) => a[0] - b[0])
-            .map(([timestamp, row]) => ({
-              timestamp: new Date(timestamp * 1000).toLocaleTimeString(),
-              load1: row.load1 ?? 0,
-              load5: row.load5 ?? 0,
-              load15: row.load15 ?? 0,
-            }))
-        );
+        const loadSeries = Array.from(byTimestamp.entries())
+          .sort((a, b) => a[0] - b[0])
+          .map(([timestamp, values]) => ({
+            timestamp: new Date(timestamp * 1000).toLocaleTimeString(),
+            load1: values.load1,
+            load5: values.load5,
+            load15: values.load15,
+          }));
+        setLoad(loadSeries);
       }
 
       if (networkResult.status === 'fulfilled') {
-        const [networkInResult, networkOutResult] = networkResult.value;
-        if (networkInResult.data.length > 0 || networkOutResult.data.length > 0) {
+        const [inResult, outResult] = networkResult.value;
+        const inData = inResult.data;
+        const outData = outResult.data;
+        if (inData.length > 0 || outData.length > 0) {
           successfulSources += 1;
         }
-        setNetworkInLabel(networkInResult.dimension === 'InOctets' ? 'Received (KB/s)' : 'Received');
-        setNetworkOutLabel(networkOutResult.dimension === 'OutOctets' ? 'Sent (KB/s)' : 'Sent');
-        setNetworkInSource(networkInResult.dimension);
-        setNetworkOutSource(networkOutResult.dimension);
 
-        setNetworkIn(networkInResult.data.map(entry => ({
-          timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
-          value: normalizeNetworkRate(entry.value, networkInResult.dimension),
-        })));
-        setNetworkOut(networkOutResult.data.map(entry => ({
-          timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
-          value: normalizeNetworkRate(entry.value, networkOutResult.dimension),
-        })));
+        setNetworkInLabel(`Received (${inResult.dimension === 'InOctets' ? 'KB/s' : inResult.dimension})`);
+        setNetworkOutLabel(`Sent (${outResult.dimension === 'OutOctets' ? 'KB/s' : outResult.dimension})`);
+        setNetworkInSource(inResult.dimension);
+        setNetworkOutSource(outResult.dimension);
+
+        const mergedNet = new Map<number, { received: number; sent: number }>();
+        inData.forEach((entry) => {
+          const existing = mergedNet.get(entry.timestamp) || { received: 0, sent: 0 };
+          mergedNet.set(entry.timestamp, { ...existing, received: entry.value });
+        });
+        outData.forEach((entry) => {
+          const existing = mergedNet.get(entry.timestamp) || { received: 0, sent: 0 };
+          mergedNet.set(entry.timestamp, { ...existing, sent: entry.value });
+        });
+
+        const netInSeries: SimpleChartData[] = [];
+        const netOutSeries: SimpleChartData[] = [];
+
+        Array.from(mergedNet.entries())
+          .sort((a, b) => a[0] - b[0])
+          .forEach(([timestamp, values]) => {
+            const timeStr = new Date(timestamp * 1000).toLocaleTimeString();
+            netInSeries.push({
+              timestamp: timeStr,
+              value: normalizeNetworkRate(values.received, inResult.dimension),
+            });
+            netOutSeries.push({
+              timestamp: timeStr,
+              value: normalizeNetworkRate(values.sent, outResult.dimension),
+            });
+          });
+
+        setNetworkIn(netInSeries);
+        setNetworkOut(netOutSeries);
       }
 
       if (processesResult.status === 'fulfilled') {
-        if (processesResult.value.length > 0) {
+        const data = processesResult.value;
+        if (data.length > 0) {
           successfulSources += 1;
         }
-        setProcesses(processesResult.value.map(entry => ({
-          timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
-          value: entry.value,
-        })));
+        setProcesses(
+          data.map((entry) => ({
+            timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
+            value: entry.value,
+          }))
+        );
       }
 
       if (uptimeResult.status === 'fulfilled') {
-        if (uptimeResult.value.length > 0) {
+        const data = uptimeResult.value;
+        if (data.length > 0) {
           successfulSources += 1;
         }
-        setUptime(uptimeResult.value.map(entry => ({
-          timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
-          value: entry.value,
-        })));
+        setUptime(
+          data.map((entry) => ({
+            timestamp: new Date(entry.timestamp * 1000).toLocaleTimeString(),
+            value: entry.value,
+          }))
+        );
       }
 
       const sourceIsHealthy = successfulSources > 0;
@@ -432,6 +475,7 @@ export default function HomeServerStats() {
         const now = Date.now();
         lastUpdateRef.current = now;
         setLastGoodUpdate(now);
+        lastGoodUpdateRef.current = now;
         setProgress(0);
         setError(null);
         setWarning(
@@ -441,12 +485,14 @@ export default function HomeServerStats() {
         );
       } else {
         setError('Monitoring source is temporarily unreachable.');
-        setWarning(lastGoodUpdate ? 'Showing the last available snapshot until the source comes back.' : 'Waiting for source recovery.');
+        const lgu = lastGoodUpdateRef.current;
+        setWarning(lgu ? 'Showing the last available snapshot until the source comes back.' : 'Waiting for source recovery.');
       }
     } catch {
       setSourceHealthy(false);
       setError('Monitoring source is temporarily unreachable.');
-      setWarning(lastGoodUpdate ? 'Showing the last available snapshot until the source comes back.' : 'Waiting for source recovery.');
+      const lgu = lastGoodUpdateRef.current;
+      setWarning(lgu ? 'Showing the last available snapshot until the source comes back.' : 'Waiting for source recovery.');
     } finally {
       if (mode === 'initial') {
         setIsInitialLoading(false);
@@ -454,7 +500,7 @@ export default function HomeServerStats() {
         setIsRefreshing(false);
       }
     }
-  };
+  }, [dataPoints]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -483,7 +529,7 @@ export default function HomeServerStats() {
 
   useEffect(() => {
     void fetchData('initial');
-  }, [dataPoints]);
+  }, [dataPoints, fetchData]);
 
   useEffect(() => {
     if (!autoRefreshEnabled) {
@@ -498,7 +544,7 @@ export default function HomeServerStats() {
     }, refreshIntervalMs);
     intervalRef.current = interval;
     return () => clearInterval(interval);
-  }, [autoRefreshEnabled, refreshIntervalMs]);
+  }, [autoRefreshEnabled, refreshIntervalMs, fetchData]);
 
   // Animate progress bar
   useEffect(() => {
@@ -524,7 +570,7 @@ export default function HomeServerStats() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [fetchData]);
 
   const latestStats = useMemo(() => {
     const latestCpu = cpu[cpu.length - 1]?.value ?? 0;

@@ -149,20 +149,25 @@ function validateMessage(message: string): ValidationError | null {
   return null;
 }
 
-function validateFormData(data: any): { isValid: boolean; errors: ValidationError[]; sanitizedData?: ContactFormData } {
+function validateFormData(data: Record<string, unknown>): { isValid: boolean; errors: ValidationError[]; sanitizedData?: ContactFormData } {
   const errors: ValidationError[] = [];
+
+  const name = typeof data.name === 'string' ? data.name : '';
+  const email = typeof data.email === 'string' ? data.email : '';
+  const subject = typeof data.subject === 'string' ? data.subject : '';
+  const message = typeof data.message === 'string' ? data.message : '';
   
   // Validate each field
-  const nameError = validateName(data.name);
+  const nameError = validateName(name);
   if (nameError) errors.push(nameError);
   
-  const emailError = validateEmail(data.email);
+  const emailError = validateEmail(email);
   if (emailError) errors.push(emailError);
   
-  const subjectError = validateSubject(data.subject);
+  const subjectError = validateSubject(subject);
   if (subjectError) errors.push(subjectError);
   
-  const messageError = validateMessage(data.message);
+  const messageError = validateMessage(message);
   if (messageError) errors.push(messageError);
   
   if (errors.length > 0) {
@@ -171,10 +176,10 @@ function validateFormData(data: any): { isValid: boolean; errors: ValidationErro
   
   // Return sanitized data
   const sanitizedData: ContactFormData = {
-    name: data.name.trim(),
-    email: data.email.trim().toLowerCase(),
-    subject: data.subject.trim(),
-    message: data.message.trim()
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    subject: subject.trim(),
+    message: message.trim()
   };
   
   return { isValid: true, errors: [], sanitizedData };

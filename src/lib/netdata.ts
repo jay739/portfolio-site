@@ -9,7 +9,7 @@ interface NetdataDataPoint {
   timestamp: number;
 }
 
-interface NetdataResponse {
+export interface NetdataResponse {
   result: NetdataDataPoint[];
   labels: string[];
   view_update_every: number;
@@ -29,16 +29,23 @@ interface NetdataFetchOptions {
   points?: number;
 }
 
-function normalizeNetdataData(rawData: any): NetdataDataPoint[] {
-  // Check for direct result format (old API)
-  const directResult = rawData?.data?.result;
+function normalizeNetdataData(rawData: unknown): NetdataDataPoint[] {
+  if (!rawData || typeof rawData !== 'object') return [];
+
+  const rawDataObj = rawData as Record<string, unknown>;
+  const dataObj = rawDataObj.data as Record<string, unknown> | undefined;
+
+  const directResult = dataObj?.result;
   if (Array.isArray(directResult)) {
     return directResult
-      .map((point: any) => ({
-        dimension: point.dimension || 'value',
-        value: Number(point.value),
-        timestamp: Number(point.timestamp),
-      }))
+      .map((point: unknown) => {
+        const p = point as Record<string, unknown> | null;
+        return {
+          dimension: String(p?.dimension || 'value'),
+          value: Number(p?.value),
+          timestamp: Number(p?.timestamp),
+        };
+      })
       .filter(
         (point: NetdataDataPoint) =>
           Number.isFinite(point.value) && Number.isFinite(point.timestamp)
@@ -46,20 +53,22 @@ function normalizeNetdataData(rawData: any): NetdataDataPoint[] {
   }
 
   // Check for new API v3 format: result.labels and result.data
-  const labels = Array.isArray(rawData?.result?.labels)
-    ? rawData.result.labels
-    : Array.isArray(rawData?.labels)
-    ? rawData.labels
-    : Array.isArray(rawData?.data?.labels)
-    ? rawData.data.labels
+  const resultObj = rawDataObj.result as Record<string, unknown> | undefined;
+
+  const labels = Array.isArray(resultObj?.labels)
+    ? (resultObj!.labels as string[])
+    : Array.isArray(rawDataObj.labels)
+    ? (rawDataObj.labels as string[])
+    : Array.isArray(dataObj?.labels)
+    ? (dataObj!.labels as string[])
     : [];
-  
-  const rows = Array.isArray(rawData?.result?.data)
-    ? rawData.result.data
-    : Array.isArray(rawData?.data)
-    ? rawData.data
-    : Array.isArray(rawData?.data?.data)
-    ? rawData.data.data
+
+  const rows = Array.isArray(resultObj?.data)
+    ? (resultObj!.data as unknown[][])
+    : Array.isArray(rawDataObj.data)
+    ? (rawDataObj.data as unknown[][])
+    : Array.isArray(dataObj?.data)
+    ? (dataObj!.data as unknown[][])
     : [];
 
   if (labels.length < 2 || !Array.isArray(rows)) {
@@ -93,7 +102,7 @@ function normalizeNetdataData(rawData: any): NetdataDataPoint[] {
 }
 
 // Helper function to create Basic Auth header
-function createBasicAuthHeader(username: string, password: string): string {
+export function createBasicAuthHeader(username: string, password: string): string {
   const credentials = Buffer.from(`${username}:${password}`).toString('base64');
   return `Basic ${credentials}`;
 }

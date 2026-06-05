@@ -5,19 +5,16 @@ import { validateCsrfToken } from '@/lib/csrf';
 import { cookies } from 'next/headers';
 
 const CACHE_DURATION = 30000; // 30 seconds
-const MAX_POINTS = 100;
 const publicGetLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 1000 });
 
-// Cache for available charts
-let chartsCache: { data: any; timestamp: number } | null = null;
-const netdataResponseCache = new Map<string, { data: any; timestamp: number }>();
+const netdataResponseCache = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
 
 async function fetchJsonWithRetry(
   url: string,
   headers: Record<string, string>,
   timeoutMs = 8000,
   attempts = 2
-): Promise<any> {
+): Promise<Record<string, unknown>> {
   let lastError: unknown = null;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
@@ -28,7 +25,7 @@ async function fetchJsonWithRetry(
       if (!response.ok) {
         throw new Error(`Netdata HTTP ${response.status} ${response.statusText}`);
       }
-      return await response.json();
+      return (await response.json()) as Record<string, unknown>;
     } catch (error) {
       lastError = error;
       if (attempt < attempts) {
@@ -37,34 +34,6 @@ async function fetchJsonWithRetry(
     }
   }
   throw lastError;
-}
-
-// Helper to filter and transform chart data
-function filterChartData(data: any, dimensions?: string[]) {
-  if (!data?.data?.result) return { data: { result: [] } };
-  
-  const filteredResult = data.data.result.filter((item: any) => {
-    if (!dimensions) return true;
-    return dimensions.includes(item.dimension);
-  });
-
-  return {
-    data: {
-      ...data.data,
-      result: filteredResult
-    }
-  };
-}
-
-// Get available charts with optimized caching
-async function getAvailableCharts() {
-  // Skip chart validation since the /charts endpoint is not reliable
-    return { charts: {} };
-}
-
-// Helper function to create basic auth header
-function createBasicAuthHeader(username: string, password: string) {
-  return 'Basic ' + Buffer.from(username + ':' + password).toString('base64');
 }
 
 // Map of service names to their corresponding Netdata charts
@@ -303,7 +272,7 @@ export async function GET(request: NextRequest, { params }: { params: { service:
     netdataResponseCache.set(requestUrlForCache, { data, timestamp: Date.now() });
 
     // If no datapoints found for app CPU context, retry with uptime fallback.
-    const resultRows = data?.result?.data;
+    const resultRows = (data as { result?: { data?: unknown } }).result?.data;
     if (
       chartInfo.fallbackContext &&
       chartInfo.fallbackScopeInstance &&
@@ -418,7 +387,11 @@ export async function POST(request: NextRequest) {
       throw Errors.TooManyRequests();
     }
 
-    const { username, password } = await request.json();
+    const payload = (await request.json()) as { username?: string; password?: string };
+    const { username, password } = payload;
+    if (!username || !password) {
+      return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
+    }
     
     const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
     
@@ -476,8 +449,6 @@ export async function PUT(request: NextRequest) {
     }
 
     // Handle PUT-specific logic here
-    const data = await request.json();
-    
     return NextResponse.json({ 
       success: true,
       message: 'Netdata settings updated'

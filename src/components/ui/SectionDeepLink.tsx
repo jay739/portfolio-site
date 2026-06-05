@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Link2, Check } from 'lucide-react';
 import { pushSiteFeedback } from '@/lib/site-ux';
+import { copyToClipboard } from '@/lib/clipboard';
 
 export default function SectionDeepLink({
   id,
@@ -18,7 +19,11 @@ export default function SectionDeepLink({
       type="button"
       onClick={async () => {
         const url = `${window.location.origin}${window.location.pathname}#${id}`;
-        await navigator.clipboard.writeText(url);
+        const ok = await copyToClipboard(url);
+        if (!ok) {
+          pushSiteFeedback('Copy unavailable in this context.', 'info');
+          return;
+        }
         setCopied(true);
         pushSiteFeedback(`${title} link copied.`, 'success');
         window.setTimeout(() => setCopied(false), 1500);

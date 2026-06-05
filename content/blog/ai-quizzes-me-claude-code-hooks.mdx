@@ -1,0 +1,141 @@
+---
+title: "🧠 I Made My AI Ambush Me With Pop Quizzes"
+description: "When an AI agent does the work, you risk learning nothing. So I wired Claude Code to randomly stop mid-session and quiz me on what we just did — turning passive assistance into active recall. Here's the build, and why Claude Code's hook system made it almost trivial."
+date: "2026-05-29"
+tags: ["AI", "Claude Code", "Learning", "Hooks", "Productivity", "Active Recall", "Tooling", "Self-Hosted"]
+featured: true
+---
+
+# <Brain /> I Made My AI Ambush Me With Pop Quizzes
+
+There's a quiet problem with getting really good at using an AI coding agent: you can ship a lot of work while learning almost nothing.
+
+The agent reads the logs, writes the script, explains the fix, and you nod along, approve, and move on. The task gets done. But three weeks later someone asks how that thing actually works and you realize you couldn't rebuild it without the AI holding your hand. You were *present* for the work, but you didn't *retain* it. The agent did the thinking; you did the skimming.
+
+I noticed this happening to me and decided to do something about it. Not by using the AI less — but by making it actively force me to learn. So I wired Claude Code to **randomly stop mid-session and ambush me with a five-question quiz** about whatever we'd just been doing.
+
+It has measurably steepened my learning curve. And the build was almost embarrassingly small, because Claude Code's hook system is built for exactly this kind of thing.
+
+## <Target /> The Real Goal: Active Recall, Not Note-Taking
+
+The science here isn't subtle. Passive review — re-reading, watching, nodding — is one of the weakest ways to learn. **Active recall** — being forced to retrieve an answer from memory — is one of the strongest. Quizzing yourself beats re-reading, every time, in every study that's looked at it.
+
+The trouble is that nobody quizzes themselves voluntarily in the middle of real work. You're in flow, the problem's getting solved, and stopping to test your own understanding feels like friction you don't want.
+
+So I removed the choice. I wanted something that would:
+
+- **Ambush me**, not wait for me to opt in.
+- Quiz me on the **actual technical substance of the current session** — the jargon I just used, the script I just wrote and *why*, the files I just touched — not generic trivia.
+- Make me answer **in my own words**, then tell me where my understanding was thin.
+- Be **unpredictable**, so I couldn't brace for it.
+
+That last point matters. Retrieval practice works best when it's genuinely effortful. If the quiz comes on a predictable schedule, your brain pre-loads and it becomes a performance. Make it an ambush and it becomes a real test of what actually stuck.
+
+## <Gear /> Why Claude Code Made This Easy
+
+Here's the part that surprised me. I assumed building a "watch everything I do and occasionally interrupt to quiz me" system would mean a daemon, some IPC, a way to inject prompts into a running session — real plumbing.
+
+It was two hooks and a counter.
+
+Claude Code exposes **lifecycle hooks** — shell commands that fire on specific events in a session — configured declaratively in `settings.json`. They get the event payload on stdin and can feed text back into the conversation. That's the entire surface area I needed. The agent that does my work can *also* run my learning system, with no separate app, no server, nothing to deploy.
+
+I used two events:
+
+- **`PreToolUse`** — fires before *any* tool call (a file read, a shell command, a search, an MCP call). My hook uses this to **silently increment a counter**. It never injects anything here; it just quietly tallies activity.
+- **`UserPromptSubmit`** — fires when I send a new message. My hook increments the counter again and, *if the session has crossed a threshold*, injects the quiz directive and resets. Doing the injection here (rather than mid-tool) means the quiz only ever surfaces cleanly at the start of a message — never in the middle of a half-finished task.
+
+```jsonc
+// ~/.claude/settings.json — registered globally so it fires in EVERY session
+{
+  "hooks": {
+    "PreToolUse":       [{ "hooks": [{ "type": "command", "command": "~/.claude/hooks/grill_reminder.py" }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "~/.claude/hooks/grill_reminder.py" }] }]
+  }
+}
+```
+
+That's it. Registering it under user settings (not a project) means it follows me into *every* chat, on every project — which is the whole point. Learning shouldn't only happen when I remember to turn it on.
+
+## <Wrench /> The Counter: Count Everything, Fire at Random
+
+The hook itself is small. It keys state by session ID, so each chat has its own independent counter, and persists it to a little JSON file:
+
+```python
+#!/usr/bin/env python3
+# grill_reminder.py — fires on PreToolUse (count) and UserPromptSubmit (count + maybe quiz)
+# State: ~/.claude/state/grill_counter.json, keyed by session_id
+
+state = load_state(session_id)            # { count, threshold }
+state["count"] += 1
+
+# Randomized threshold, chosen once per session: somewhere between 100–130 actions
+threshold = state.setdefault("threshold", random.randint(100, 130))
+
+if event == "UserPromptSubmit" and state["count"] >= threshold:
+    print(QUIZ_DIRECTIVE)                 # injected into the conversation
+    state["count"] = 0
+    state["threshold"] = random.randint(100, 130)   # re-roll for next time
+
+save_state(session_id, state)
+```
+
+Two design decisions did all the work:
+
+**Count *every* action, not just my messages.** This is why `PreToolUse` matters. A session where the agent reads twenty files and runs ten commands is a session where a *lot* of technical substance went by — and that's exactly when I most need to be tested. Counting tool calls, not just typed prompts, means the quiz frequency tracks how much actually happened, not how much I typed.
+
+**Randomize the threshold between 100 and 130.** If it fired on the dot every 100 actions, I'd subconsciously start bracing for it around action 90. The random window keeps it a genuine ambush. I never know if the next message is the one that triggers it.
+
+## <Bell /> What the Ambush Actually Looks Like
+
+When the threshold trips, the injected directive tells the agent to drop what it's doing and give me a **five-question quiz on the technical substance of this very session**. Not "what did we talk about" — that's too easy. It targets:
+
+- **Jargon I used.** I said "QEMU emulation" earlier — can I explain what it's actually doing and why it's slow?
+- **Code I wrote, and *why*.** Not "what does this script do" but "why did you structure it this way, and what breaks if you don't?"
+- **Files I touched.** What's actually in that config I just edited, and what was the consequence of the change?
+
+I answer in my own words — no peeking. Then the agent gives me feedback and, crucially, **flags the gaps**: the places where my answer was vague, hand-wavy, or just wrong. Those gaps are the gold. They're the difference between "I watched the AI do this" and "I understand this." Then it resets the counter and we get back to work.
+
+```
+[After ~115 actions, mid-session:]
+
+⏸  Quick check — 5 questions on what we just did. Answer in your own words:
+
+1. You had me switch the Docker build to a native ARM64 base image.
+   What was the *previous* image actually doing on this hardware, and
+   why was that slow?
+2. The build.sh sources .env before the compose call. What breaks if
+   it runs in the other order?
+...
+```
+
+The first few times, I was alarmed at how often "I'll just answer this quickly" turned into "...actually, I'm not sure." That gap is the entire value of the thing.
+
+## <Repeat /> The Bigger Idea: The Agent That Teaches While It Works
+
+What I find genuinely interesting here is the *shape* of the solution. The same agent doing the work is also running the curriculum. There's no separate study time, no flashcard app I have to remember to open, no context-switch. The learning is woven into the doing, and it's powered by the fact that the agent already has perfect context on everything that happened in the session — it doesn't need to be told what to quiz me on, because it was *there*.
+
+That's only possible because Claude Code treats the session as something you can observe and inject into through hooks. The agent isn't a black box that takes a prompt and returns an answer; it's an environment with lifecycle events you can hang your own behavior off of. Most of the clever Claude Code setups I've built are like this — small scripts on the right event, not big applications.
+
+## <Warning /> A Footnote on Owning Your Tools
+
+One thing worth knowing if you build something like this: Claude Code has **no account sync**. The hook, the settings, the state — all of it lives as plain files under `~/.claude/`. "Use it on my other machine" just means copying a directory: the `settings.json` and the hook script. It's dotfiles, not a cloud feature.
+
+That cuts both ways. I once had a leftover *project-scoped* copy of the hook registered alongside the global one, and it **double-fired** — two quizzes back to back. Owning the whole mechanism means owning its bugs too. But I'll take that trade every time over a system I can't see inside.
+
+## <Rocket /> The Takeaway
+
+The risk with a powerful AI agent isn't that it does bad work. It's that it does *good* work so smoothly that you stop learning from it. You become a great approver of solutions and a worse engineer.
+
+The fix, for me, wasn't to use the agent less. It was to turn the agent into something that makes me earn the knowledge — to ambush me, mid-flow, with the one question I can't answer, and to do it often enough and randomly enough that I can't coast.
+
+And the most striking part is how little it took. Two hook registrations, a counter with a randomized threshold, and a directive telling the agent to quiz me on its own work. Claude Code's hooks did the heavy lifting. The hard part was deciding I wanted to be tested at all.
+
+If you use an AI agent every day and you're honest with yourself about how much of its work you could reproduce alone — try building the ambush. It's a humbling weekend, and a steep curve after that.
+
+---
+
+**Building your own Claude Code workflows?** I'm always interested in clever hook setups and ways to keep learning sharp while leaning on AI. Find me at [jay739.dev](https://jay739.dev) or reach out directly.
+
+**Related posts:**
+- [What Running a Homelab Actually Teaches You That Work Doesn't](/blog/homelab-lessons)
+- [Optimizing Docker on ARM64: From Emulation Hell to Native Performance](/blog/optimizing-docker-arm64)

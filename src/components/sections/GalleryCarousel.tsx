@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaImages, FaPlay, FaPause, FaTimes } from 'react-icons/fa';
 import FilterChip from '@/components/ui/FilterChip';
@@ -186,7 +187,7 @@ export default function GalleryCarousel({ initialItems = [] }: GalleryCarouselPr
   }, []);
 
   useEffect(() => {
-    if (paused || items.length <= 3) return;
+    if (paused || filteredItems.length <= 3) return;
     autoPlayRef.current = setInterval(() => {
       const el = scrollRef.current;
       if (!el) return;
@@ -397,7 +398,16 @@ export default function GalleryCarousel({ initialItems = [] }: GalleryCarouselPr
                     Remove
                   </button>
                 </div>
-                <img src={`/api/gallery/image/${item.filename}`} alt={item.prompt} className="mt-4 h-64 w-full rounded-xl object-cover" />
+                <div className="relative mt-4 h-64 w-full overflow-hidden rounded-xl">
+                  <Image
+                    src={`/api/gallery/image/${item.filename}`}
+                    alt={item.prompt}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
                 <p className="mt-3 text-xs text-slate-300">{item.prompt}</p>
               </div>
             ))}
@@ -447,11 +457,13 @@ export default function GalleryCarousel({ initialItems = [] }: GalleryCarouselPr
                   className="block w-full rounded-xl border border-slate-600/50 overflow-hidden bg-slate-800/50 hover:border-amber-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10 text-left"
                 >
                   <div className="relative aspect-square overflow-hidden">
-                    <img
+                    <Image
                       src={`/api/gallery/image/${item.filename}`}
                       alt={item.prompt}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 768px) 75vw, 320px"
+                      className="object-cover transition-transform duration-500 group-hover/card:scale-105"
+                      unoptimized
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
                     <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
@@ -554,10 +566,14 @@ export default function GalleryCarousel({ initialItems = [] }: GalleryCarouselPr
             </>
           )}
           <div className="flex flex-col items-center gap-4 max-w-4xl cursor-zoom-out">
-            <img
+            <Image
               src={`/api/gallery/image/${lightbox.filename}`}
               alt={lightbox.prompt}
+              width={lightbox.width}
+              height={lightbox.height}
+              sizes="90vw"
               className="max-w-[90vw] max-h-[75vh] rounded-lg shadow-2xl"
+              unoptimized
             />
             <div className="text-center max-w-lg">
               <p className="text-sm text-slate-200 mb-2">{lightbox.prompt}</p>

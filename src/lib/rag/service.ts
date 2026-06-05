@@ -46,7 +46,7 @@ function checkRateLimit(identifier: string): boolean {
 }
 
 // Cosine similarity function
-function cosineSimilarity(a: number[], b: number[]): number {
+export function cosineSimilarity(a: number[], b: number[]): number {
   const dot = a.reduce((sum, ai, i) => sum + ai * (b[i] || 0), 0);
   const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
   const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
@@ -54,7 +54,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 // Zod schema for input validation
-const documentSchema = z.object({
+export const documentSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   content: z.string().min(1),
@@ -205,7 +205,6 @@ export class RAGService {
     //   1. Pre-compute doc embeddings via nomic-embed-text and cache them.
     //   2. Compute query embedding once per request.
     //   3. Return cosine(queryEmbedding, docEmbedding) here.
-    const getSemanticScore = (_docId: string): number => 0;
 
     const results: SearchResult[] = [];
 
@@ -241,7 +240,7 @@ export class RAGService {
       if (keywordScore === 0 && metadataPrior === 0) continue;
 
       // ── alpha: semantic score (Phase 2) ───────────────────────────────────
-      const semanticScore = getSemanticScore(id);
+      const semanticScore = 0;
 
       // ── Hybrid formula ────────────────────────────────────────────────────
       const hybrid = Math.min(
@@ -290,8 +289,7 @@ export class RAGService {
 
   private async generateResponse(
     message: string,
-    context: SearchResult[],
-    conversation: Conversation
+    context: SearchResult[]
   ): Promise<string> {
     const contextText = context
       .map(result => result.document.content)
@@ -330,7 +328,7 @@ Answer:`;
       let data;
       try {
         data = JSON.parse(responseText);
-      } catch (jsonError) {
+      } catch {
         console.error('Failed to parse Ollama response as JSON:', responseText);
         throw new Error('Invalid response from Ollama API');
       }
@@ -386,7 +384,7 @@ Answer:`;
       const context = await this.searchDocuments(message);
 
       // Generate response
-      const reply = await this.generateResponse(message, context, conversation);
+      const reply = await this.generateResponse(message, context);
 
       // Add assistant message
       const assistantMessage: Message = {

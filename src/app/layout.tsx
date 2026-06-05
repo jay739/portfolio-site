@@ -1,8 +1,21 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import { JetBrains_Mono, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import ClientLayout from '@/components/layout/ClientLayout'
 import * as Sentry from '@sentry/nextjs'
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
 
 export function generateMetadata(): Metadata {
   const title = 'Jayakrishna Konda — ML/AI Engineer'
@@ -15,6 +28,11 @@ export function generateMetadata(): Metadata {
       template: '%s — Jayakrishna Konda',
     },
     description,
+    icons: {
+      icon: '/images/profile/icon-192x192.png',
+      shortcut: '/images/profile/icon-192x192.png',
+      apple: '/images/profile/icon-192x192.png',
+    },
     keywords: ['Full Stack Developer', 'DevOps Engineer', 'AI/ML Engineer', 'Data Science', 'Home Server'],
     authors: [{ name: 'Jayakrishna Konda' }],
     alternates: {
@@ -56,12 +74,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${spaceGrotesk.variable} ${jetBrainsMono.variable}`}
+    >
       <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@300..700&display=swap"
-          rel="stylesheet"
-        />
         {GA_MEASUREMENT_ID && (
           <>
             <Script

@@ -1,4 +1,4 @@
-const educationItems = [
+export const educationItems = [
   {
     degree: 'Master of Professional Studies in Data Science',
     institution: 'University of Maryland Baltimore County (UMBC)',

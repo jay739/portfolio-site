@@ -12,11 +12,28 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#dc480c',
     icons: [
       {
-        // TODO: replace with dedicated square 192x192 and 512x512 PNG icons
-        // (and a maskable variant) for full PWA install support.
-        src: '/images/profile/profile.jpg',
-        sizes: 'any',
-        type: 'image/jpeg',
+        src: '/images/profile/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/images/profile/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/images/profile/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/images/profile/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   }

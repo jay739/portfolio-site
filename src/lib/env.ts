@@ -38,11 +38,6 @@ const serverEnvSchema = commonEnvSchema.extend({
   SESSION_MAX_AGE: z.string().transform(Number).default('86400'), // 24 hours in seconds
 });
 
-function formatErrors(errors: z.ZodError) {
-  return Object.entries(errors.flatten().fieldErrors)
-    .map(([field, errors]) => `${field}: ${errors?.join(', ')}`)
-    .join('\n');
-}
 
 const processEnv = {
   NODE_ENV: process.env.NODE_ENV,

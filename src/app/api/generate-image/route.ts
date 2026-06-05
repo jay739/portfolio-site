@@ -70,6 +70,14 @@ interface ModelPreset {
   supportsSd15Embeddings?: boolean;
 }
 
+type ComfyHistoryEntry = {
+  outputs?: Record<string, { images?: Array<{ filename: string; subfolder?: string }> }>;
+};
+
+type ComfyHistoryResponse = Record<string, ComfyHistoryEntry>;
+
+type QueueEntry = [number, string, ...unknown[]];
+
 const MODELS: Record<SpeedMode, ModelPreset> = {
   fast: {
     ckpt: 'sd_turbo.safetensors',
@@ -155,7 +163,7 @@ function buildWorkflow(
   // Pick VAE source: external VAELoader if set, else the one bundled in the checkpoint
   const vaeRef: [string, number] = preset.externalVae ? ['10', 0] : ['4', 2];
 
-  const workflow: Record<string, any> = {
+  const workflow: Record<string, unknown> = {
     '3': {
       class_type: 'KSampler',
       inputs: {
@@ -221,13 +229,13 @@ function buildFluxWorkflow(
 
 async function fetchHistoryImage(
   promptId: string,
-): Promise<{ filename: string; subfolder: string } | null> {
+): Promise<{ filename: string; subfolder?: string } | null> {
   const res = await fetch(`${COMFYUI}/history/${promptId}`, { signal: AbortSignal.timeout(5_000) });
   if (!res.ok) return null;
-  const history = await res.json();
+  const history = (await res.json()) as ComfyHistoryResponse;
   const entry = history[promptId];
   if (!entry?.outputs) return null;
-  for (const output of Object.values(entry.outputs) as any[]) {
+  for (const output of Object.values(entry.outputs)) {
     if (output.images?.length) return output.images[0];
   }
   return null;
@@ -287,7 +295,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'ComfyUI unreachable' }, { status: 503 });
   }
 
-  let body: any;
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
@@ -345,7 +353,7 @@ export async function POST(req: NextRequest) {
     const styleTokens = STYLE_TOKENS[style];
     const finalPrompt = [prompt.trim(), styleTokens.add].filter(Boolean).join(', ');
 
-    let workflow: Record<string, any>;
+    let workflow: Record<string, unknown>;
     let steps: number;
     let width: number;
     let height: number;
@@ -498,8 +506,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ status: 'error', error: 'ComfyUI unreachable' }, { status: 503 });
     }
     const queue = await qRes.json();
-    const running: any[] = queue.queue_running ?? [];
-    const pending: any[] = queue.queue_pending ?? [];
+    const running = Array.isArray(queue.queue_running) ? (queue.queue_running as QueueEntry[]) : [];
+    const pending = Array.isArray(queue.queue_pending) ? (queue.queue_pending as QueueEntry[]) : [];
 
     // ComfyUI queue entries look like [number, prompt_id, ...]
     const isRunning = running.some((e) => Array.isArray(e) && e[1] === promptId);

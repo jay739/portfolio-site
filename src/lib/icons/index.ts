@@ -173,7 +173,7 @@ export {
 
 // Helper function to get icon data
 export function getIconData(name: string) {
-  const iconMap: Record<string, { icon: any, url: string, label: string }> = {
+  const iconMap: Record<string, { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>, url: string, label: string }> = {
     // Technology Icons
     'python': { icon: FaPython, url: 'https://www.python.org/', label: 'Python' },
     'javascript': { icon: FaJs, url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript', label: 'JavaScript' },

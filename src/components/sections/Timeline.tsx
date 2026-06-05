@@ -46,6 +46,12 @@ const orgLinks: Record<string, string> = {
   'infosys': 'https://www.infosys.com/',
 };
 
+const MORPH_PATHS = [
+  "M0,200 Q175,120 350,200 T700,200 V300 H0 Z",
+  "M0,200 Q175,180 350,200 T700,200 V300 H0 Z",
+  "M0,200 Q175,120 350,200 T700,200 V300 H0 Z",
+];
+
 function getOrgLink(subtitle?: string): string | null {
   if (!subtitle) return null;
   const normalized = subtitle.trim().toLowerCase();
@@ -85,13 +91,13 @@ export default function Timeline({ items }: TimelineProps) {
 
       if (morphProgress.current > 1) {
         morphProgress.current = 0;
-        morphIdx.current = (morphIdx.current + 1) % (morphPaths.length - 1);
+        morphIdx.current = (morphIdx.current + 1) % (MORPH_PATHS.length - 1);
       }
 
       if (pathRef.current) {
         const d = lerpPath(
-          morphPaths[morphIdx.current],
-          morphPaths[morphIdx.current + 1],
+          MORPH_PATHS[morphIdx.current],
+          MORPH_PATHS[morphIdx.current + 1],
           morphProgress.current
         );
         pathRef.current.setAttribute('d', d);
@@ -136,12 +142,6 @@ export default function Timeline({ items }: TimelineProps) {
     return () => ctx.revert();
   }, [mounted]);
 
-  const morphPaths = [
-    "M0,200 Q175,120 350,200 T700,200 V300 H0 Z",
-    "M0,200 Q175,180 350,200 T700,200 V300 H0 Z",
-    "M0,200 Q175,120 350,200 T700,200 V300 H0 Z"
-  ];
-
   if (!mounted) return null;
 
   const toggleExpanded = (index: number) => {
@@ -169,7 +169,7 @@ export default function Timeline({ items }: TimelineProps) {
           </defs>
           <path
             ref={pathRef}
-            d={morphPaths[0]}
+            d={MORPH_PATHS[0]}
             fill={`url(#timeline-gradient-${resolvedTheme === 'light' ? 'light' : 'dark'})`}
           />
         </svg>

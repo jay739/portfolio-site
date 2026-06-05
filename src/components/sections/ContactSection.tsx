@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCsrf } from '@/hooks/useCsrf';
 import { motion } from 'framer-motion';
@@ -40,7 +40,7 @@ function validateContactForm(data: { name: string; email: string; subject: strin
 
 export default function ContactSection() {
   const searchParams = useSearchParams();
-  const getQueryParam = (key: string) => searchParams?.get(key) ?? null;
+  const getQueryParam = useCallback((key: string) => searchParams?.get(key) ?? null, [searchParams]);
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'loading'>('idle');
   const [message, setMessage] = useState('');
@@ -62,7 +62,7 @@ export default function ContactSection() {
     if (subjectParam) setSubjectDraft(subjectParam);
     if (messageParam) setMessageDraft(messageParam);
     if (intentParam) setIntentDraft(intentParam);
-  }, [searchParams]);
+  }, [getQueryParam]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -88,7 +88,7 @@ export default function ContactSection() {
     } catch {
       window.localStorage.removeItem(CONTACT_DRAFT_KEY);
     }
-  }, []);
+  }, [getQueryParam]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -190,7 +190,7 @@ export default function ContactSection() {
         body: JSON.stringify(data),
       });
 
-      let responseData: any = {};
+      let responseData: { success?: boolean; message?: string; errors?: ValidationError[] } = {};
       try {
         responseData = await res.json();
       } catch {

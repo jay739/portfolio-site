@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Twitter, Linkedin, Link as LinkIcon, Check } from 'lucide-react';
+import { copyToClipboard } from '@/lib/clipboard';
 
 interface BlogShareButtonsProps {
   title: string;
@@ -15,11 +16,11 @@ export default function BlogShareButtons({ title, url }: BlogShareButtonsProps) 
   const linkedinUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
+    const ok = await copyToClipboard(url);
+    if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } else {
       setCopied(false);
     }
   };

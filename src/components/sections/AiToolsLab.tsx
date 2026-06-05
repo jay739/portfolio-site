@@ -3,10 +3,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { useScrollLock } from '@/hooks/useScrollLock';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { copyToClipboard } from '@/lib/clipboard';
 import OnboardingHint from '@/components/ui/OnboardingHint';
 import PodcastGeneratorModal from '@/components/ui/PodcastGeneratorModal';
 import {
@@ -365,8 +367,8 @@ export default function AiToolsLab() {
         }
       }
       throw new Error('Generation timed out (6 min). The GPU may be busy — try Fast mode.');
-    } catch (err: any) {
-      const msg = err.message ?? 'Something went wrong';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
       if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
         setImgError('Network error — could not reach the server. Check your connection.');
       } else if (msg.includes('AbortError') || msg.includes('signal')) {
@@ -456,12 +458,8 @@ export default function AiToolsLab() {
     } else {
       url.searchParams.delete('advanced');
     }
-    try {
-      await navigator.clipboard.writeText(url.toString());
-      setPresetNotice('Preset link copied to clipboard');
-    } catch {
-      setPresetNotice('Unable to copy preset link');
-    }
+    const ok = await copyToClipboard(url.toString());
+    setPresetNotice(ok ? 'Preset link copied to clipboard' : 'Unable to copy preset link');
   };
 
   useEffect(() => {
@@ -972,7 +970,15 @@ export default function AiToolsLab() {
                       className="group relative rounded-xl border border-slate-600 overflow-hidden w-full cursor-pointer max-h-[50vh]"
                       aria-label="Open image fullscreen"
                     >
-                      <img src={imgResult} alt="Generated" className="w-full object-contain max-h-[50vh]" />
+                      <Image
+                        src={imgResult}
+                        alt="Generated"
+                        width={imgMeta?.width ?? 1024}
+                        height={imgMeta?.height ?? 1024}
+                        sizes="(max-width: 768px) 100vw, 60vw"
+                        className="w-full h-auto object-contain max-h-[50vh]"
+                        unoptimized
+                      />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <span className="text-white text-sm flex items-center gap-1.5 bg-black/60 px-3 py-1.5 rounded-full">
                           <FaSearch className="text-amber-400" /> Click to enlarge
@@ -1040,10 +1046,14 @@ export default function AiToolsLab() {
           >
             <FaTimes />
           </button>
-          <img
+          <Image
             src={imgResult}
             alt="Generated (fullscreen)"
+            width={imgMeta?.width ?? 1024}
+            height={imgMeta?.height ?? 1024}
+            sizes="95vw"
             className="max-w-[95vw] max-h-[95vh] rounded-lg shadow-2xl cursor-zoom-out"
+            unoptimized
           />
         </motion.div>
       )}

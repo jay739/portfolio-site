@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { FaCompass } from 'react-icons/fa';
 
 // ─── Category colors ─────────────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, { base: string; glow: string; r: number; g: number; b: number }> = {
@@ -199,12 +198,6 @@ interface LiveNode extends NodeDef {
   baseRadius: number;
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return [r, g, b];
-}
 
 // ─── Main component ───────────────────────────────────────────────────────────
 interface NeuralNetworkVizProps {
@@ -471,6 +464,10 @@ export default function NeuralNetworkViz({
       const ctx = canvas.getContext('2d')!;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+      const dark = typeof document !== 'undefined'
+        ? document.documentElement.classList.contains('dark')
+        : darkRef.current;
+
       // Update target positions from mode
       const positions = modeRef.current === 'map'
         ? computeLayout(w, h, scrollRef.current)
@@ -491,7 +488,6 @@ export default function NeuralNetworkViz({
       ctx.globalAlpha = mapOpacity;
 
       if (!transparentBackground) {
-        const dark = darkRef.current;
         // Theme base — pitch black for dark, soft light grey for light
         ctx.fillStyle = dark ? 'rgba(0, 0, 0, 1)' : 'rgba(238, 241, 246, 1)';
         ctx.fillRect(0, 0, w, h);
@@ -579,7 +575,7 @@ export default function NeuralNetworkViz({
           ctx.font = `bold 9px Inter, sans-serif`;
           ctx.textBaseline = 'middle';
           ctx.fillText(zd.label, xCenter, pillY + 9);
-          ctx.fillStyle = darkRef.current
+          ctx.fillStyle = dark
             ? `rgba(255,247,237,${0.75 * fade})`
             : `rgba(51,65,85,${0.85 * fade})`;
           ctx.font = `600 10px Inter, sans-serif`;
@@ -755,7 +751,7 @@ export default function NeuralNetworkViz({
         }
         ctx.fillStyle = node.hovered
           ? `rgba(${brightR},${brightG},${brightB},${categoryVisible ? 1 : 0.4})`
-          : darkRef.current
+          : dark
             ? `rgba(220,228,240,${categoryVisible ? 0.92 : 0.35})`
             : `rgba(30,41,59,${categoryVisible ? 0.95 : 0.4})`;
         ctx.fillText(node.label, node.x, node.y + labelR);
@@ -794,7 +790,7 @@ export default function NeuralNetworkViz({
 
     animRef.current = requestAnimationFrame(draw);
     return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-  }, [computeLayout, computeOrbitPositions, isNodeEmphasized]);
+  }, [computeLayout, computeOrbitPositions, isNodeEmphasized, transparentBackground]);
 
   // ── Mouse interactions ──────────────────────────────────────────────────────
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -844,7 +840,7 @@ export default function NeuralNetworkViz({
     }
   }, [pinnedNodeId]);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
+  const handleClick = useCallback(() => {
     const hovered = nodesRef.current.find(n => n.hovered);
     if (hovered) {
       lastClickRef.current = { id: hovered.id, time: timeRef.current / 1000 };
@@ -918,7 +914,7 @@ export default function NeuralNetworkViz({
           style={{ cursor: interactive ? (isHoveringNode ? 'pointer' : 'crosshair') : 'default' }}
           onMouseMove={interactive ? handleMouseMove : undefined}
           onMouseLeave={interactive ? handleMouseLeave : undefined}
-          onClick={interactive ? (e) => handleClick(e as unknown as React.MouseEvent) : undefined}
+          onClick={interactive ? () => handleClick() : undefined}
           onDoubleClick={interactive ? handleDoubleClick : undefined}
           aria-label="Interactive neural network visualization — hover nodes for details, click to pin, double-click to navigate"
         />

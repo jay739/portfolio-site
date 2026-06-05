@@ -102,10 +102,10 @@ export default function AboutSection() {
             <p className="text-xs sm:text-sm tracking-widest uppercase text-amber-300">Jayakrishna Konda — ML/AI Engineer</p>
             <h2 className="neural-section-title mt-2">About Me</h2>
             <p className="neural-section-copy mt-3 max-w-3xl">
-              I'm Jayakrishna Konda — an ML/AI Engineer and Data Scientist with 5 years building production
+              I&apos;m Jayakrishna Konda — an ML/AI Engineer and Data Scientist with 5 years building production
               ML systems, RAG pipelines, and self-hosted AI infrastructure. I design end-to-end solutions:
               from model training and LLM fine-tuning to cloud deployment and real-time monitoring.
-              When I'm not shipping ML features at work, I'm operating Batcave — my 56-container private AI
+              When I&apos;m not shipping ML features at work, I&apos;m operating Batcave — my 56-container private AI
               server running LLMs, RAG, and ML inference 24/7.
             </p>
             <div className="mt-4 flex flex-wrap justify-center lg:justify-start gap-2">

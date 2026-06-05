@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
@@ -78,17 +78,17 @@ const FloatingTimeWidget: React.FC = () => {
     widgetRef.current!.dataset.dragStartY = String(e.clientY - position.y);
     document.body.style.userSelect = 'none';
   };
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    if (widgetRef.current) widgetRef.current.style.cursor = 'grab';
+    document.body.style.userSelect = '';
+  }, []);
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     const dragStartX = Number(widgetRef.current!.dataset.dragStartX);
     const dragStartY = Number(widgetRef.current!.dataset.dragStartY);
     setPosition({ x: e.clientX - dragStartX, y: e.clientY - dragStartY });
-  };
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    if (widgetRef.current) widgetRef.current.style.cursor = 'grab';
-    document.body.style.userSelect = '';
-  };
+  }, [isDragging]);
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
@@ -101,7 +101,7 @@ const FloatingTimeWidget: React.FC = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [handleMouseMove, handleMouseUp, isDragging]);
 
   if (!mounted) return null;
 
