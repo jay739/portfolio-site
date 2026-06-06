@@ -1,0 +1,47 @@
+# Dependabot configuration.
+#
+# Updates are grouped where possible so we get one PR per ecosystem per cycle
+# instead of one PR per package — fewer rebases, fewer notifications, and easier
+# to review against a single CI run. Each PR runs the same required `validate`
+# check before it can be merged into the protected main branch.
+
+version: 2
+updates:
+  # ── npm packages (the Next.js app) ─────────────────────────────────────
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      app-deps:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "deps(npm)"
+
+  # ── Docker base image (node:20-alpine in the Dockerfile) ───────────────
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      docker:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps(docker)"
+
+  # ── GitHub Actions used by the workflows ───────────────────────────────
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps(actions)"

@@ -4,20 +4,12 @@
 name: CI (PR validation)
 
 on:
+  # No path filter: this is a REQUIRED status check on main, so it must run on
+  # every PR. A path-skipped required check stays "Expected" forever and blocks merge.
   pull_request:
     branches:
       - main
       - dev
-    paths:
-      - 'src/**'
-      - 'content/**'
-      - 'public/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'next.config.js'
-      - 'tailwind.config.ts'
-      - 'tsconfig.json'
-      - '.github/workflows/ci.yml'
 
 # Cancel superseded runs on the same PR
 concurrency:
