@@ -1,5 +1,5 @@
 # 1. Install dependencies in an isolated stage
-FROM node:20-alpine AS deps
+FROM node:26-alpine AS deps
 
 # Upgrade all Alpine packages first to patch known CVEs (harfbuzz, openssl, etc.)
 RUN apk upgrade --no-cache
@@ -55,7 +55,7 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # 7. Production image with only runtime artifacts
-FROM node:20-alpine AS runner
+FROM node:26-alpine AS runner
 WORKDIR /app
 
 # Create a non-root user and group for security
