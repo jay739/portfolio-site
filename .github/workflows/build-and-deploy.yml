@@ -54,7 +54,10 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
-            cd /opt/portfolio
+            # LEGACY: pushes VPS-side edits back to GitHub. Conflicts with the
+            # dev->PR->main flow (you shouldn't edit on the VPS). Kept opt-in only.
+            # The git checkout on media-cache-server is the release dir below.
+            cd /mnt/media-cache/portfolio
             BRANCH=$(git rev-parse --abbrev-ref HEAD)
             git remote -v
             git fetch origin
@@ -75,8 +78,8 @@ jobs:
       always() &&
       (needs.sync-from-vps.result == 'success' || needs.sync-from-vps.result == 'skipped') &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
-    timeout-minutes: 45  # Increased for multi-architecture builds
+    runs-on: ubuntu-24.04-arm  # Native arm64 runner — matches the single (arm64) VPS target, no QEMU
+    timeout-minutes: 30
 
     steps:
       - name: 📦 Checkout code
@@ -128,7 +131,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64  # Multi-architecture support
+          platforms: linux/arm64  # Single arch — only deployed to the arm64 VPS
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           no-cache: ${{ github.event.inputs.clear_cache == 'true' }}
@@ -138,7 +141,7 @@ jobs:
             NODE_OPTIONS=--max-old-space-size=4096
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
           provenance: false
-        timeout-minutes: 40  # Multi-arch builds take longer
+        timeout-minutes: 25  # Native single-arch build
 
   # Explicit if: sync-from-vps is often "skipped", which makes default success() false and would skip this job.
   deploy:
@@ -154,9 +157,12 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/portfolio
-            docker-compose pull portfolio
-            docker-compose up -d --force-recreate portfolio
+            # Live container is owned by the 'portfolio-copy' compose project on
+            # media-cache-server; deploying from any other dir would clash on the
+            # container_name 'portfolio'. compose v2 only (no docker-compose v1).
+            cd /mnt/media-cache/portfolio-copy
+            docker compose pull portfolio
+            docker compose up -d --force-recreate portfolio
             docker image prune -f
 
       - name: ✅ Deployment notification

@@ -32,7 +32,7 @@ export default function LiveStatusStrip() {
   );
 
   return (
-    <div className="px-2 pt-3 sm:px-6">
+    <div className="mt-14 px-2 pt-3 sm:px-6">
       <div className="mx-auto flex flex-wrap gap-2 rounded-2xl border border-slate-700/50 bg-slate-950/40 px-4 py-3 text-xs text-slate-300">
         {statusItems.map((item) => (
           <Link key={item.label} href={item.href} className="rounded-full border border-slate-700/60 bg-slate-900/50 px-3 py-1 transition hover:border-amber-400/25 hover:text-amber-200">

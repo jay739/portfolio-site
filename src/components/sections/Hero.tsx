@@ -114,7 +114,7 @@ export default function Hero() {
 
   return (
     <section 
-      className="relative w-full h-[calc(100svh-3.5rem)] mt-14 flex flex-col justify-center items-center text-center px-0 overflow-visible"
+      className="relative w-full h-[100svh] pt-14 flex flex-col justify-center items-center text-center px-0 overflow-visible"
       role="banner"
       aria-label="Hero section"
       id="welcome"
@@ -129,23 +129,14 @@ export default function Hero() {
           showControls={false}
           interactive={false}
           transparentBackground
-          orbitRadiusScale={1.9}
-          orbitCenterYOffset={-10}
+          orbitRadiusScale={1.2}
+          orbitCenterYOffset={30}
           orbitEdgePadding={20}
         />
       </div>
-      {/* Overlay so text stays readable */}
-      <div
-        className="absolute inset-0 z-[1] pointer-events-none"
-        style={{
-          background: resolvedTheme === 'light'
-            ? 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(240,244,255,0.6) 70%, rgba(230,236,248,0.85) 100%)'
-            : 'linear-gradient(180deg, rgba(15,23,42,0.02) 0%, rgba(15,23,42,0.06) 55%, rgba(15,23,42,0.1) 100%)'
-        }}
-      />
       <motion.div
         {...motionProps}
-        className="relative z-10 w-full py-4 sm:py-5 -translate-y-8 sm:-translate-y-10 md:-translate-y-12 px-3 sm:px-0"
+        className="relative z-10 w-full py-4 sm:py-5 translate-y-1 sm:translate-y-2 px-3 sm:px-0"
       >
         {/* Visitor Count Display - Above Name */}
         <motion.div 

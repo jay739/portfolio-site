@@ -58,6 +58,7 @@ export const projects: Project[] = [
     title: 'Anti-Money Laundering Detection — IBM HI-Medium',
     description: 'PySpark ML pipeline on IBM\'s 32M+ synthetic AML transaction dataset. Engineered temporal features, handled severe class imbalance (0.23% laundering), and compared Logistic Regression vs Random Forest — achieving 99.94% accuracy and 0.998 F1.',
     tags: ['PySpark', 'Machine Learning', 'Financial AI', 'Python', 'EDA', 'Classification'],
+    github: 'https://github.com/jay739/anti-money-laundering-detection',
     images: [
       '/images/projects/aml-1.png',
       '/images/projects/aml-2.png',

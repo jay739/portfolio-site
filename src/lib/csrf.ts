@@ -1,6 +1,6 @@
 import Tokens from 'csrf';
-import { GetServerSidePropsContext } from 'next';
-import { NextApiRequest, NextApiResponse } from 'next';
+import { GetServerSidePropsContext, NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
+import { randomBytes } from 'crypto';
 
 const tokens = new Tokens();
 
@@ -18,7 +18,7 @@ function getSecret(): string {
     console.error('CRITICAL: CSRF_SECRET or NEXTAUTH_SECRET must be set. CSRF tokens will be insecure.');
   }
 
-  const resolvedSecret = configuredSecret || require('crypto').randomBytes(32).toString('hex');
+  const resolvedSecret = configuredSecret || randomBytes(32).toString('hex');
   secret = resolvedSecret;
   return resolvedSecret;
 }
@@ -42,13 +42,13 @@ export function setTokenInResponse(res: NextApiResponse | GetServerSidePropsCont
 export function validateCsrfToken(token: string): boolean {
   try {
     return verifyToken(token);
-  } catch (error) {
+  } catch {
     return false;
   }
 }
 
 // Middleware for API routes
-export function csrfProtection(handler: any) {
+export function csrfProtection(handler: NextApiHandler) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     // Skip CSRF check for GET requests
     if (req.method === 'GET') {

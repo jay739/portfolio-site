@@ -5,6 +5,7 @@
 'use client';
 
 import React from 'react';
+import { useTheme } from 'next-themes';
 import { HOMELAB } from '@/data/homelab-architecture';
 import {
   ACCENT,
@@ -16,7 +17,7 @@ import {
   useTick,
 } from './homelabHudHooks';
 
-const V3_C = {
+const V3_C_DARK = {
   bg: '#02030a',
   panel: 'rgba(6, 8, 16, 0.92)',
   ink: '#e3e8f0',
@@ -28,11 +29,56 @@ const V3_C = {
   cyan: '#5ed3f3',
   purple: '#c89ef0',
   rule: 'rgba(180, 200, 230, 0.10)',
+  // Inline-rgba slots that needed theming. Keys match what the styles below reference.
+  pillBg: 'rgba(255,255,255,0.025)',
+  pillBorder: 'rgba(255,255,255,0.06)',
+  headerBg: 'rgba(0,0,0,0.5)',
+  metricStripBg: 'rgba(0,0,0,0.4)',
+  gridLine: 'rgba(255,255,255,0.012)',
+  tickerShadow: 'rgba(0,0,0,0.4)',
+  roseShadow: 'rgba(0,0,0,0.5)',
+  // Radial accent tints for the page background.
+  radialRed: 'rgba(255,58,74,0.10)',
+  radialCyan: 'rgba(94,211,243,0.05)',
+  radialPurple: 'rgba(200,158,240,0.05)',
   mono: "'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace",
 };
 
+// Light-mode counterpart. Status colors are slightly darker so they pass
+// contrast on a light background; structural neutrals invert.
+const V3_C_LIGHT = {
+  bg: '#f8fafc',
+  panel: 'rgba(255, 255, 255, 0.92)',
+  ink: '#0f172a',
+  inkDim: '#334155',
+  inkFaint: '#64748b',
+  red: '#dc2626',
+  amber: '#d97706',
+  green: '#16a34a',
+  cyan: '#0891b2',
+  purple: '#9333ea',
+  rule: 'rgba(15, 23, 42, 0.10)',
+  pillBg: 'rgba(15, 23, 42, 0.04)',
+  pillBorder: 'rgba(15, 23, 42, 0.10)',
+  headerBg: 'rgba(248, 250, 252, 0.85)',
+  metricStripBg: 'rgba(15, 23, 42, 0.03)',
+  gridLine: 'rgba(15, 23, 42, 0.04)',
+  tickerShadow: 'rgba(15, 23, 42, 0.06)',
+  roseShadow: 'rgba(15, 23, 42, 0.08)',
+  radialRed: 'rgba(220, 38, 38, 0.06)',
+  radialCyan: 'rgba(8, 145, 178, 0.05)',
+  radialPurple: 'rgba(147, 51, 234, 0.05)',
+  mono: "'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace",
+};
+
+function useV3Palette() {
+  const { resolvedTheme } = useTheme();
+  return resolvedTheme === 'light' ? V3_C_LIGHT : V3_C_DARK;
+}
+
 // Animated event ticker
 function V3Ticker() {
+  const V3_C = useV3Palette();
   const [events, setEvents] = React.useState(() => [
     { t: '-04s', c: V3_C.green, m: 'media service · background job complete' },
     { t: '-12s', c: V3_C.purple, m: 'mesh network · Device 4 -> batcave handshake ok' },
@@ -63,6 +109,7 @@ function V3Ticker() {
       });
     }, 3500);
     return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -82,7 +129,7 @@ function V3Ticker() {
   );
 }
 
-// Sparkline
+// Sparkline — purely color-driven from props, no palette needed.
 function V3Spark({ color, h = 20, w = 80, seed = 1 }) {
   const tick = useTick(1500);
   const pts = React.useMemo(() => {
@@ -105,7 +152,8 @@ function V3Spark({ color, h = 20, w = 80, seed = 1 }) {
 }
 
 // Compact host pod
-function V3HostPod({ host, color, glyph, role, metrics, side }) {
+function V3HostPod({ host, color, glyph, role, metrics }) {
+  const V3_C = useV3Palette();
   return (
     <div style={{
       background: V3_C.panel, border: `1px solid ${color}55`,
@@ -140,13 +188,14 @@ function V3HostPod({ host, color, glyph, role, metrics, side }) {
 
 // Service pill (compact)
 function V3Pill({ s }) {
+  const V3_C = useV3Palette();
   const c = s.s === 'g' ? V3_C.green : s.s === 'a' ? V3_C.amber : V3_C.red;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       fontSize: 11, fontFamily: V3_C.mono,
       padding: '3px 7px', borderRadius: 3,
-      background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)',
+      background: V3_C.pillBg, border: `1px solid ${V3_C.pillBorder}`,
       color: V3_C.ink, whiteSpace: 'nowrap', margin: '1px 1px',
     }}>
       <span style={{ width: 7, height: 7, borderRadius: '50%', background: c, boxShadow: `0 0 5px ${c}`,
@@ -157,6 +206,7 @@ function V3Pill({ s }) {
 }
 
 function V3() {
+  const V3_C = useV3Palette();
   const D = HOMELAB;
   const ramPct = useJitter(74, 4, 2200);
   const loadVal = useJitter(5.25, 0.5, 1800);
@@ -173,11 +223,11 @@ function V3() {
       position: 'relative', width: 1780, minHeight: 1180,
       background: V3_C.bg,
       backgroundImage: [
-        'radial-gradient(circle at 50% 38%, rgba(255,58,74,0.10) 0%, transparent 40%)',
-        'radial-gradient(circle at 18% 60%, rgba(94,211,243,0.05) 0%, transparent 50%)',
-        'radial-gradient(circle at 82% 62%, rgba(200,158,240,0.05) 0%, transparent 50%)',
-        'linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px)',
-        'linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)',
+        `radial-gradient(circle at 50% 38%, ${V3_C.radialRed} 0%, transparent 40%)`,
+        `radial-gradient(circle at 18% 60%, ${V3_C.radialCyan} 0%, transparent 50%)`,
+        `radial-gradient(circle at 82% 62%, ${V3_C.radialPurple} 0%, transparent 50%)`,
+        `linear-gradient(${V3_C.gridLine} 1px, transparent 1px)`,
+        `linear-gradient(90deg, ${V3_C.gridLine} 1px, transparent 1px)`,
       ].join(', '),
       backgroundSize: 'auto, auto, auto, 36px 36px, 36px 36px',
       fontFamily: V3_C.mono, color: V3_C.ink, overflow: 'hidden',
@@ -187,7 +237,7 @@ function V3() {
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center',
         padding: '14px 28px', borderBottom: `1px solid ${V3_C.red}33`,
-        background: 'rgba(0,0,0,0.5)',
+        background: V3_C.headerBg,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 11, color: V3_C.inkDim, letterSpacing: '1.2px' }}>
           <span style={{ color: V3_C.red, fontWeight: 700 }}>● MISSION LIVE</span>
@@ -278,7 +328,7 @@ function V3() {
             {/* Live metric strip */}
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)',
-              border: `1px solid ${V3_C.rule}`, marginBottom: 12, background: 'rgba(0,0,0,0.4)',
+              border: `1px solid ${V3_C.rule}`, marginBottom: 12, background: V3_C.metricStripBg,
             }}>
               {[
                 { l: 'RAM', v: `${ramPct.toFixed(0)}%`, sub: '11/16 GB', c: V3_C.amber, seed: 11 },
@@ -391,7 +441,7 @@ function V3() {
       }}>
         <div style={{
           background: V3_C.panel, border: `1px solid ${V3_C.rule}`, borderRadius: 8, padding: 14,
-          boxShadow: 'inset 0 0 30px rgba(0,0,0,0.4)',
+          boxShadow: `inset 0 0 30px ${V3_C.tickerShadow}`,
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '2px', color: V3_C.green }}>
@@ -438,9 +488,9 @@ function V3() {
 
 // Topology rose: central radial diagram showing the 3 hosts + internet + mesh
 function V3TopologyRose() {
+  const V3_C = useV3Palette();
   const W = 1080, H = 240;
   const cx = W / 2, cy = H / 2;
-  const tick = useTick(2000);
 
   const nodes = [
     { id: 'inet', label: 'INTERNET', sub: '*.jay739.dev', x: cx - 460, y: cy, color: V3_C.red, glyph: '☁' },
@@ -473,7 +523,7 @@ function V3TopologyRose() {
     <div style={{
       background: V3_C.panel, border: `1px solid ${V3_C.rule}`, borderRadius: 10,
       padding: '14px 18px', position: 'relative',
-      boxShadow: 'inset 0 0 40px rgba(0,0,0,0.5)',
+      boxShadow: `inset 0 0 40px ${V3_C.roseShadow}`,
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '2px', color: V3_C.cyan }}>◈ TOPOLOGY</span>
@@ -482,8 +532,8 @@ function V3TopologyRose() {
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', maxHeight: 240 }}>
         <defs>
           <radialGradient id="v3-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#e63946" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#e63946" stopOpacity="0" />
+            <stop offset="0%" stopColor={V3_C.red} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={V3_C.red} stopOpacity="0" />
           </radialGradient>
         </defs>
 

@@ -22,6 +22,9 @@ const POSTS_PER_PAGE = 6;
 export default function BlogListingClient({ allPosts, featuredPosts }: BlogListingClientProps) {
   const getCleanTags = (tags: string[]) => tags.filter((tag) => tag && tag.trim().length > 0);
   const allTags = Array.from(new Set(allPosts.flatMap(post => getCleanTags(post.tags))));
+  const introChips = featuredPosts.length > 0
+    ? ['Articles', 'Guides', 'Systems', `${featuredPosts.length} Featured`]
+    : ['Articles', 'Guides', 'Systems'];
 
   const router = useRouter();
   const pathname = usePathname();
@@ -105,7 +108,7 @@ export default function BlogListingClient({ allPosts, featuredPosts }: BlogListi
       <NeuralPageIntro
         title="Knowledge Graph"
         subtitle="Technical notes, tutorials, and engineering insights in a searchable research-style feed."
-        chips={['Articles', 'Guides', 'Systems']}
+        chips={introChips}
         theme="blog"
       />
 

@@ -22,7 +22,9 @@ services:
       - default
       - batcave_default
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      # Disabled: deploys are handled by GitHub Actions (build -> Docker Hub -> compose pull).
+      # Watchtower must not also manage this container.
+      - "com.centurylinklabs.watchtower.enable=false"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
       interval: 30s

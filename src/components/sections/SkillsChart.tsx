@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { SkillsCard } from './SkillsCard';
 import { FaBolt } from 'react-icons/fa';
+import type { Chart } from 'chart.js';
 
 const skillCategories = [
   {
@@ -112,7 +113,7 @@ export default function SkillsChart() {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const [mounted, setMounted] = useState(false);
   const { theme } = useTheme();
-  const chartInstance = useRef<any>(null);
+  const chartInstance = useRef<Chart | null>(null);
   const [activeDomain, setActiveDomain] = useState<number | null>(null);
   const [query, setQuery] = useState('');
 

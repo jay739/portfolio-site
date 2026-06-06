@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Bookmark, Link2, Layers3, Mail, Sparkles } from 'lucide-react';
 import { BLOG_BOOKMARKS_EVENT, getBlogBookmarks, pushSiteFeedback } from '@/lib/site-ux';
+import { copyToClipboard } from '@/lib/clipboard';
 
 export default function StickyContextBar() {
   const pathname = usePathname();
@@ -63,8 +64,9 @@ export default function StickyContextBar() {
         <button
           type="button"
           onClick={() => {
-            void navigator.clipboard.writeText(window.location.href);
-            pushSiteFeedback('Page link copied.', 'success');
+            void copyToClipboard(window.location.href).then((ok) => {
+              pushSiteFeedback(ok ? 'Page link copied.' : 'Copy unavailable in this context.', ok ? 'success' : 'info');
+            });
           }}
           className="neural-control-btn-ghost inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-xs"
         >

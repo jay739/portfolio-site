@@ -1,4 +1,4 @@
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { useTheme } from 'next-themes';
 import { SkillsCard } from '../SkillsCard';
 import { getIconData } from '@/lib/icons';
@@ -17,13 +17,19 @@ jest.mock('@/lib/icons', () => ({
 // Mock framer-motion
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => {
-      const { initial, animate, transition, ...validProps } = props;
-      return <div {...validProps}>{children}</div>;
+    div: (allProps: { children?: React.ReactNode } & Record<string, unknown>) => {
+      const { children, ...validProps } = allProps;
+      delete validProps.initial;
+      delete validProps.animate;
+      delete validProps.transition;
+      return <div {...validProps as React.HTMLAttributes<HTMLDivElement>}>{children}</div>;
     },
-    span: ({ children, ...props }: any) => {
-      const { initial, animate, transition, ...validProps } = props;
-      return <span {...validProps}>{children}</span>;
+    span: (allProps: { children?: React.ReactNode } & Record<string, unknown>) => {
+      const { children, ...validProps } = allProps;
+      delete validProps.initial;
+      delete validProps.animate;
+      delete validProps.transition;
+      return <span {...validProps as React.HTMLAttributes<HTMLSpanElement>}>{children}</span>;
     },
   },
 }));
@@ -46,19 +52,13 @@ describe('SkillsCard', () => {
     }));
   });
 
-  it('renders the title and initial empty state', async () => {
-    await act(async () => {
-      render(<SkillsCard title="Frontend" skills={mockSkills} />);
-    });
-    
-    // Check title
+  it('renders the title and initial empty state', () => {
+    render(<SkillsCard title="Frontend" skills={mockSkills} />);
     expect(screen.getByText('Frontend')).toBeInTheDocument();
   });
 
-  it('renders all skills as links after mount', async () => {
-    await act(async () => {
-      render(<SkillsCard title="Frontend" skills={mockSkills} />);
-    });
+  it('renders all skills as links after mount', () => {
+    render(<SkillsCard title="Frontend" skills={mockSkills} />);
 
     for (const skill of mockSkills) {
       const link = screen.getByRole('link', { name: skill.name });
@@ -67,37 +67,29 @@ describe('SkillsCard', () => {
     }
   });
 
-  it('renders skill names in spans', async () => {
-    await act(async () => {
-      render(<SkillsCard title="Frontend" skills={mockSkills} />);
-    });
+  it('renders skill names in spans', () => {
+    render(<SkillsCard title="Frontend" skills={mockSkills} />);
 
     for (const skill of mockSkills) {
       expect(screen.getByText(skill.name)).toBeInTheDocument();
     }
   });
 
-  it('renders skills with external link attributes', async () => {
-    await act(async () => {
-      render(<SkillsCard title="Frontend" skills={mockSkills} />);
-    });
+  it('renders skills with external link attributes', () => {
+    render(<SkillsCard title="Frontend" skills={mockSkills} />);
 
     const firstLink = screen.getByRole('link', { name: mockSkills[0].name });
     expect(firstLink).toHaveAttribute('target', '_blank');
     expect(firstLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('handles custom delay prop', async () => {
-    await act(async () => {
-      render(<SkillsCard title="Frontend" skills={mockSkills} delay={1000} />);
-    });
+  it('handles custom delay prop', () => {
+    render(<SkillsCard title="Frontend" skills={mockSkills} delay={1000} />);
     expect(screen.getByRole('heading', { name: 'Frontend' })).toBeInTheDocument();
   });
 
-  it('renders skill icons with correct links', async () => {
-    await act(async () => {
-      render(<SkillsCard title="Frontend" skills={mockSkills} />);
-    });
+  it('renders skill icons with correct links', () => {
+    render(<SkillsCard title="Frontend" skills={mockSkills} />);
 
     const iconLink = screen.getByRole('link', { name: mockSkills[0].name });
     expect(iconLink).toHaveAttribute('href', mockSkills[0].url);
@@ -105,15 +97,13 @@ describe('SkillsCard', () => {
     expect(iconLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('handles empty skills array', async () => {
-    await act(async () => {
-      render(<SkillsCard title="Frontend" skills={[]} />);
-    });
+  it('handles empty skills array', () => {
+    render(<SkillsCard title="Frontend" skills={[]} />);
     expect(screen.getByText('Frontend')).toBeInTheDocument();
   });
 
-  it('unmounts cleanly without errors', async () => {
+  it('unmounts cleanly without errors', () => {
     const { unmount } = render(<SkillsCard title="Frontend" skills={mockSkills} />);
-    await act(async () => { unmount(); });
+    unmount();
   });
 }); 

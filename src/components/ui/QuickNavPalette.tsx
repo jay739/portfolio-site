@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search, ArrowUpRight, Command, CornerDownLeft, Sparkles } from 'lucide-react';
 import { latestSiteUpdateTimestamp } from '@/data/site-updates';
 import { getSeenUpdatesTimestamp, pushSiteFeedback } from '@/lib/site-ux';
+import { copyToClipboard } from '@/lib/clipboard';
 
 type NavItem = {
   id: string;
@@ -128,11 +129,12 @@ export default function QuickNavPalette() {
     }
   }, [activeIndex, filteredItems]);
 
-  const navigateTo = (item: NavItem) => {
+  const navigateTo = useCallback((item: NavItem) => {
     if (item.id === 'copy-resume') {
       const url = `${window.location.origin}${item.href}`;
-      void navigator.clipboard.writeText(url);
-      pushSiteFeedback('Resume link copied.', 'success');
+      void copyToClipboard(url).then((ok) => {
+        pushSiteFeedback(ok ? 'Resume link copied.' : 'Copy unavailable in this context.', ok ? 'success' : 'info');
+      });
       setOpen(false);
       return;
     }
@@ -166,7 +168,7 @@ export default function QuickNavPalette() {
 
     router.push(item.href);
     setOpen(false);
-  };
+  }, [pathname, router]);
 
   useEffect(() => {
     if (!open) return;
@@ -192,7 +194,7 @@ export default function QuickNavPalette() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [activeIndex, filteredItems, open, pathname, router]);
+  }, [activeIndex, filteredItems, navigateTo, open, pathname, router]);
 
   if (!mounted) return null;
 

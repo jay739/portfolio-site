@@ -103,7 +103,7 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
       content,
       readingTime: stats.text,
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }

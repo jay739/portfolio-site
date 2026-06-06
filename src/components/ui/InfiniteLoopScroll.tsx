@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
 
 const InfiniteLoopScroll: React.FC = () => {
@@ -34,44 +34,7 @@ const InfiniteLoopScroll: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [mounted]);
 
-  // Animation loop
-  useEffect(() => {
-    if (!mounted) return;
-
-    let time = 0;
-    const animate = () => {
-      time += 0.02;
-      
-      // Draw all loops
-      if (topCanvasRef.current) {
-        drawInfiniteLoop(topCanvasRef.current, time, 'top');
-      }
-      
-      if (bottomCanvasRef.current) {
-        drawInfiniteLoop(bottomCanvasRef.current, time, 'bottom');
-      }
-
-      if (leftCanvasRef.current) {
-        drawInfiniteLoop(leftCanvasRef.current, time, 'left');
-      }
-
-      if (rightCanvasRef.current) {
-        drawInfiniteLoop(rightCanvasRef.current, time, 'right');
-      }
-
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [mounted, resolvedTheme]);
-
-  const drawInfiniteLoop = (canvas: HTMLCanvasElement, time: number, position: 'top' | 'bottom' | 'left' | 'right') => {
+  const drawInfiniteLoop = useCallback((canvas: HTMLCanvasElement, time: number, position: 'top' | 'bottom' | 'left' | 'right') => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -108,7 +71,6 @@ const InfiniteLoopScroll: React.FC = () => {
       const denominator = 1 + (cosT * cosT);
       
       let cross1 = center + (amplitude * Math.sin(2 * t)) / denominator;
-      let cross2 = center - (amplitude * Math.sin(2 * t)) / denominator;
       
       // Add some wave effect
       cross1 += Math.sin(i * 0.01 + time * 2) * 10;
@@ -177,7 +139,44 @@ const InfiniteLoopScroll: React.FC = () => {
 
     // Reset shadow
     ctx.shadowBlur = 0;
-  };
+  }, [resolvedTheme]);
+
+  // Animation loop
+  useEffect(() => {
+    if (!mounted) return;
+
+    let time = 0;
+    const animate = () => {
+      time += 0.02;
+      
+      // Draw all loops
+      if (topCanvasRef.current) {
+        drawInfiniteLoop(topCanvasRef.current, time, 'top');
+      }
+      
+      if (bottomCanvasRef.current) {
+        drawInfiniteLoop(bottomCanvasRef.current, time, 'bottom');
+      }
+
+      if (leftCanvasRef.current) {
+        drawInfiniteLoop(leftCanvasRef.current, time, 'left');
+      }
+
+      if (rightCanvasRef.current) {
+        drawInfiniteLoop(rightCanvasRef.current, time, 'right');
+      }
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [drawInfiniteLoop, mounted]);
 
   // Handle canvas resize
   const handleCanvasResize = (canvas: HTMLCanvasElement | null) => {

@@ -60,7 +60,7 @@ export default function DataStreamBackground({
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
     return () => ro.disconnect();
-  }, []);
+  }, [amplitudeMultiplier, lineCount, speedMultiplier]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

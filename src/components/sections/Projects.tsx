@@ -4,10 +4,12 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { DynamicIcon } from '@/lib/icons';
 import type { Project } from '@/types/project';
 import { projectSlug } from '@/lib/project-utils';
 import { pushSiteFeedback, recordRecentView } from '@/lib/site-ux';
+import { copyToClipboard as copyTextToClipboard } from '@/lib/clipboard';
 import { GitHubIcon, ExternalLinkIcon } from '@/components/ui/icons';
 import { Tag, X, ChevronLeft, ChevronRight, Search, Star, Copy, Volume2, VolumeX, Scale } from 'lucide-react';
 import { FaBriefcase } from 'react-icons/fa';
@@ -26,17 +28,6 @@ const containerVariants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5
     }
   }
 };
@@ -160,6 +151,16 @@ function ProjectModal({
     return () => { document.body.style.overflow = ''; };
   }, []);
 
+  const nextImage = useCallback(() => {
+    if (!project.images) return;
+    setCarouselIdx((i) => (i + 1) % project.images!.length);
+  }, [project.images]);
+
+  const prevImage = useCallback(() => {
+    if (!project.images) return;
+    setCarouselIdx((i) => (i - 1 + project.images!.length) % project.images!.length);
+  }, [project.images]);
+
   useEffect(() => {
     if (!modalRef.current) return;
     modalRef.current.scrollTop = 0;
@@ -198,7 +199,7 @@ function ProjectModal({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, onNextProject, onPrevProject, project.images]);
+  }, [nextImage, onClose, onNextProject, onPrevProject, prevImage, project.images]);
 
   useEffect(() => {
     const node = modalRef.current;
@@ -212,24 +213,14 @@ function ProjectModal({
     return () => node.removeEventListener('scroll', onScroll);
   }, []);
 
-  const nextImage = () => {
-    if (!project.images) return;
-    setCarouselIdx((i) => (i + 1) % project.images!.length);
-  };
-
-  const prevImage = () => {
-    if (!project.images) return;
-    setCarouselIdx((i) => (i - 1 + project.images!.length) % project.images!.length);
-  };
-
   const copyToClipboard = async (text: string, type: 'link' | 'github' | 'case-study') => {
-    try {
-      await navigator.clipboard.writeText(text);
-      const label = type === 'github' ? 'GitHub' : type === 'case-study' ? 'Case study' : 'Demo';
-      setToast({ message: `${label} link copied to clipboard!`, type: 'success' });
-    } catch {
-      setToast({ message: 'Failed to copy link', type: 'error' });
-    }
+    const ok = await copyTextToClipboard(text);
+    const label = type === 'github' ? 'GitHub' : type === 'case-study' ? 'Case study' : 'Demo';
+    setToast(
+      ok
+        ? { message: `${label} link copied to clipboard!`, type: 'success' }
+        : { message: 'Copy unavailable in this context.', type: 'error' },
+    );
   };
 
   const readProjectDescription = () => {
@@ -560,11 +551,14 @@ function ImageLightbox({ images, startIdx, onClose }: { images: string[]; startI
         </span>
       )}
       <div className="relative flex items-center justify-center w-full h-full px-16" onClick={e => e.stopPropagation()}>
-        <img
+        <Image
           src={images[idx]}
           alt={`Image ${idx + 1}`}
-          className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
+          fill
+          sizes="90vw"
+          className="object-contain rounded-xl shadow-2xl"
           draggable={false}
+          unoptimized
         />
         {images.length > 1 && (
           <>
@@ -651,18 +645,24 @@ function ProjectCard({ project, index, compact, onOpen, onToggleCompare, isCompa
           >
             <div className="relative w-full rounded-xl overflow-hidden bg-slate-950/60 border border-slate-700/40 select-none" style={{ height: '180px' }}>
               <AnimatePresence>
-                <motion.img
+                <motion.div
                   key={imageIdx}
-                  src={project.images[imageIdx]}
-                  alt={`${project.title} screenshot ${imageIdx + 1}`}
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none transition-transform duration-500 ease-out group-hover/carousel:scale-[1.035]"
-                  draggable={false}
-                  loading="lazy"
+                  className="absolute inset-0"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.6, ease: 'easeInOut' }}
-                />
+                >
+                  <Image
+                    src={project.images[imageIdx]}
+                    alt={`${project.title} screenshot ${imageIdx + 1}`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 420px"
+                    className="object-contain pointer-events-none transition-transform duration-500 ease-out group-hover/carousel:scale-[1.035]"
+                    draggable={false}
+                    unoptimized
+                  />
+                </motion.div>
               </AnimatePresence>
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.02),rgba(15,23,42,0.16)_100%)] opacity-70 transition-opacity duration-300 group-hover/carousel:opacity-100" />
               <div className="absolute inset-0 pointer-events-none rounded-xl" style={{ boxShadow: 'inset 0 0 30px 8px rgba(2,6,23,0.5)' }} />
@@ -1232,7 +1232,7 @@ export default function Projects({ projects, className = '' }: ProjectsProps) {
                 {compareProjects.map((p) => (
                   <button key={p.title} type="button" onClick={() => toggleCompare(p)}
                     className="neural-control-btn-ghost text-[11px]">
-                    Remove "{p.title.split(' ').slice(0, 2).join(' ')}"
+                    Remove &quot;{p.title.split(' ').slice(0, 2).join(' ')}&quot;
                   </button>
                 ))}
                 <button type="button" onClick={() => setCompareIds([])} className="neural-control-btn-ghost text-[11px]">

@@ -2,6 +2,7 @@
 'use client';
 
 import React from 'react';
+import { useTheme } from 'next-themes';
 
 // useTick — re-renders every `ms`, returns a counter
 function useTick(ms = 1000) {
@@ -124,10 +125,15 @@ function Scanlines({ opacity = 0.06 }) {
 
 // Vignette
 function Vignette({ strength = 0.55 }) {
+  const { resolvedTheme } = useTheme();
+  const isLight = resolvedTheme === 'light';
+
   return (
     <div style={{
       position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 98,
-      background: `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,${strength}) 100%)`,
+      background: isLight 
+        ? `radial-gradient(ellipse at center, transparent 60%, rgba(248, 250, 252, ${strength * 0.7}) 100%)`
+        : `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,${strength}) 100%)`,
     }} />
   );
 }

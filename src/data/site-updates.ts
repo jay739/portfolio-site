@@ -9,6 +9,14 @@ export interface SiteUpdate {
 
 export const siteUpdates: SiteUpdate[] = [
   {
+    id: 'light-mode-layer',
+    date: 'May 2026',
+    title: 'Global Light Mode Overrides Layer',
+    details: 'Added a comprehensive theme-aware styling layer that automatically adapts cards, text, inputs, code snippets, hover states, selections, and interactive graphs to light mode, ensuring perfect contrast and readability across all pages.',
+    href: '/',
+    timestamp: '2026-05-26T15:39:38.000Z',
+  },
+  {
     id: 'podcast-gallery',
     date: 'May 2026',
     title: 'AI Showcase now includes Podcasts',

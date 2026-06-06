@@ -1,4 +1,4 @@
-import { HTMLAttributes, InputHTMLAttributes } from 'react';
+import { HTMLAttributes } from 'react';
 
 // ----------------- CORE TYPES ------------------
 export interface Image {

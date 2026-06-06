@@ -75,7 +75,7 @@ export default function NavBar() {
   const [isNavHidden, setIsNavHidden] = useState(false);
   const [activeSection, setActiveSection] = useState('welcome');
   const [updatesBadge, setUpdatesBadge] = useState<string | undefined>('New');
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const navRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -159,15 +159,13 @@ export default function NavBar() {
 
       // Find the section that's most visible in the viewport
       const viewportHeight = window.innerHeight;
-      const scrollY = window.scrollY;
-      
       let bestMatch = sectionElements[0];
       let bestScore = -1;
 
       for (const section of sectionElements) {
         if (!section) continue;
         
-        const { top, bottom, height, id } = section;
+        const { top, bottom, height } = section;
         
         // Calculate how much of the section is visible
         const visibleTop = Math.max(0, -top);
@@ -196,7 +194,7 @@ export default function NavBar() {
     // IntersectionObserver as backup
     const sectionEls = anchorSections.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     const observer = new IntersectionObserver(
-      (entries) => {
+      () => {
         // Only update if no manual scroll is happening
         if (Date.now() - lastManualScroll.current > 1000) {
           updateActiveSection();
@@ -231,7 +229,7 @@ export default function NavBar() {
       observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [mounted, pathname]);
+  }, [activeSection, mounted, pathname]);
 
   // Close menu on outside click
   useEffect(() => {

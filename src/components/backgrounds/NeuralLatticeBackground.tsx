@@ -63,7 +63,7 @@ export default function NeuralLatticeBackground({
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
     return () => ro.disconnect();
-  }, []);
+  }, [density]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

@@ -12,8 +12,13 @@ import {
   FaNetworkWired, FaCube, FaDatabase, FaChartBar, FaCommentAlt,
 } from 'react-icons/fa';
 
-const ic = (Icon: React.ComponentType<{ className?: string }>): React.FC =>
-  () => <Icon className="text-amber-400 inline mr-1 align-middle" aria-hidden="true" />;
+const ic = (Icon: React.ComponentType<{ className?: string }>): React.FC => {
+  const IconComponent: React.FC = () => (
+    <Icon className="text-amber-400 inline mr-1 align-middle" aria-hidden="true" />
+  );
+  IconComponent.displayName = Icon.displayName || Icon.name || 'MdxIcon';
+  return IconComponent;
+};
 
 export const mdxIconComponents = {
   // Launch / energy
@@ -98,5 +103,9 @@ export const mdxIconComponents = {
   Home:       ic(FaHome),
   Search:     ic(FaSearch),
 };
+
+Object.entries(mdxIconComponents).forEach(([name, Component]) => {
+  (Component as React.FC).displayName = `MdxIcon${name}`;
+});
 
 export type MdxIconName = keyof typeof mdxIconComponents;

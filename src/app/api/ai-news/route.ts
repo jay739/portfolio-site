@@ -9,6 +9,23 @@ const NEWS_API_URL = 'https://newsapi.org/v2/everything';
 const newsLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500 });
 const newsWriteLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 250 });
 
+type NewsApiSource = {
+  name?: string | null;
+};
+
+type NewsApiArticle = {
+  title?: string | null;
+  url?: string | null;
+  description?: string | null;
+  urlToImage?: string | null;
+  publishedAt?: string | null;
+  source?: NewsApiSource | null;
+};
+
+type NewsApiResponse = {
+  articles?: NewsApiArticle[] | null;
+};
+
 export async function GET(request: NextRequest) {
   try {
     const ip = getClientIpFromHeaders(request.headers);
@@ -44,7 +61,7 @@ export async function GET(request: NextRequest) {
       throw Errors.Internal(`News API responded with status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as NewsApiResponse;
     
     if (!data.articles) {
       console.error('Invalid response from News API:', data);
@@ -52,9 +69,9 @@ export async function GET(request: NextRequest) {
     }
     
     // Transform articles — include image, source, and date for rich UI cards
-    const articles = data.articles
-      .filter((article: any) => article.title && article.url && !article.title.includes('[Removed]'))
-      .map((article: any) => ({
+    const articles = (data.articles ?? [])
+      .filter((article) => article?.title && article?.url && !article.title.includes('[Removed]'))
+      .map((article) => ({
         title: article.title,
         summary: article.description || '',
         url: article.url,
@@ -91,8 +108,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle POST-specific logic here
-    const data = await request.json();
-    
     return NextResponse.json({ 
       success: true,
       message: 'News preferences updated'

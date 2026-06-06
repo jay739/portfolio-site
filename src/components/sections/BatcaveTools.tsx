@@ -21,6 +21,7 @@ import {
   FaAlignLeft,
 } from 'react-icons/fa';
 import { useScrollLock } from '@/hooks/useScrollLock';
+import { copyToClipboard } from '@/lib/clipboard';
 
 // ─── Utility helpers ──────────────────────────────────────────────────────────
 
@@ -75,7 +76,7 @@ function generatePassword(length: number, opts: { upper: boolean; lower: boolean
 type TempUnit = 'C' | 'F' | 'K';
 function convertTemp(val: number, from: TempUnit, to: TempUnit): number {
   if (from === to) return val;
-  let c = from === 'C' ? val : from === 'F' ? (val - 32) * 5 / 9 : val - 273.15;
+  const c = from === 'C' ? val : from === 'F' ? (val - 32) * 5 / 9 : val - 273.15;
   return to === 'C' ? c : to === 'F' ? c * 9 / 5 + 32 : c + 273.15;
 }
 
@@ -98,9 +99,11 @@ function CopyBtn({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
   const copy = useCallback(() => {
     if (!value) return;
-    navigator.clipboard.writeText(value).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
+    void copyToClipboard(value).then((ok) => {
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      }
     });
   }, [value]);
   return (
@@ -123,7 +126,7 @@ function UuidTool() {
   const bulk = Array.from({ length: count }, () => uuidV4()).join('\n');
   return (
     <div className="space-y-3">
-      <p className="text-xs text-slate-400">Generate RFC 4122 v4 UUIDs using the browser's cryptographic PRNG.</p>
+      <p className="text-xs text-slate-400">Generate RFC 4122 v4 UUIDs using the browser&apos;s cryptographic PRNG.</p>
       <div className="flex items-center gap-2 flex-wrap">
         <code className="flex-1 min-w-0 truncate text-amber-300 text-sm font-mono bg-slate-800/60 border border-slate-700/60 rounded-lg px-3 py-2">{uuid}</code>
         <CopyBtn value={uuid} />
@@ -165,7 +168,7 @@ function HashTool() {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-slate-400">SHA-256 hash computation — same cryptographic functions powering Batcave's internal services.</p>
+      <p className="text-xs text-slate-400">SHA-256 hash computation — same cryptographic functions powering Batcave&apos;s internal services.</p>
       <textarea
         value={input}
         onChange={(e) => { setInput(e.target.value); setHash(''); }}
@@ -656,7 +659,7 @@ export default function BatcaveTools() {
           <span>
             These tools are part of a larger self-hosted utility stack running on Batcave —
             a private infrastructure accessible over a secure VPN. The demos above showcase
-            a selection of what's available on the server.
+            a selection of what&apos;s available on the server.
           </span>
         </div>
       </div>

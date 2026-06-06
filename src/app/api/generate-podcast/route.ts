@@ -148,7 +148,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const payload = await res.json().catch(() => ({} as any));
+  const payload = (await res.json().catch(() => ({}))) as {
+    detail?: string;
+    error?: string;
+    job_id?: string;
+    status?: string;
+  };
 
   if (!res.ok) {
     return NextResponse.json(

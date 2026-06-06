@@ -1,6 +1,7 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { Errors } from '@/lib/error-handling';
-import { AuthOptions } from 'next-auth';
+import { AuthOptions, User, Session } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
 
 // API key validation
 const validateApiKey = (apiKey: string) => {
@@ -38,13 +39,13 @@ export const authOptions: AuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }: { token: JWT & { role?: string }; user?: User & { role?: string } }) {
       if (user) {
         token.role = user.role;
       }
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }: { session: Session & { user?: { role?: string } }; token: JWT & { role?: string } }) {
       if (session?.user) {
         session.user.role = token.role;
       }
