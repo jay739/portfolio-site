@@ -157,10 +157,9 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Live container is owned by the 'portfolio-copy' compose project on
-            # media-cache-server; deploying from any other dir would clash on the
-            # container_name 'portfolio'. compose v2 only (no docker-compose v1).
-            cd /mnt/media-cache/portfolio-copy
+            # Single consolidated dir on media-cache-server (the Oracle VPS).
+            # compose v2 only (no docker-compose v1).
+            cd /mnt/media-cache/portfolio
             docker compose pull portfolio
             docker compose up -d --force-recreate portfolio
             docker image prune -f
