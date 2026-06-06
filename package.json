@@ -35,7 +35,7 @@
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.514.0",
     "mammoth": "^1.9.1",
-    "next": "^14.2.29",
+    "next": "^15.5.18",
     "next-auth": "^4.24.6",
     "next-mdx-remote": "^5.0.0",
     "next-themes": "^0.2.1",
@@ -103,6 +103,6 @@
     }
   },
   "resolutions": {
-    "next": "^14.2.29"
+    "next": "^15.5.18"
   }
 }
