@@ -1,15 +1,18 @@
 # Dependabot configuration.
 #
-# Updates are grouped where possible so we get one PR per ecosystem per cycle
-# instead of one PR per package — fewer rebases, fewer notifications, and easier
-# to review against a single CI run. Each PR runs the same required `validate`
-# check before it can be merged into the protected main branch.
+# Updates target the `dev` branch (the integration branch) so dependency PRs
+# batch there and promote to the protected `main` in a single deploy, rather
+# than each one redeploying main. Grouped where possible = fewer PRs/rebases.
+# Major version bumps for npm/docker are ignored — those are breaking and done
+# deliberately (e.g. Next.js or the node base image), not as routine PRs.
+# Each PR still runs the required `validate` check before it can be merged.
 
 version: 2
 updates:
   # ── npm packages (the Next.js app) ─────────────────────────────────────
   - package-ecosystem: npm
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: weekly
       day: monday
@@ -18,12 +21,16 @@ updates:
       app-deps:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: "deps(npm)"
 
   # ── Docker base image (node:20-alpine in the Dockerfile) ───────────────
   - package-ecosystem: docker
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: weekly
       day: monday
@@ -31,12 +38,16 @@ updates:
     groups:
       docker:
         patterns: ["*"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: "deps(docker)"
 
-  # ── GitHub Actions used by the workflows ───────────────────────────────
+  # ── GitHub Actions used by the workflows (majors are fine here) ────────
   - package-ecosystem: github-actions
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
