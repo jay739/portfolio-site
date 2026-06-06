@@ -54,7 +54,10 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
-            cd /opt/portfolio
+            # LEGACY: pushes VPS-side edits back to GitHub. Conflicts with the
+            # dev->PR->main flow (you shouldn't edit on the VPS). Kept opt-in only.
+            # The git checkout on media-cache-server is the release dir below.
+            cd /mnt/media-cache/portfolio
             BRANCH=$(git rev-parse --abbrev-ref HEAD)
             git remote -v
             git fetch origin
@@ -154,9 +157,12 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/portfolio
-            docker-compose pull portfolio
-            docker-compose up -d --force-recreate portfolio
+            # Live container is owned by the 'portfolio-copy' compose project on
+            # media-cache-server; deploying from any other dir would clash on the
+            # container_name 'portfolio'. compose v2 only (no docker-compose v1).
+            cd /mnt/media-cache/portfolio-copy
+            docker compose pull portfolio
+            docker compose up -d --force-recreate portfolio
             docker image prune -f
 
       - name: ✅ Deployment notification
