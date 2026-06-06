@@ -75,8 +75,8 @@ jobs:
       always() &&
       (needs.sync-from-vps.result == 'success' || needs.sync-from-vps.result == 'skipped') &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
-    timeout-minutes: 45  # Increased for multi-architecture builds
+    runs-on: ubuntu-24.04-arm  # Native arm64 runner — matches the single (arm64) VPS target, no QEMU
+    timeout-minutes: 30
 
     steps:
       - name: 📦 Checkout code
@@ -128,7 +128,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64  # Multi-architecture support
+          platforms: linux/arm64  # Single arch — only deployed to the arm64 VPS
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           no-cache: ${{ github.event.inputs.clear_cache == 'true' }}
@@ -138,7 +138,7 @@ jobs:
             NODE_OPTIONS=--max-old-space-size=4096
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
           provenance: false
-        timeout-minutes: 40  # Multi-arch builds take longer
+        timeout-minutes: 25  # Native single-arch build
 
   # Explicit if: sync-from-vps is often "skipped", which makes default success() false and would skip this job.
   deploy:
