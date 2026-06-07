@@ -13,7 +13,6 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/tests/__mocks__/fileMock.js',
-    '^@testing-library/dom$': '<rootDir>/node_modules/@testing-library/react/node_modules/@testing-library/dom',
   },
   collectCoverage: false,
   coverageProvider: 'v8',

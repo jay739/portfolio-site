@@ -181,8 +181,9 @@ const SERVICE_CHARTS: Record<string, {
   },
 };
 
-export async function GET(request: NextRequest, { params }: { params: { service: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ service: string }> }) {
   let requestUrlForCache = '';
+  const { service } = await params;
   try {
     const ip = getClientIpFromHeaders(request.headers);
     try {
@@ -191,7 +192,6 @@ export async function GET(request: NextRequest, { params }: { params: { service:
       return NextResponse.json({ error: 'Too many telemetry requests. Please slow down.' }, { status: 429 });
     }
 
-    const { service } = params;
     const { searchParams } = new URL(request.url);
     const points = searchParams.get('points') || '1';
     const dimension = searchParams.get('dimension');
@@ -241,7 +241,7 @@ export async function GET(request: NextRequest, { params }: { params: { service:
     requestUrlForCache = url.toString();
 
     // Try to get auth from cookie first
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     let authHeader = cookieStore.get('netdata_auth')?.value;
 
     // If no cookie, try env variables (auth is optional - Tailscale provides network-level security)
@@ -329,7 +329,7 @@ export async function GET(request: NextRequest, { params }: { params: { service:
           meta: {
             ...(stale.data?.meta || {}),
             upstream: 'stale',
-            service: params.service,
+            service: service,
           },
         },
         {
@@ -352,7 +352,7 @@ export async function GET(request: NextRequest, { params }: { params: { service:
         },
         meta: {
           upstream: 'down',
-          service: params.service
+          service: service
         }
       },
       {
@@ -410,7 +410,7 @@ export async function POST(request: NextRequest) {
     }
 
     // If successful, set a session cookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set('netdata_auth', basicAuth, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

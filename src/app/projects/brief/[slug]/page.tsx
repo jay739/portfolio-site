@@ -7,14 +7,15 @@ export function generateStaticParams() {
   return projects.map((entry) => ({ slug: projectSlug(entry.title) }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const project = projects.find((entry) => projectSlug(entry.title) === params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const project = projects.find((entry) => projectSlug(entry.title) === slug);
 
   if (!project) {
     return { title: 'Project Not Found' };
   }
 
-  const path = `/projects/brief/${params.slug}`;
+  const path = `/projects/brief/${slug}`;
 
   return {
     title: project.title,
@@ -37,8 +38,9 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function ProjectBriefPage({ params }: { params: { slug: string } }) {
-  const project = projects.find((entry) => projectSlug(entry.title) === params.slug);
+export default async function ProjectBriefPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const project = projects.find((entry) => projectSlug(entry.title) === slug);
 
   if (!project) {
     notFound();
