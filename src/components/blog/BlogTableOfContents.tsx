@@ -21,12 +21,17 @@ export default function BlogTableOfContents() {
 
   useEffect(() => {
     const headings = Array.from(document.querySelectorAll('article .prose h2, article .prose h3')) as HTMLElement[];
+    // De-duplicate ids so headings with identical text don't collide (unique
+    // React keys + working anchor links). e.g. two "Conclusion" headings.
+    const seen = new Map<string, number>();
     const nextItems = headings.map((heading) => {
-      if (!heading.id) {
-        heading.id = slugify(heading.textContent || 'section');
-      }
+      let id = heading.id || slugify(heading.textContent || 'section');
+      const count = seen.get(id) ?? 0;
+      seen.set(id, count + 1);
+      if (count > 0) id = `${id}-${count}`;
+      heading.id = id;
       return {
-        id: heading.id,
+        id,
         text: heading.textContent || 'Section',
         level: heading.tagName === 'H3' ? 3 : 2,
       };
