@@ -2,6 +2,8 @@ import React from 'react';
 
 // Font Awesome Icons
 import {
+  FaProjectDiagram,
+  FaBolt,
   FaDocker,
   FaJenkins,
   FaGitlab,
@@ -276,7 +278,13 @@ export function getIconData(name: string) {
     'volume-up': { icon: FaVolumeUp, url: '#', label: 'Sound On' },
     'volume-mute': { icon: FaVolumeMute, url: '#', label: 'Sound Off' },
     'book': { icon: FaBook, url: '#', label: 'Book' },
-    'music': { icon: FaMusic, url: '#', label: 'Music' }
+    'music': { icon: FaMusic, url: '#', label: 'Music' },
+    // Homelab / skills icons that were previously missing (fell back to "?")
+    'authentik sso': { icon: FaLock, url: 'https://goauthentik.io/', label: 'Authentik SSO' },
+    'tailscale vpn': { icon: FaNetworkWired, url: 'https://tailscale.com/', label: 'Tailscale VPN' },
+    'netdata': { icon: FaChartLine, url: 'https://www.netdata.cloud/', label: 'Netdata' },
+    'langgraph': { icon: FaProjectDiagram, url: 'https://www.langchain.com/langgraph', label: 'LangGraph' },
+    'pyspark': { icon: FaBolt, url: 'https://spark.apache.org/docs/latest/api/python/', label: 'PySpark' }
   };
 
   const iconData = iconMap[name.toLowerCase()];
