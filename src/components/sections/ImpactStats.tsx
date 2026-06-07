@@ -214,7 +214,7 @@ export default function ImpactStats() {
   const svgRef = useRef<SVGSVGElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const morphIdx = useRef(0);
   const morphProgress = useRef(0);
   const lastMorphTime = useRef(performance.now());
