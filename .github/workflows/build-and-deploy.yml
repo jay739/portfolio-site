@@ -168,3 +168,49 @@ jobs:
         run: |
           echo "✅ Portfolio deployed successfully!"
           echo "🔗 URL: https://jay739.dev"
+
+  # Keep Docker Hub tidy: a new main-<sha> tag is pushed per deploy and they pile
+  # up (~1 GB each). After a successful push, keep `latest` + the newest 3
+  # main-<sha> tags and delete the rest. Never fails the pipeline (cleanup only).
+  prune-old-tags:
+    needs: build-and-push
+    if: always() && needs.build-and-push.result == 'success'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: 🧹 Prune old main-<sha> tags (keep latest + newest 3)
+        env:
+          DOCKERHUB_USER: ${{ secrets.DOCKER_USERNAME }}
+          DOCKERHUB_PASS: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          user = os.environ["DOCKERHUB_USER"]; pwd = os.environ["DOCKERHUB_PASS"]
+          repo = f"{user}/portfolio"; KEEP = 3
+          login = urllib.request.Request(
+              "https://hub.docker.com/v2/users/login/",
+              data=json.dumps({"username": user, "password": pwd}).encode(),
+              headers={"Content-Type": "application/json"})
+          tok = json.load(urllib.request.urlopen(login, timeout=30))["token"]
+          url = f"https://hub.docker.com/v2/repositories/{repo}/tags/?page_size=100"
+          tags = []
+          while url:
+              r = urllib.request.Request(url, headers={"Authorization": f"JWT {tok}"})
+              d = json.load(urllib.request.urlopen(r, timeout=30))
+              tags += d["results"]; url = d.get("next")
+          shas = sorted([t for t in tags if t["name"].startswith("main-")],
+                        key=lambda t: t.get("tag_last_pushed") or "", reverse=True)
+          stale = shas[KEEP:]
+          print(f"{len(shas)} main-<sha> tags; keeping newest {KEEP}, deleting {len(stale)}")
+          for t in stale:
+              name = t["name"]
+              if name == "latest":
+                  continue
+              dele = urllib.request.Request(
+                  f"https://hub.docker.com/v2/repositories/{repo}/tags/{name}/",
+                  method="DELETE", headers={"Authorization": f"JWT {tok}"})
+              try:
+                  urllib.request.urlopen(dele, timeout=30); print("deleted", name)
+              except urllib.error.HTTPError as e:
+                  print("failed", name, e.code)
+          PY
