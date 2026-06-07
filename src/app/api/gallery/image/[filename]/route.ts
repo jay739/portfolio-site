@@ -6,9 +6,9 @@ const GALLERY_DIR = path.join(process.cwd(), 'public/images/gallery');
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filename: string }> }
 ) {
-  const { filename } = params;
+  const { filename } = await params;
 
   if (!/^[a-zA-Z0-9_\-]+\.png$/.test(filename)) {
     return new NextResponse('Invalid filename', { status: 400 });

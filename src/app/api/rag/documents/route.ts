@@ -103,20 +103,20 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest) {
   try {
     if (!(await requireAuth(req))) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    if (!params.id || typeof params.id !== 'string') {
+    // This is a non-dynamic collection route (no [id] segment), so the document
+    // id comes from the query string, e.g. DELETE /api/rag/documents?id=<id>.
+    const id = new URL(req.url).searchParams.get('id');
+    if (!id || typeof id !== 'string') {
       return NextResponse.json({ error: 'Invalid document id' }, { status: 400 });
     }
 
-    const filepath = safePath(params.id);
+    const filepath = safePath(id);
     if (!filepath) {
       return NextResponse.json({ error: 'Invalid document ID' }, { status: 400 });
     }
