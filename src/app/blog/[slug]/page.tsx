@@ -53,13 +53,11 @@ export async function generateMetadata({
       publishedTime: post.date,
       authors: ["Jayakrishna Konda"],
       tags: post.tags,
-      images: ["/opengraph-image"],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
-      images: ["/opengraph-image"],
     },
   };
 }

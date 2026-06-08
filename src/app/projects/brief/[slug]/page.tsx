@@ -1,18 +1,22 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { projects } from '@/data/projects';
-import { projectSlug } from '@/lib/project-utils';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { projects } from "@/data/projects";
+import { projectSlug } from "@/lib/project-utils";
 
 export function generateStaticParams() {
   return projects.map((entry) => ({ slug: projectSlug(entry.title) }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
   const project = projects.find((entry) => projectSlug(entry.title) === slug);
 
   if (!project) {
-    return { title: 'Project Not Found' };
+    return { title: "Project Not Found" };
   }
 
   const path = `/projects/brief/${slug}`;
@@ -22,23 +26,25 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description: project.description,
     alternates: { canonical: path },
     openGraph: {
-      type: 'article',
+      type: "article",
       url: `https://jay739.dev${path}`,
       title: `${project.title} — Jayakrishna Konda`,
       description: project.description,
-      siteName: 'Jayakrishna Konda Portfolio',
-      images: ['/opengraph-image'],
+      siteName: "Jayakrishna Konda Portfolio",
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: `${project.title} — Jayakrishna Konda`,
       description: project.description,
-      images: ['/opengraph-image'],
     },
   };
 }
 
-export default async function ProjectBriefPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ProjectBriefPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const project = projects.find((entry) => projectSlug(entry.title) === slug);
 
@@ -49,16 +55,25 @@ export default async function ProjectBriefPage({ params }: { params: Promise<{ s
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 text-slate-100">
       <div className="rounded-3xl border border-slate-700/60 bg-slate-950/80 p-8 shadow-2xl">
-        <p className="text-[11px] uppercase tracking-widest text-amber-300">One-page case study</p>
+        <p className="text-[11px] uppercase tracking-widest text-amber-300">
+          One-page case study
+        </p>
         <h1 className="mt-3 text-3xl font-bold text-white">{project.title}</h1>
-        <p className="mt-4 text-base leading-relaxed text-slate-300">{project.description}</p>
+        <p className="mt-4 text-base leading-relaxed text-slate-300">
+          {project.description}
+        </p>
 
         {project.proofPoints && project.proofPoints.length > 0 && (
           <section className="mt-8">
-            <h2 className="text-lg font-semibold text-amber-200">Proof Points</h2>
+            <h2 className="text-lg font-semibold text-amber-200">
+              Proof Points
+            </h2>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               {project.proofPoints.map((point) => (
-                <div key={point} className="rounded-xl border border-slate-700/60 bg-slate-900/45 px-4 py-3 text-sm text-slate-200">
+                <div
+                  key={point}
+                  className="rounded-xl border border-slate-700/60 bg-slate-900/45 px-4 py-3 text-sm text-slate-200"
+                >
                   {point}
                 </div>
               ))}
@@ -89,7 +104,10 @@ export default async function ProjectBriefPage({ params }: { params: Promise<{ s
           <h2 className="text-lg font-semibold text-amber-200">Stack</h2>
           <div className="mt-3 flex flex-wrap gap-2">
             {(project.techStack || project.tags).map((entry) => (
-              <span key={entry} className="rounded-full border border-slate-700/60 px-3 py-1 text-xs text-slate-300">
+              <span
+                key={entry}
+                className="rounded-full border border-slate-700/60 px-3 py-1 text-xs text-slate-300"
+              >
                 {entry}
               </span>
             ))}
