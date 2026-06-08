@@ -1,5 +1,5 @@
 # 1. Install dependencies in an isolated stage
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 
 # Upgrade all Alpine packages first to patch known CVEs (harfbuzz, openssl, etc.)
 RUN apk upgrade --no-cache
@@ -57,12 +57,12 @@ RUN npm run build
 # 6b. Self-contained sharp: install on a plain base with NO vips-dev, so sharp
 # fetches its prebuilt binary (with libvips bundled in) rather than building
 # against a system libvips that won't exist in the runner. Just sharp + deps.
-FROM node:20-alpine AS sharp
+FROM node:22-alpine AS sharp
 WORKDIR /sharp
 RUN npm init -y >/dev/null 2>&1 && npm install sharp@0.32.6 --no-audit --no-fund
 
 # 7. Production image with only runtime artifacts
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 # Create a non-root user and group for security
