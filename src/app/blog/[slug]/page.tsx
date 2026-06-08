@@ -168,12 +168,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               ))}
             </div>
 
-            {/* Share and Read Aloud Buttons */}
-            <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-slate-700/70">
-              <BlogShareButtons
-                title={post.title}
-                url={`https://jay739.dev/blog/${post.slug}`}
-              />
+            {/* Share row, then the read-aloud panel full-width on its own row
+                (it's a multi-control panel; sitting it beside the small share
+                buttons made it wrap and look disproportionately wide). */}
+            <div className="mb-8 pb-6 border-b border-slate-700/70 space-y-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <BlogShareButtons
+                  title={post.title}
+                  url={`https://jay739.dev/blog/${post.slug}`}
+                />
+              </div>
               <BlogReadAloudButton title={post.title} excerpt={post.excerpt} />
             </div>
 
