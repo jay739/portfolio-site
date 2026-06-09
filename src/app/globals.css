@@ -50,7 +50,9 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: var(--font-space-grotesk), 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+    font-family:
+      var(--font-space-grotesk), "SF Pro Display", "Helvetica Neue", Arial,
+      sans-serif;
     letter-spacing: -0.01em;
     background-color: var(--neural-page-bg);
   }
@@ -63,7 +65,9 @@
   *,
   *::before,
   *::after {
-    transition-property: background-color, color, border-color, fill, stroke, box-shadow, text-decoration-color, outline-color;
+    transition-property:
+      background-color, color, border-color, fill, stroke, box-shadow,
+      text-decoration-color, outline-color;
     transition-duration: 260ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -72,7 +76,9 @@
      its content. */
   html,
   body {
-    transition: background-color 260ms cubic-bezier(0.4, 0, 0.2, 1), color 260ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+      background-color 260ms cubic-bezier(0.4, 0, 0.2, 1),
+      color 260ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -82,13 +88,26 @@
     }
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-space-grotesk), 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family:
+      var(--font-space-grotesk), "SF Pro Display", "Helvetica Neue", Arial,
+      sans-serif;
     letter-spacing: -0.02em;
   }
 
-  code, kbd, pre, samp, .font-mono {
-    font-family: var(--font-jetbrains-mono), 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  code,
+  kbd,
+  pre,
+  samp,
+  .font-mono {
+    font-family:
+      var(--font-jetbrains-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular,
+      Menlo, monospace;
   }
 
   /* Cursor handling will be done by CustomCursor component */
@@ -98,20 +117,30 @@
     .custom-cursor {
       display: none !important;
     }
-    
+
     * {
       cursor: auto !important;
     }
 
     /* Ensure clickable elements show proper cursor */
-    a, button, [role="button"], input[type="submit"], input[type="button"], input[type="reset"] {
+    a,
+    button,
+    [role="button"],
+    input[type="submit"],
+    input[type="button"],
+    input[type="reset"] {
       cursor: pointer !important;
     }
   }
 
   /* Improve touch targets on mobile */
   @media (max-width: 640px) {
-    a, button, [role="button"], input[type="submit"], input[type="button"], input[type="reset"] {
+    a,
+    button,
+    [role="button"],
+    input[type="submit"],
+    input[type="button"],
+    input[type="reset"] {
       min-height: 44px;
       min-width: 44px;
       padding: 8px;
@@ -158,19 +187,34 @@
 }
 
 /* Restore readable gray text colors */
-.text-gray-500 { color: var(--neural-text-muted) !important; }
-.text-gray-400 { color: var(--neural-text-muted) !important; }
-.text-gray-300 { color: var(--neural-text-body) !important; }
-.dark .text-gray-500 { color: var(--neural-text-muted) !important; }
-.dark .text-gray-400 { color: var(--neural-text-muted) !important; }
-.dark .text-gray-300 { color: var(--neural-text-body) !important; }
+.text-gray-500 {
+  color: var(--neural-text-muted) !important;
+}
+.text-gray-400 {
+  color: var(--neural-text-muted) !important;
+}
+.text-gray-300 {
+  color: var(--neural-text-body) !important;
+}
+.dark .text-gray-500 {
+  color: var(--neural-text-muted) !important;
+}
+.dark .text-gray-400 {
+  color: var(--neural-text-muted) !important;
+}
+.dark .text-gray-300 {
+  color: var(--neural-text-body) !important;
+}
 
 /* Scroll reveal animations */
 .reveal-on-scroll {
   opacity: 0;
   transform: translateY(14px) scale(0.995);
   filter: blur(0.6px);
-  transition: opacity 0.38s ease, transform 0.38s ease, filter 0.38s ease;
+  transition:
+    opacity 0.38s ease,
+    transform 0.38s ease,
+    filter 0.38s ease;
 }
 
 .reveal-visible {
@@ -181,40 +225,80 @@
 
 /* Global Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideIn {
-  from { transform: translateX(-20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.25); }
-  50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.45); }
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.45);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 @keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Animation Classes */
@@ -247,16 +331,36 @@
 }
 
 /* Animation Delays */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-.delay-600 { animation-delay: 600ms; }
-.delay-700 { animation-delay: 700ms; }
-.delay-800 { animation-delay: 800ms; }
-.delay-900 { animation-delay: 900ms; }
-.delay-1000 { animation-delay: 1000ms; }
+.delay-100 {
+  animation-delay: 100ms;
+}
+.delay-200 {
+  animation-delay: 200ms;
+}
+.delay-300 {
+  animation-delay: 300ms;
+}
+.delay-400 {
+  animation-delay: 400ms;
+}
+.delay-500 {
+  animation-delay: 500ms;
+}
+.delay-600 {
+  animation-delay: 600ms;
+}
+.delay-700 {
+  animation-delay: 700ms;
+}
+.delay-800 {
+  animation-delay: 800ms;
+}
+.delay-900 {
+  animation-delay: 900ms;
+}
+.delay-1000 {
+  animation-delay: 1000ms;
+}
 
 /* Common Transitions */
 .transition-all {
@@ -291,13 +395,17 @@
 }
 
 .dialog-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, rgba(255,255,255,0.3), rgba(200,210,230,0.2));
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.3),
+    rgba(200, 210, 230, 0.2)
+  );
   border-radius: 0.5rem;
   z-index: -1;
   opacity: 0;
@@ -312,7 +420,9 @@
 .fade-in {
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
 }
 
 .fade-in.visible {
@@ -386,8 +496,13 @@
   }
 
   @keyframes blink {
-    from, to { opacity: 1; }
-    50% { opacity: 0; }
+    from,
+    to {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
   }
 
   /* Skip link */
@@ -441,7 +556,7 @@
 .animate-gradientBG {
   background-size: 200% 200%;
   animation: gradientBG 6s ease-in-out infinite;
-} 
+}
 
 /* Neural Theme System
    :root holds the LIGHT theme; .dark overrides for the dark theme.
@@ -455,7 +570,7 @@
   --neural-cyan: 51, 65, 85;
   --neural-magenta: 120, 113, 140;
   --neural-surface: rgba(255, 255, 255, 0.86);
-  --neural-surface-soft: rgba(248, 250, 252, 0.80);
+  --neural-surface-soft: rgba(248, 250, 252, 0.8);
   --neural-pill-bg: rgba(15, 23, 42, 0.05);
   --neural-pill-border: rgba(15, 23, 42, 0.14);
   --neural-pill-text: rgb(30, 41, 59);
@@ -465,7 +580,8 @@
   --neural-page-bg: #faf3e6;
   --card-border: rgba(15, 23, 42, 0.09);
   --card-border-soft: rgba(15, 23, 42, 0.06);
-  --card-shadow: 0 18px 45px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --card-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .dark {
@@ -484,18 +600,30 @@
   --neural-page-bg: #030303;
   --card-border: rgba(100, 116, 139, 0.2);
   --card-border-soft: rgba(100, 116, 139, 0.15);
-  --card-shadow: 0 18px 45px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --card-shadow:
+    0 18px 45px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .neural-page-shell {
-  @apply w-full max-w-[1800px] mx-auto px-3 sm:px-6 py-24 sm:py-28;
+  /* Tighter, consistent top gap: the fixed navbar is cleared by the status
+     strip above <main>, so the shell only needs a small top pad (home still
+     overrides to !pt-0 for its hero). Generous bottom pad kept before footer. */
+  @apply w-full max-w-[1800px] mx-auto px-3 sm:px-6 pt-8 sm:pt-10 pb-24 sm:pb-28;
 }
 
 .neural-intro-panel {
   border: 1px solid rgba(var(--neural-blue), 0.22);
   background:
-    radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.03), transparent 45%),
-    radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.025), transparent 42%),
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(255, 255, 255, 0.03),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 80% 10%,
+      rgba(255, 255, 255, 0.025),
+      transparent 42%
+    ),
     var(--neural-surface-soft);
 }
 
@@ -505,7 +633,7 @@
 }
 
 .interactive-surface::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -533,10 +661,21 @@
   @apply inline-flex items-center justify-center rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-200;
   color: var(--neural-text-body);
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)),
-    linear-gradient(135deg, rgba(var(--neural-purple), 0.12), rgba(var(--neural-blue), 0.08) 58%, rgba(var(--neural-cyan), 0.08));
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.015)
+    ),
+    linear-gradient(
+      135deg,
+      rgba(var(--neural-purple), 0.12),
+      rgba(var(--neural-blue), 0.08) 58%,
+      rgba(var(--neural-cyan), 0.08)
+    );
   border: 1px solid rgba(var(--neural-blue), 0.22);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(18px) saturate(135%);
   position: relative;
   overflow: hidden;
@@ -549,7 +688,10 @@
   transform: translateY(-1px);
   color: rgb(253, 230, 138);
   border-color: rgba(245, 158, 11, 0.58);
-  box-shadow: 0 0 16px rgba(245,158,11,0.14), 0 14px 28px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow:
+    0 0 16px rgba(245, 158, 11, 0.14),
+    0 14px 28px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   background-position: 56% 44%;
 }
 
@@ -563,7 +705,9 @@
   color: #1a0800;
   border: 1px solid rgba(245, 158, 11, 0.7);
   background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
-  box-shadow: 0 6px 22px rgba(217, 119, 6, 0.40), inset 0 1px 0 rgba(255,255,255,0.28);
+  box-shadow:
+    0 6px 22px rgba(217, 119, 6, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -573,7 +717,10 @@
   transform: translateY(-1px);
   background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
   border-color: rgba(245, 158, 11, 0.9);
-  box-shadow: 0 0 26px rgba(245,158,11,0.35), 0 10px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.32);
+  box-shadow:
+    0 0 26px rgba(245, 158, 11, 0.35),
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
   color: #0a0200;
 }
 
@@ -585,9 +732,13 @@
 .neural-control-btn-ghost {
   @apply inline-flex items-center justify-center rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-200;
   color: var(--neural-text-body);
-  background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.008));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.025),
+    rgba(255, 255, 255, 0.008)
+  );
   border: 1px solid rgba(var(--neural-blue), 0.18);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -597,9 +748,16 @@
   color: rgb(253, 230, 138);
   border-color: rgba(245, 158, 11, 0.52);
   background:
-    linear-gradient(180deg, rgba(245,158,11,0.08), rgba(217,119,6,0.04)),
-    linear-gradient(135deg, rgba(var(--neural-purple), 0.06), rgba(var(--neural-cyan), 0.04));
-  box-shadow: 0 0 14px rgba(245,158,11,0.10), 0 12px 24px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255,255,255,0.06);
+    linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(217, 119, 6, 0.04)),
+    linear-gradient(
+      135deg,
+      rgba(var(--neural-purple), 0.06),
+      rgba(var(--neural-cyan), 0.04)
+    );
+  box-shadow:
+    0 0 14px rgba(245, 158, 11, 0.1),
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .neural-control-btn-ghost:focus-visible {
@@ -610,11 +768,17 @@
 .neural-input {
   @apply w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all duration-200;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.015)
+    ),
     linear-gradient(180deg, var(--neural-surface), var(--neural-surface));
   border: 1px solid rgba(var(--neural-blue), 0.2);
   color: var(--neural-text-strong);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 22px rgba(2, 6, 23, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 22px rgba(2, 6, 23, 0.18);
   backdrop-filter: blur(16px) saturate(130%);
 }
 
@@ -624,7 +788,9 @@
 
 .neural-input:focus {
   border-color: rgba(var(--neural-cyan), 0.35);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.07), 0 14px 28px rgba(0, 0, 0, 0.28);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.07),
+    0 14px 28px rgba(0, 0, 0, 0.28);
 }
 
 a:focus-visible,
@@ -632,7 +798,7 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
-[role='button']:focus-visible {
+[role="button"]:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.75);
   outline-offset: 2px;
 }
@@ -675,7 +841,9 @@ select:focus-visible,
 .neural-title {
   @apply text-3xl sm:text-4xl md:text-5xl font-bold;
   color: var(--neural-text-strong);
-  text-shadow: 0 0 25px rgba(var(--neural-purple), 0.25), 0 2px 12px rgba(0, 0, 0, 0.12);
+  text-shadow:
+    0 0 25px rgba(var(--neural-purple), 0.25),
+    0 2px 12px rgba(0, 0, 0, 0.12);
 }
 
 .neural-subtitle {
@@ -689,7 +857,11 @@ select:focus-visible,
   border: 1px solid var(--card-border);
   background-color: var(--neural-surface);
   box-shadow: var(--card-shadow);
-  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease, border-color 260ms ease, background-color 260ms ease;
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 260ms ease,
+    border-color 260ms ease,
+    background-color 260ms ease;
 }
 
 /* More transparent cards on pages with animated backgrounds so they show through */
@@ -707,7 +879,7 @@ main[data-page-background="true"] .neural-card-soft {
 }
 
 .neural-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -747,7 +919,11 @@ main[data-page-background="true"] .neural-card-soft {
   @apply rounded-xl backdrop-blur-sm;
   border: 1px solid var(--card-border-soft);
   background-color: var(--neural-surface-soft);
-  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms ease, border-color 240ms ease, background-color 240ms ease;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 240ms ease,
+    border-color 240ms ease,
+    background-color 240ms ease;
 }
 
 .neural-glow-border {
@@ -755,38 +931,51 @@ main[data-page-background="true"] .neural-card-soft {
 }
 
 .neural-glow-border::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(120deg,
-      rgba(var(--neural-purple), 0.5),
-      rgba(var(--neural-blue), 0.45),
-      rgba(var(--neural-cyan), 0.35));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  background: linear-gradient(
+    120deg,
+    rgba(var(--neural-purple), 0.5),
+    rgba(var(--neural-blue), 0.45),
+    rgba(var(--neural-cyan), 0.35)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
   opacity: 0.75;
-  transition: opacity 240ms ease, filter 240ms ease;
+  transition:
+    opacity 240ms ease,
+    filter 240ms ease;
 }
 
 .neural-hover-lift {
-  transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+  transition:
+    transform 260ms ease,
+    box-shadow 260ms ease,
+    border-color 260ms ease;
 }
 
 .neural-hover-lift:hover {
   transform: translateY(-5px);
   border-color: rgba(245, 158, 11, 0.4);
-  box-shadow: 0 26px 52px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(245, 158, 11, 0.12) inset;
+  box-shadow:
+    0 26px 52px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(245, 158, 11, 0.12) inset;
 }
 
 .interactive-surface.neural-card:hover,
 .interactive-surface.neural-card-soft:hover,
 .neural-hover-lift:hover {
   border-color: rgba(245, 158, 11, 0.35);
-  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 22px 48px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .interactive-surface.neural-card:hover::before,
@@ -809,13 +998,24 @@ main[data-page-background="true"] .neural-card-soft {
 .neural-pill {
   @apply inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold cursor-pointer;
   background:
-    linear-gradient(180deg, rgba(245,158,11,0.14), rgba(217,119,6,0.08)),
-    linear-gradient(135deg, rgba(var(--neural-purple), 0.06), rgba(var(--neural-blue), 0.04));
-  border-color: rgba(245, 158, 11, 0.50);
+    linear-gradient(180deg, rgba(245, 158, 11, 0.14), rgba(217, 119, 6, 0.08)),
+    linear-gradient(
+      135deg,
+      rgba(var(--neural-purple), 0.06),
+      rgba(var(--neural-blue), 0.04)
+    );
+  border-color: rgba(245, 158, 11, 0.5);
   color: rgb(253, 230, 138);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32), 0 0 0 0 rgba(245,158,11,0), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.32),
+    0 0 0 0 rgba(245, 158, 11, 0),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(18px) saturate(138%);
-  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease, background 200ms ease;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease,
+    background 200ms ease;
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -827,10 +1027,17 @@ main[data-page-background="true"] .neural-card-soft {
   transform: translateY(-2px);
   border-color: rgba(245, 158, 11, 0.82);
   color: rgb(255, 251, 235);
-  box-shadow: 0 0 22px rgba(245,158,11,0.22), 0 14px 28px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow:
+    0 0 22px rgba(245, 158, 11, 0.22),
+    0 14px 28px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   background:
-    linear-gradient(180deg, rgba(245,158,11,0.24), rgba(217,119,6,0.16)),
-    linear-gradient(135deg, rgba(var(--neural-purple), 0.08), rgba(var(--neural-blue), 0.05));
+    linear-gradient(180deg, rgba(245, 158, 11, 0.24), rgba(217, 119, 6, 0.16)),
+    linear-gradient(
+      135deg,
+      rgba(var(--neural-purple), 0.08),
+      rgba(var(--neural-blue), 0.05)
+    );
   background-size: 145% 145%;
   background-position: 58% 42%;
 }
@@ -838,29 +1045,61 @@ main[data-page-background="true"] .neural-card-soft {
 /* Static chip — display-only tag; no amber color, no transform */
 .neural-pill.neural-pill-static {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.018)),
-    linear-gradient(135deg, rgba(var(--neural-purple), 0.07), rgba(var(--neural-blue), 0.04));
-  border-color: rgba(var(--neural-blue), 0.30);
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.018)
+    ),
+    linear-gradient(
+      135deg,
+      rgba(var(--neural-purple), 0.07),
+      rgba(var(--neural-blue), 0.04)
+    );
+  border-color: rgba(var(--neural-blue), 0.3);
   color: var(--neural-text-muted);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
   cursor: default;
 }
 .neural-pill.neural-pill-static:hover {
   transform: none !important;
   border-color: rgba(var(--neural-blue), 0.48);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,0.06);
-  transition: border-color 200ms ease, box-shadow 200ms ease;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }
 
 /* Softer chip variant used by page intro strips */
 .neural-pill-intro {
   @apply inline-flex items-center rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-all duration-200;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.018)),
-    linear-gradient(135deg, color-mix(in srgb, var(--neural-surface-soft) 92%, rgba(var(--neural-purple), 0.1)), color-mix(in srgb, var(--neural-surface-soft) 92%, rgba(var(--neural-cyan), 0.06)));
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.018)
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--neural-surface-soft) 92%,
+        rgba(var(--neural-purple), 0.1)
+      ),
+      color-mix(
+        in srgb,
+        var(--neural-surface-soft) 92%,
+        rgba(var(--neural-cyan), 0.06)
+      )
+    );
   border-color: rgba(var(--neural-blue), 0.2);
   color: var(--neural-text-body);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow:
+    0 10px 18px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px) saturate(130%);
   position: relative;
   overflow: hidden;
@@ -873,7 +1112,10 @@ main[data-page-background="true"] .neural-card-soft {
   transform: translateY(-1px);
   border-color: rgba(245, 158, 11, 0.52);
   color: rgb(253, 230, 138);
-  box-shadow: 0 0 14px rgba(245,158,11,0.12), 0 10px 22px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow:
+    0 0 14px rgba(245, 158, 11, 0.12),
+    0 10px 22px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   background-position: 57% 43%;
 }
 
@@ -881,9 +1123,16 @@ main[data-page-background="true"] .neural-card-soft {
   border-color: rgba(245, 158, 11, 0.65);
   color: rgb(253, 230, 138);
   background:
-    linear-gradient(180deg, rgba(245,158,11,0.18), rgba(217,119,6,0.10)),
-    linear-gradient(135deg, rgba(var(--neural-purple), 0.10), rgba(var(--neural-blue), 0.07));
-  box-shadow: 0 0 18px rgba(245,158,11,0.18), 0 10px 22px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255,255,255,0.1);
+    linear-gradient(180deg, rgba(245, 158, 11, 0.18), rgba(217, 119, 6, 0.1)),
+    linear-gradient(
+      135deg,
+      rgba(var(--neural-purple), 0.1),
+      rgba(var(--neural-blue), 0.07)
+    );
+  box-shadow:
+    0 0 18px rgba(245, 158, 11, 0.18),
+    0 10px 22px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .neural-control-btn > *,
@@ -896,34 +1145,69 @@ main[data-page-background="true"] .neural-card-soft {
 }
 
 @keyframes neuralFloat {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  33%  { transform: translate3d(2px, -4px, 0); }
-  66%  { transform: translate3d(-2px, -6px, 0); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  33% {
+    transform: translate3d(2px, -4px, 0);
+  }
+  66% {
+    transform: translate3d(-2px, -6px, 0);
+  }
 }
 
 @keyframes neuralPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--neural-purple), 0.45); }
-  70% { box-shadow: 0 0 0 12px rgba(var(--neural-purple), 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--neural-purple), 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(var(--neural-purple), 0);
+  }
 }
 
 /* Shimmer sweep — applied to .neural-card on hover */
 @keyframes neuralShimmer {
-  from  { transform: translateX(-160%) skewX(-12deg); opacity: 0; }
-  8%    { opacity: 1; }
-  92%   { opacity: 1; }
-  to    { transform: translateX(320%) skewX(-12deg); opacity: 0; }
+  from {
+    transform: translateX(-160%) skewX(-12deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(320%) skewX(-12deg);
+    opacity: 0;
+  }
 }
 
 /* Smooth gradient flow for text highlights */
 @keyframes gradientFlow {
-  0%, 100% { background-position: 0% 50%; }
-  50%       { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 /* Subtle entrance — scale + fade */
 @keyframes neuralEntrance {
-  from { opacity: 0; transform: translateY(16px) scale(0.97); filter: blur(3px); }
-  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 
 .neural-float {
@@ -945,7 +1229,14 @@ main[data-page-background="true"] .neural-card-soft {
 }
 
 /* Scoped inner component theming inside neural shell */
-.neural-page-shell :where(.bg-white, .bg-card, .dark\:bg-slate-800, .dark\:bg-slate-700, .dark\:bg-gray-700) {
+.neural-page-shell
+  :where(
+    .bg-white,
+    .bg-card,
+    .dark\:bg-slate-800,
+    .dark\:bg-slate-700,
+    .dark\:bg-gray-700
+  ) {
   background-color: var(--neural-surface) !important;
   border-color: rgba(71, 85, 105, 0.45) !important;
   backdrop-filter: blur(10px);
@@ -963,15 +1254,23 @@ main[data-page-background="true"] .neural-card-soft {
   color: var(--neural-text-strong) !important;
 }
 
-.neural-page-shell :where(.text-gray-800, .text-gray-700, .dark\:text-gray-300) {
+.neural-page-shell
+  :where(.text-gray-800, .text-gray-700, .dark\:text-gray-300) {
   color: var(--neural-text-body) !important;
 }
 
-.neural-page-shell :where(.text-gray-600, .text-gray-500, .dark\:text-gray-400) {
+.neural-page-shell
+  :where(.text-gray-600, .text-gray-500, .dark\:text-gray-400) {
   color: var(--neural-text-muted) !important;
 }
 
-.neural-page-shell :where(.border-gray-200, .border-gray-300, .dark\:border-slate-700, .dark\:border-gray-600) {
+.neural-page-shell
+  :where(
+    .border-gray-200,
+    .border-gray-300,
+    .dark\:border-slate-700,
+    .dark\:border-gray-600
+  ) {
   border-color: rgba(71, 85, 105, 0.65) !important;
 }
 
@@ -993,35 +1292,101 @@ main[data-page-background="true"] .neural-card-soft {
    theme-aware neural variables. Substring selectors also catch opacity
    variants (e.g. bg-slate-900/45). */
 /* Substring selectors so opacity variants (e.g. text-slate-200/90) also match. */
-html:not(.dark) body :where([class*='text-white'], [class*='text-slate-1'], [class*='text-slate-2'], [class*='text-slate-3'], [class*='text-gray-1'], [class*='text-gray-2']) {
+html:not(.dark)
+  body
+  :where(
+    [class*="text-white"],
+    [class*="text-slate-1"],
+    [class*="text-slate-2"],
+    [class*="text-slate-3"],
+    [class*="text-gray-1"],
+    [class*="text-gray-2"]
+  ) {
   color: var(--neural-text-strong) !important;
 }
-html:not(.dark) body :where([class*='text-slate-4'], [class*='text-slate-5'], [class*='text-slate-6']) {
+html:not(.dark)
+  body
+  :where(
+    [class*="text-slate-4"],
+    [class*="text-slate-5"],
+    [class*="text-slate-6"]
+  ) {
   color: var(--neural-text-muted) !important;
 }
-html:not(.dark) body :where([class*='bg-slate-9'], [class*='bg-slate-8'], [class*='bg-gray-9'], [class*='bg-gray-8'], [class*='bg-black']) {
+html:not(.dark)
+  body
+  :where(
+    [class*="bg-slate-9"],
+    [class*="bg-slate-8"],
+    [class*="bg-gray-9"],
+    [class*="bg-gray-8"],
+    [class*="bg-black"]
+  ) {
   background-color: var(--neural-surface-soft) !important;
 }
-html:not(.dark) body :where([class*='border-slate-'], [class*='border-gray-7'], [class*='border-gray-8']) {
-  border-color: rgba(var(--neural-blue), 0.30) !important;
+html:not(.dark)
+  body
+  :where(
+    [class*="border-slate-"],
+    [class*="border-gray-7"],
+    [class*="border-gray-8"]
+  ) {
+  border-color: rgba(var(--neural-blue), 0.3) !important;
 }
 /* Divider/hairline elements that lean on white-alpha fills */
-html:not(.dark) body :where([class*='bg-white/']) {
+html:not(.dark) body :where([class*="bg-white/"]) {
   background-color: rgba(15, 23, 42, 0.06) !important;
 }
 
 /* Light theme: warm accent text was tuned for dark backgrounds and washes
    out on white. Deepen the light tints (-100..-400) to a readable -800.
    Substring selectors also catch opacity variants (e.g. text-amber-200/80). */
-html:not(.dark) body :where([class*='text-amber-1'], [class*='text-amber-2'], [class*='text-amber-3'], [class*='text-amber-4'], [class*='text-orange-1'], [class*='text-orange-2'], [class*='text-orange-3'], [class*='text-orange-4']) {
+html:not(.dark)
+  body
+  :where(
+    [class*="text-amber-1"],
+    [class*="text-amber-2"],
+    [class*="text-amber-3"],
+    [class*="text-amber-4"],
+    [class*="text-orange-1"],
+    [class*="text-orange-2"],
+    [class*="text-orange-3"],
+    [class*="text-orange-4"]
+  ) {
   color: rgb(146, 64, 14) !important;
 }
 /* Cool accent text — sky/blue/indigo light tints become a readable deep blue */
-html:not(.dark) body :where([class*='text-sky-1'], [class*='text-sky-2'], [class*='text-sky-3'], [class*='text-sky-4'], [class*='text-blue-1'], [class*='text-blue-2'], [class*='text-blue-3'], [class*='text-blue-4'], [class*='text-indigo-2'], [class*='text-indigo-3'], [class*='text-indigo-4']) {
+html:not(.dark)
+  body
+  :where(
+    [class*="text-sky-1"],
+    [class*="text-sky-2"],
+    [class*="text-sky-3"],
+    [class*="text-sky-4"],
+    [class*="text-blue-1"],
+    [class*="text-blue-2"],
+    [class*="text-blue-3"],
+    [class*="text-blue-4"],
+    [class*="text-indigo-2"],
+    [class*="text-indigo-3"],
+    [class*="text-indigo-4"]
+  ) {
   color: rgb(30, 64, 175) !important;
 }
 /* Cool greens (emerald/green/teal) — used for status/live indicators */
-html:not(.dark) body :where([class*='text-emerald-2'], [class*='text-emerald-3'], [class*='text-emerald-4'], [class*='text-green-2'], [class*='text-green-3'], [class*='text-green-4'], [class*='text-teal-2'], [class*='text-teal-3'], [class*='text-teal-4']) {
+html:not(.dark)
+  body
+  :where(
+    [class*="text-emerald-2"],
+    [class*="text-emerald-3"],
+    [class*="text-emerald-4"],
+    [class*="text-green-2"],
+    [class*="text-green-3"],
+    [class*="text-green-4"],
+    [class*="text-teal-2"],
+    [class*="text-teal-3"],
+    [class*="text-teal-4"]
+  ) {
   color: rgb(4, 120, 87) !important;
 }
 
@@ -1029,21 +1394,35 @@ html:not(.dark) body :where([class*='text-emerald-2'], [class*='text-emerald-3']
    themes (signature brand). On that dark-orange surface we need *light* text,
    not the bridge's deepened amber. Restore the original Tailwind colors so the
    nav stays readable in light mode. */
-html:not(.dark) .brand-nav :where([class*='text-amber-50'], [class*='text-amber-100'], [class*='text-amber-200'], [class*='text-amber-300']) {
+html:not(.dark)
+  .brand-nav
+  :where(
+    [class*="text-amber-50"],
+    [class*="text-amber-100"],
+    [class*="text-amber-200"],
+    [class*="text-amber-300"]
+  ) {
   color: rgb(255, 251, 235) !important;
 }
-html:not(.dark) .brand-nav :where(.text-white, [class*='text-white']) {
+html:not(.dark) .brand-nav :where(.text-white, [class*="text-white"]) {
   color: #ffffff !important;
 }
 /* Mobile menu and toggle button sit on the same orange surface — keep them light too. */
-html:not(.dark) .brand-nav :where([class*='border-amber-']) {
+html:not(.dark) .brand-nav :where([class*="border-amber-"]) {
   border-color: rgba(245, 158, 11, 0.35) !important;
 }
 /* Pill / control-button accent text (class-driven, not utilities) */
 html:not(.dark) body :where(.neural-pill, .neural-pill-intro.is-active) {
   color: rgb(146, 64, 14);
 }
-html:not(.dark) body :where(.neural-pill:hover, .neural-pill-intro:hover, .neural-control-btn:hover, .neural-control-btn-ghost:hover) {
+html:not(.dark)
+  body
+  :where(
+    .neural-pill:hover,
+    .neural-pill-intro:hover,
+    .neural-control-btn:hover,
+    .neural-control-btn-ghost:hover
+  ) {
   color: rgb(124, 45, 18);
 }
 
@@ -1067,7 +1446,7 @@ html:not(.dark) body :where(.neural-pill:hover, .neural-pill-intro:hover, .neura
 }
 
 .neural-page-shell::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -1075,7 +1454,7 @@ html:not(.dark) body :where(.neural-pill:hover, .neural-pill-intro:hover, .neura
 }
 
 .neural-page-shell::after {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -1085,7 +1464,9 @@ html:not(.dark) body :where(.neural-pill:hover, .neural-pill-intro:hover, .neura
 }
 
 .neural-card {
-  box-shadow: var(--neural-shadow-deep), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow:
+    var(--neural-shadow-deep),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   border-color: rgba(245, 158, 11, 0.22);
   background-image:
     linear-gradient(145deg, rgba(245, 158, 11, 0.09), rgba(251, 191, 36, 0.03)),
@@ -1095,14 +1476,24 @@ html:not(.dark) body :where(.neural-pill:hover, .neural-pill-intro:hover, .neura
 .neural-card-soft {
   border-color: rgba(245, 158, 11, 0.18);
   background-image:
-    linear-gradient(145deg, rgba(245, 158, 11, 0.07), rgba(251, 191, 36, 0.025)),
-    linear-gradient(180deg, var(--neural-surface-soft), var(--neural-surface-soft));
+    linear-gradient(
+      145deg,
+      rgba(245, 158, 11, 0.07),
+      rgba(251, 191, 36, 0.025)
+    ),
+    linear-gradient(
+      180deg,
+      var(--neural-surface-soft),
+      var(--neural-surface-soft)
+    );
   box-shadow: 0 14px 30px rgba(2, 6, 23, 0.28);
 }
 
 .neural-intro-panel {
   border-color: rgba(245, 158, 11, 0.24);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(245, 158, 11, 0.08);
+  box-shadow:
+    0 20px 45px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(245, 158, 11, 0.08);
 }
 
 .neural-glow-border::before {
@@ -1116,18 +1507,31 @@ html:not(.dark) body :where(.neural-pill:hover, .neural-pill-intro:hover, .neura
 }
 
 .neural-pill {
-  border-color: rgba(245, 158, 11, 0.50);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px rgba(245, 158, 11, 0.06);
 }
 
 .neural-pill-intro {
   border-color: rgba(var(--neural-blue), 0.38);
-  background-color: color-mix(in srgb, var(--neural-surface-soft) 84%, rgba(var(--neural-cyan), 0.1));
+  background-color: color-mix(
+    in srgb,
+    var(--neural-surface-soft) 84%,
+    rgba(var(--neural-cyan), 0.1)
+  );
 }
 
 .neural-pill-intro.is-active {
-  background-color: color-mix(in srgb, rgba(245, 158, 11, 0.18) 60%, var(--neural-surface-soft));
-  box-shadow: 0 0 18px rgba(245,158,11,0.16), 0 10px 22px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(245, 158, 11, 0.22);
+  background-color: color-mix(
+    in srgb,
+    rgba(245, 158, 11, 0.18) 60%,
+    var(--neural-surface-soft)
+  );
+  box-shadow:
+    0 0 18px rgba(245, 158, 11, 0.16),
+    0 10px 22px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(245, 158, 11, 0.22);
 }
 
 .neural-control-btn,
@@ -1138,7 +1542,10 @@ html:not(.dark) body :where(.neural-pill:hover, .neural-pill-intro:hover, .neura
 
 .neural-control-btn:hover,
 .neural-control-btn-ghost:hover {
-  box-shadow: 0 0 16px rgba(245,158,11,0.14), 0 14px 28px rgba(0, 0, 0, 0.38), inset 0 0 0 1px rgba(245, 158, 11, 0.18);
+  box-shadow:
+    0 0 16px rgba(245, 158, 11, 0.14),
+    0 14px 28px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px rgba(245, 158, 11, 0.18);
 }
 
 a:focus-visible,
@@ -1146,7 +1553,7 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
-[role='button']:focus-visible {
+[role="button"]:focus-visible {
   outline: 2px solid var(--neural-focus-ring);
   outline-offset: 2px;
 }
@@ -1168,7 +1575,11 @@ select:focus-visible,
   @apply inline-flex items-start rounded-xl px-3 py-2 text-xs sm:text-sm leading-relaxed;
   color: var(--neural-text-body);
   border: 1px solid rgba(var(--neural-blue), 0.3);
-  background: color-mix(in srgb, var(--neural-surface-soft) 88%, rgba(var(--neural-cyan), 0.08));
+  background: color-mix(
+    in srgb,
+    var(--neural-surface-soft) 88%,
+    rgba(var(--neural-cyan), 0.08)
+  );
 }
 
 .neural-telemetry-card {
@@ -1208,10 +1619,18 @@ select:focus-visible,
   animation: neuralEntrance 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.neural-enter-delay-1 { animation-delay: 0.1s; }
-.neural-enter-delay-2 { animation-delay: 0.2s; }
-.neural-enter-delay-3 { animation-delay: 0.35s; }
-.neural-enter-delay-4 { animation-delay: 0.5s; }
+.neural-enter-delay-1 {
+  animation-delay: 0.1s;
+}
+.neural-enter-delay-2 {
+  animation-delay: 0.2s;
+}
+.neural-enter-delay-3 {
+  animation-delay: 0.35s;
+}
+.neural-enter-delay-4 {
+  animation-delay: 0.5s;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .neural-gradient-text {
@@ -1231,23 +1650,43 @@ select:focus-visible,
 /* Global overrides to make hardcoded dark-mode elements responsive in light mode */
 
 /* Slate text color overrides */
-.text-slate-100 { color: var(--neural-text-strong) !important; }
-.text-slate-200 { color: var(--neural-text-body) !important; }
-.text-slate-300 { color: var(--neural-text-body) !important; }
-.text-slate-400 { color: var(--neural-text-muted) !important; }
-.text-slate-500 { color: var(--neural-text-muted) !important; }
+.text-slate-100 {
+  color: var(--neural-text-strong) !important;
+}
+.text-slate-200 {
+  color: var(--neural-text-body) !important;
+}
+.text-slate-300 {
+  color: var(--neural-text-body) !important;
+}
+.text-slate-400 {
+  color: var(--neural-text-muted) !important;
+}
+.text-slate-500 {
+  color: var(--neural-text-muted) !important;
+}
 
-.dark .text-slate-100 { color: var(--neural-text-strong) !important; }
-.dark .text-slate-200 { color: var(--neural-text-body) !important; }
-.dark .text-slate-300 { color: var(--neural-text-body) !important; }
-.dark .text-slate-400 { color: var(--neural-text-muted) !important; }
-.dark .text-slate-500 { color: var(--neural-text-muted) !important; }
+.dark .text-slate-100 {
+  color: var(--neural-text-strong) !important;
+}
+.dark .text-slate-200 {
+  color: var(--neural-text-body) !important;
+}
+.dark .text-slate-300 {
+  color: var(--neural-text-body) !important;
+}
+.dark .text-slate-400 {
+  color: var(--neural-text-muted) !important;
+}
+.dark .text-slate-500 {
+  color: var(--neural-text-muted) !important;
+}
 
 /* Overrides for hardcoded backgrounds */
-.bg-slate-950\/80, 
-.bg-slate-950\/35, 
-.bg-slate-950\/30, 
-.bg-slate-900\/45, 
+.bg-slate-950\/80,
+.bg-slate-950\/35,
+.bg-slate-950\/30,
+.bg-slate-900\/45,
 .bg-slate-900\/50 {
   background-color: var(--neural-surface-soft) !important;
 }
@@ -1276,19 +1715,19 @@ select:focus-visible,
 }
 
 /* Overrides for headings styled with text-white (ensures they are strong-text in light mode, white in dark mode) */
-h1.text-white, 
-h2.text-white, 
-h3.text-white, 
-h4.text-white, 
-h5.text-white, 
+h1.text-white,
+h2.text-white,
+h3.text-white,
+h4.text-white,
+h5.text-white,
 h6.text-white {
   color: var(--neural-text-strong) !important;
 }
-.dark h1.text-white, 
-.dark h2.text-white, 
-.dark h3.text-white, 
-.dark h4.text-white, 
-.dark h5.text-white, 
+.dark h1.text-white,
+.dark h2.text-white,
+.dark h3.text-white,
+.dark h4.text-white,
+.dark h5.text-white,
 .dark h6.text-white {
   color: #ffffff !important;
 }
@@ -1308,16 +1747,36 @@ h6.text-white {
 .bg-slate-950\/60 {
   background-color: var(--neural-surface-soft) !important;
 }
-.dark .bg-slate-800 { background-color: rgb(30, 41, 59) !important; }
-.dark .bg-slate-800\/60 { background-color: rgba(30, 41, 59, 0.6) !important; }
-.dark .bg-slate-800\/50 { background-color: rgba(30, 41, 59, 0.5) !important; }
-.dark .bg-slate-800\/40 { background-color: rgba(30, 41, 59, 0.4) !important; }
-.dark .bg-slate-900 { background-color: rgb(15, 23, 42) !important; }
-.dark .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.8) !important; }
-.dark .bg-slate-950 { background-color: rgb(2, 6, 23) !important; }
-.dark .bg-slate-950\/80 { background-color: rgba(2, 6, 23, 0.8) !important; }
-.dark .bg-slate-950\/70 { background-color: rgba(2, 6, 23, 0.7) !important; }
-.dark .bg-slate-950\/60 { background-color: rgba(2, 6, 23, 0.6) !important; }
+.dark .bg-slate-800 {
+  background-color: rgb(30, 41, 59) !important;
+}
+.dark .bg-slate-800\/60 {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+}
+.dark .bg-slate-800\/50 {
+  background-color: rgba(30, 41, 59, 0.5) !important;
+}
+.dark .bg-slate-800\/40 {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+}
+.dark .bg-slate-900 {
+  background-color: rgb(15, 23, 42) !important;
+}
+.dark .bg-slate-900\/80 {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+}
+.dark .bg-slate-950 {
+  background-color: rgb(2, 6, 23) !important;
+}
+.dark .bg-slate-950\/80 {
+  background-color: rgba(2, 6, 23, 0.8) !important;
+}
+.dark .bg-slate-950\/70 {
+  background-color: rgba(2, 6, 23, 0.7) !important;
+}
+.dark .bg-slate-950\/60 {
+  background-color: rgba(2, 6, 23, 0.6) !important;
+}
 
 /* Skeletons and progress tracks */
 .bg-slate-700,
@@ -1329,13 +1788,27 @@ h6.text-white {
 .bg-slate-500\/20 {
   background-color: var(--neural-surface-soft) !important;
 }
-.dark .bg-slate-700 { background-color: rgb(51, 65, 85) !important; }
-.dark .bg-slate-700\/70 { background-color: rgba(51, 65, 85, 0.7) !important; }
-.dark .bg-slate-700\/50 { background-color: rgba(51, 65, 85, 0.5) !important; }
-.dark .bg-slate-700\/40 { background-color: rgba(51, 65, 85, 0.4) !important; }
-.dark .bg-slate-700\/30 { background-color: rgba(51, 65, 85, 0.3) !important; }
-.dark .bg-slate-500\/30 { background-color: rgba(100, 116, 139, 0.3) !important; }
-.dark .bg-slate-500\/20 { background-color: rgba(100, 116, 139, 0.2) !important; }
+.dark .bg-slate-700 {
+  background-color: rgb(51, 65, 85) !important;
+}
+.dark .bg-slate-700\/70 {
+  background-color: rgba(51, 65, 85, 0.7) !important;
+}
+.dark .bg-slate-700\/50 {
+  background-color: rgba(51, 65, 85, 0.5) !important;
+}
+.dark .bg-slate-700\/40 {
+  background-color: rgba(51, 65, 85, 0.4) !important;
+}
+.dark .bg-slate-700\/30 {
+  background-color: rgba(51, 65, 85, 0.3) !important;
+}
+.dark .bg-slate-500\/30 {
+  background-color: rgba(100, 116, 139, 0.3) !important;
+}
+.dark .bg-slate-500\/20 {
+  background-color: rgba(100, 116, 139, 0.2) !important;
+}
 
 /* Border colors */
 .border-slate-700,
@@ -1346,12 +1819,24 @@ h6.text-white {
 .border-slate-500\/40 {
   border-color: var(--card-border-soft) !important;
 }
-.dark .border-slate-700 { border-color: rgb(51, 65, 85) !important; }
-.dark .border-slate-700\/70 { border-color: rgba(51, 65, 85, 0.7) !important; }
-.dark .border-slate-600 { border-color: rgb(71, 85, 105) !important; }
-.dark .border-slate-600\/55 { border-color: rgba(71, 85, 105, 0.55) !important; }
-.dark .border-slate-600\/50 { border-color: rgba(71, 85, 105, 0.50) !important; }
-.dark .border-slate-500\/40 { border-color: rgba(100, 116, 139, 0.40) !important; }
+.dark .border-slate-700 {
+  border-color: rgb(51, 65, 85) !important;
+}
+.dark .border-slate-700\/70 {
+  border-color: rgba(51, 65, 85, 0.7) !important;
+}
+.dark .border-slate-600 {
+  border-color: rgb(71, 85, 105) !important;
+}
+.dark .border-slate-600\/55 {
+  border-color: rgba(71, 85, 105, 0.55) !important;
+}
+.dark .border-slate-600\/50 {
+  border-color: rgba(71, 85, 105, 0.5) !important;
+}
+.dark .border-slate-500\/40 {
+  border-color: rgba(100, 116, 139, 0.4) !important;
+}
 
 /* Hover backgrounds override */
 .hover\:bg-slate-900:hover,
@@ -1366,16 +1851,36 @@ h6.text-white {
 .hover\:bg-slate-950\/35:hover {
   background-color: rgba(15, 23, 42, 0.06) !important;
 }
-.dark .hover\:bg-slate-900:hover { background-color: rgb(15, 23, 42) !important; }
-.dark .hover\:bg-slate-950:hover { background-color: rgb(2, 6, 23) !important; }
-.dark .hover\:bg-slate-800:hover { background-color: rgb(30, 41, 59) !important; }
-.dark .hover\:bg-slate-700:hover { background-color: rgb(51, 65, 85) !important; }
-.dark .hover\:bg-slate-600:hover { background-color: rgb(71, 85, 105) !important; }
-.dark .hover\:bg-slate-900\/60:hover { background-color: rgba(15, 23, 42, 0.6) !important; }
-.dark .hover\:bg-slate-800\/60:hover { background-color: rgba(30, 41, 59, 0.6) !important; }
-.dark .hover\:bg-slate-900\/70:hover { background-color: rgba(15, 23, 42, 0.7) !important; }
-.dark .hover\:bg-slate-900\/55:hover { background-color: rgba(15, 23, 42, 0.55) !important; }
-.dark .hover\:bg-slate-950\/35:hover { background-color: rgba(2, 6, 23, 0.35) !important; }
+.dark .hover\:bg-slate-900:hover {
+  background-color: rgb(15, 23, 42) !important;
+}
+.dark .hover\:bg-slate-950:hover {
+  background-color: rgb(2, 6, 23) !important;
+}
+.dark .hover\:bg-slate-800:hover {
+  background-color: rgb(30, 41, 59) !important;
+}
+.dark .hover\:bg-slate-700:hover {
+  background-color: rgb(51, 65, 85) !important;
+}
+.dark .hover\:bg-slate-600:hover {
+  background-color: rgb(71, 85, 105) !important;
+}
+.dark .hover\:bg-slate-900\/60:hover {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+}
+.dark .hover\:bg-slate-800\/60:hover {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+}
+.dark .hover\:bg-slate-900\/70:hover {
+  background-color: rgba(15, 23, 42, 0.7) !important;
+}
+.dark .hover\:bg-slate-900\/55:hover {
+  background-color: rgba(15, 23, 42, 0.55) !important;
+}
+.dark .hover\:bg-slate-950\/35:hover {
+  background-color: rgba(2, 6, 23, 0.35) !important;
+}
 
 /* Hover text colors override */
 .hover\:text-amber-100:hover,
@@ -1389,15 +1894,33 @@ h6.text-white {
 .group:hover .group-hover\:text-amber-300 {
   color: #b45309 !important;
 }
-.dark .hover\:text-amber-100:hover { color: #fef3c7 !important; }
-.dark .hover\:text-amber-200:hover { color: #fde68a !important; }
-.dark .hover\:text-amber-300:hover { color: #fcd34d !important; }
-.dark .hover\:text-slate-100:hover { color: #f1f5f9 !important; }
-.dark .hover\:text-slate-200:hover { color: #e2e8f0 !important; }
-.dark .hover\:text-slate-300:hover { color: #cbd5e1 !important; }
-.dark .hover\:text-white:hover { color: #ffffff !important; }
-.dark .group:hover .group-hover\:text-amber-200 { color: #fde68a !important; }
-.dark .group:hover .group-hover\:text-amber-300 { color: #fcd34d !important; }
+.dark .hover\:text-amber-100:hover {
+  color: #fef3c7 !important;
+}
+.dark .hover\:text-amber-200:hover {
+  color: #fde68a !important;
+}
+.dark .hover\:text-amber-300:hover {
+  color: #fcd34d !important;
+}
+.dark .hover\:text-slate-100:hover {
+  color: #f1f5f9 !important;
+}
+.dark .hover\:text-slate-200:hover {
+  color: #e2e8f0 !important;
+}
+.dark .hover\:text-slate-300:hover {
+  color: #cbd5e1 !important;
+}
+.dark .hover\:text-white:hover {
+  color: #ffffff !important;
+}
+.dark .group:hover .group-hover\:text-amber-200 {
+  color: #fde68a !important;
+}
+.dark .group:hover .group-hover\:text-amber-300 {
+  color: #fcd34d !important;
+}
 
 /* Hover borders override */
 .hover\:border-amber-400\/25:hover,
@@ -1414,16 +1937,36 @@ h6.text-white {
 .hover\:border-sky-400\/30:hover {
   border-color: rgba(2, 132, 199, 0.4) !important;
 }
-.dark .hover\:border-amber-400\/25:hover { border-color: rgba(251, 191, 36, 0.25) !important; }
-.dark .hover\:border-amber-400\/20:hover { border-color: rgba(251, 191, 36, 0.20) !important; }
-.dark .hover\:border-amber-400\/35:hover { border-color: rgba(251, 191, 36, 0.35) !important; }
-.dark .hover\:border-amber-400\/40:hover { border-color: rgba(251, 191, 36, 0.40) !important; }
-.dark .hover\:border-amber-400\/45:hover { border-color: rgba(251, 191, 36, 0.45) !important; }
-.dark .hover\:border-amber-500\/30:hover { border-color: rgba(245, 158, 11, 0.30) !important; }
-.dark .hover\:border-amber-500\/40:hover { border-color: rgba(245, 158, 11, 0.40) !important; }
-.dark .hover\:border-amber-500\/50:hover { border-color: rgba(245, 158, 11, 0.50) !important; }
-.dark .hover\:border-amber-300\/55:hover { border-color: rgba(252, 211, 77, 0.55) !important; }
-.dark .hover\:border-sky-400\/30:hover { border-color: rgba(56, 189, 248, 0.30) !important; }
+.dark .hover\:border-amber-400\/25:hover {
+  border-color: rgba(251, 191, 36, 0.25) !important;
+}
+.dark .hover\:border-amber-400\/20:hover {
+  border-color: rgba(251, 191, 36, 0.2) !important;
+}
+.dark .hover\:border-amber-400\/35:hover {
+  border-color: rgba(251, 191, 36, 0.35) !important;
+}
+.dark .hover\:border-amber-400\/40:hover {
+  border-color: rgba(251, 191, 36, 0.4) !important;
+}
+.dark .hover\:border-amber-400\/45:hover {
+  border-color: rgba(251, 191, 36, 0.45) !important;
+}
+.dark .hover\:border-amber-500\/30:hover {
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+.dark .hover\:border-amber-500\/40:hover {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+.dark .hover\:border-amber-500\/50:hover {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+.dark .hover\:border-amber-300\/55:hover {
+  border-color: rgba(252, 211, 77, 0.55) !important;
+}
+.dark .hover\:border-sky-400\/30:hover {
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
 
 /* Placeholder text overrides */
 .placeholder\:text-slate-400::placeholder {
@@ -1442,4 +1985,3 @@ h6.text-white {
   color: #64748b !important;
   opacity: 1 !important;
 }
-
