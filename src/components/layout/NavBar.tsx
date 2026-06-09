@@ -435,8 +435,25 @@ export default function NavBar() {
               </div>
             </div>
 
-            {/* Mobile menu button */}
-            <div className="ml-auto xl:hidden">
+            {/* Mobile controls: keep the theme toggle visible in the header at the
+                hamburger breakpoint (the desktop toggle lives inside the xl:flex menu). */}
+            <div className="ml-auto xl:hidden flex items-center gap-2 pointer-events-auto">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={
+                  resolvedTheme === "dark"
+                    ? "Switch to light theme"
+                    : "Switch to dark theme"
+                }
+                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-500/18 bg-amber-500/[0.08] text-amber-100/80 transition-all duration-300 hover:text-white hover:border-amber-400/35 hover:bg-amber-500/[0.16] focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300/70"
+              >
+                {resolvedTheme === "dark" ? (
+                  <SunIcon className="w-5 h-5" />
+                ) : (
+                  <MoonIcon className="w-5 h-5" />
+                )}
+              </button>
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
