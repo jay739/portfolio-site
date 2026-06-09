@@ -23,6 +23,9 @@ interface BlogPostPageProps {
   }>;
 }
 
+// ISR: pick up new/edited MDX from the live content/blog mount without a rebuild.
+export const revalidate = 300;
+
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
 }
