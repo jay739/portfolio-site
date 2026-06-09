@@ -10,7 +10,7 @@ const InfiniteLoopScroll: React.FC = () => {
   const bottomCanvasRef = useRef<HTMLCanvasElement>(null);
   const leftCanvasRef = useRef<HTMLCanvasElement>(null);
   const rightCanvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {

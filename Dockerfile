@@ -1,5 +1,5 @@
 # 1. Install dependencies in an isolated stage
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 
 # Upgrade all Alpine packages first to patch known CVEs (harfbuzz, openssl, etc.)
 RUN apk upgrade --no-cache
@@ -54,8 +54,15 @@ ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
+# 6b. Self-contained sharp: install on a plain base with NO vips-dev, so sharp
+# fetches its prebuilt binary (with libvips bundled in) rather than building
+# against a system libvips that won't exist in the runner. Just sharp + deps.
+FROM node:22-alpine AS sharp
+WORKDIR /sharp
+RUN npm init -y >/dev/null 2>&1 && npm install sharp@0.32.6 --no-audit --no-fund
+
 # 7. Production image with only runtime artifacts
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 # Create a non-root user and group for security
@@ -68,18 +75,20 @@ RUN apk upgrade --no-cache
 RUN apk add --no-cache vips
 
 
-# Copy necessary files from builder
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/src/rag ./src/rag
-COPY --from=builder /app/content/blog ./content/blog
+# Copy runtime artifacts from the builder, written directly as the non-root user.
+# COPY --chown sets ownership in the same layer, so there's no separate
+# `chown -R` step duplicating every file into a second layer.
+COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
+COPY --from=builder --chown=appuser:appgroup /app/.next/static ./.next/static
+COPY --from=builder --chown=appuser:appgroup /app/public ./public
+COPY --from=builder --chown=appuser:appgroup /app/src/rag ./src/rag
+COPY --from=builder --chown=appuser:appgroup /app/content/blog ./content/blog
 
-# Install sharp in the runner stage for Next.js image optimization in standalone mode
-RUN npm install sharp@0.32.6 --legacy-peer-deps
-
-# Set permissions for the non-root user
-RUN chown -R appuser:appgroup /app
+# Next 15 traces sharp into .next/standalone, but that binary was linked against
+# the builder's system libvips (absent here) -> fails to load. Replace it with the
+# self-contained prebuilt from the `sharp` stage (libvips bundled, no host dep).
+RUN rm -rf node_modules/sharp
+COPY --from=sharp --chown=appuser:appgroup /sharp/node_modules ./node_modules
 
 # Expose port
 EXPOSE 3000

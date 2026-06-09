@@ -32,7 +32,7 @@ const containerVariants = {
   }
 };
 
-const techIconMap: Record<string, { icon: JSX.Element, url: string, label: string }> = {
+const techIconMap: Record<string, { icon: React.JSX.Element, url: string, label: string }> = {
   'Python': { icon: <DynamicIcon name="python" />, url: 'https://www.python.org/', label: 'Python' },
   'JavaScript': { icon: <DynamicIcon name="javascript" />, url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript', label: 'JavaScript' },
   'TypeScript': { icon: <DynamicIcon name="typescript" />, url: 'https://www.typescriptlang.org/', label: 'TypeScript' },

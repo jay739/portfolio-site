@@ -6,7 +6,7 @@ tags: ["Docker", "ARM64", "Performance", "DevOps", "CI/CD", "Oracle Cloud", "Git
 featured: true
 ---
 
-## 🚨 The Discovery
+## The Discovery
 
 After migrating from DigitalOcean to Oracle Cloud Infrastructure (OCI), I was excited about the powerful Ampere ARM64 processors. Everything seemed to work perfectly—my portfolio loaded fast, containers were healthy, and monitoring showed no issues. But then I decided to dig deeper into performance metrics, and what I found surprised me.
 
@@ -15,12 +15,12 @@ After migrating from DigitalOcean to Oracle Cloud Infrastructure (OCI), I was ex
 While QEMU is impressive technology that makes cross-architecture execution possible, it's essentially a translator—converting x86 instructions to ARM instructions in real-time. This works, but at a cost. This post documents my journey to native ARM64 builds and the **dramatic performance improvements** I achieved.
 
 If you're interested in my OCI migration journey, check out:
-- [🚀 Methodical Migration: DigitalOcean Droplet to Oracle Cloud](./migrating-do-to-oci)
-- [🧱 Home Server Chronicles: My Docker-Powered Ecosystem — Part 1](./docker-series-part1)
+- [Methodical Migration: DigitalOcean Droplet to Oracle Cloud](./migrating-do-to-oci)
+- [Home Server Chronicles: My Docker-Powered Ecosystem — Part 1](./docker-series-part1)
 
 ---
 
-## 🤔 How Did This Happen?
+## How Did This Happen?
 
 During my migration from DigitalOcean (AMD64) to Oracle Cloud (ARM64), I focused on getting everything working quickly. My `docker-compose.yml` had this line:
 
@@ -37,7 +37,7 @@ This configuration was intentional on DigitalOcean—the GitHub Actions runner b
 
 ---
 
-## 📊 Understanding the Infrastructure
+## Understanding the Infrastructure
 
 ### OCI Migration Context
 
@@ -55,26 +55,26 @@ I documented the full migration in [this post](./migrating-do-to-oci), but one t
 Before tackling the CPU architecture, I benchmarked my storage:
 
 **Boot Drive (`/dev/sda1`):**
-- 📝 Write: 54.3 MB/s
-- 📖 Read: 26.8 MB/s
+- Write: 54.3 MB/s
+- Read: 26.8 MB/s
 
 **Attached Block Storage (`/dev/sdb` - Docker location):**
-- 📝 Write: 74.3 MB/s (37% faster)
-- 📖 Read: 37.4 MB/s (40% faster)
+- Write: 74.3 MB/s (37% faster)
+- Read: 37.4 MB/s (40% faster)
 
 Good news: Docker runs on faster block storage, so I/O wasn't the bottleneck. The real issue was CPU architecture.
 
 ---
 
-## 🔍 The Problem: QEMU Emulation Overhead
+## The Problem: QEMU Emulation Overhead
 
 **Why QEMU emulation matters:**
 
 Running AMD64 containers on ARM64 requires real-time instruction translation:
-- 🐌 CPU overhead from x86 → ARM translation
-- 🕐 Slower container startup times
-- 💾 Increased memory usage
-- ⚠️ Potential compatibility issues
+- CPU overhead from x86 → ARM translation
+- Slower container startup times
+- Increased memory usage
+- Potential compatibility issues
 
 ### Verifying the Problem
 
@@ -96,7 +96,7 @@ Everything worked, but I was paying a performance tax on every request.
 
 ---
 
-## 📈 Benchmarking: The Baseline
+## Benchmarking: The Baseline
 
 Before making changes, I collected baseline metrics with AMD64+QEMU:
 
@@ -104,65 +104,65 @@ Before making changes, I collected baseline metrics with AMD64+QEMU:
 
 | Metric | Value |
 |--------|-------|
-| 🚀 Container startup | 0.236s |
-| ❄️ Cold start (first request) | 278ms |
+| Container startup | 0.236s |
+| Cold start (first request) | 278ms |
 | 🔥 Warm response time | ~10ms (9.97ms avg) |
-| 💾 Memory usage (idle) | 82.5 MiB |
-| 🖥️ CPU usage (idle) | 0.00% |
+| Memory usage (idle) | 82.5 MiB |
+| CPU usage (idle) | 0.00% |
 | ⏱️ CI/CD build time | ~4 minutes |
 
 Not terrible numbers! But I suspected native ARM64 could do better.
 
 ---
 
-## 🛠️ Solution Options
+## Solution Options
 
 I had three paths forward:
 
-### Option 1: Native ARM64 Build ✅
+### Option 1: Native ARM64 Build
 
 **Pros:**
-- ✅ Simplest implementation
-- ✅ Fastest builds (no multi-platform overhead)
-- ✅ Best performance for ARM64
-- ✅ Smaller registry footprint
+- Simplest implementation
+- Fastest builds (no multi-platform overhead)
+- Best performance for ARM64
+- Smaller registry footprint
 
 **Cons:**
-- ❌ Only works on ARM64
-- ❌ Can't deploy to AMD64 without rebuilding
-- ❌ Less flexible for multi-cloud
+- Only works on ARM64
+- Can't deploy to AMD64 without rebuilding
+- Less flexible for multi-cloud
 
 **Best for:** Single-architecture deployments
 
-### Option 2: Multi-Architecture Build 🌟 (My Choice)
+### Option 2: Multi-Architecture Build (My Choice)
 
 **Pros:**
-- ✅ Supports both AMD64 and ARM64
-- ✅ Docker auto-selects correct architecture
-- ✅ Future-proof and portable
-- ✅ Industry standard approach
-- ✅ Works across cloud providers
+- Supports both AMD64 and ARM64
+- Docker auto-selects correct architecture
+- Future-proof and portable
+- Industry standard approach
+- Works across cloud providers
 
 **Cons:**
-- ⚠️ Longer build times (5-10x)
-- ⚠️ More complex CI/CD setup
-- ⚠️ Requires Docker Buildx
+- Longer build times (5-10x)
+- More complex CI/CD setup
+- Requires Docker Buildx
 
 **Best for:** Production apps that may deploy anywhere
 
 ### Option 3: Self-Hosted ARM64 Runner
 
 **Pros:**
-- ✅ Zero emulation during build
-- ✅ Uses local VPS resources
-- ✅ Complete control
-- ✅ Fastest native builds
+- Zero emulation during build
+- Uses local VPS resources
+- Complete control
+- Fastest native builds
 
 **Cons:**
-- ❌ Must manage runner infrastructure
-- ❌ VPS must be online during builds
-- ❌ Security considerations
-- ❌ More maintenance overhead
+- Must manage runner infrastructure
+- VPS must be online during builds
+- Security considerations
+- More maintenance overhead
 
 **Best for:** Dedicated build infrastructure
 
@@ -170,7 +170,7 @@ I chose **Option 2** for maximum flexibility—build once, deploy anywhere.
 
 ---
 
-## 🔧 Implementation: Multi-Architecture Builds
+## Implementation: Multi-Architecture Builds
 
 ### Step 1: Verify Dockerfile Compatibility
 
@@ -189,10 +189,10 @@ RUN apk add --no-cache \
 ```
 
 **Compatibility verification:**
-- ✅ Node.js 18: Full ARM64 support
-- ✅ Next.js 14: Full ARM64 support
-- ✅ sharp (native module): Builds for ARM64 automatically
-- ✅ All Alpine packages: Multi-arch by default
+- Node.js 18: Full ARM64 support
+- Next.js 14: Full ARM64 support
+- sharp (native module): Builds for ARM64 automatically
+- All Alpine packages: Multi-arch by default
 
 **Result:** No Dockerfile changes needed!
 
@@ -249,7 +249,7 @@ Second attempt? **Success!** Build completed in ~38 minutes.
 
 ---
 
-## 📊 Results: The Performance Transformation
+## Results: The Performance Transformation
 
 ### Native ARM64 Performance
 
@@ -257,31 +257,31 @@ After deploying the multi-arch image, I re-ran all benchmarks:
 
 | Metric | AMD64 + QEMU | Native ARM64 | Improvement |
 |--------|--------------|--------------|-------------|
-| 🚀 Container Startup | 0.236s | 0.183s | **22% faster** ⚡ |
-| ❄️ Cold Start | 278ms | 5.6ms | **98% faster** 🚀 |
+| Container Startup | 0.236s | 0.183s | **22% faster** ⚡ |
+| Cold Start | 278ms | 5.6ms | **98% faster** |
 | 🔥 Warm Response | 9.97ms | 6.6ms | **34% faster** ⚡ |
-| 💾 Memory (Idle) | 82.5 MiB | 40.45 MiB | **51% less** 💾 |
-| 🖥️ CPU (Idle) | 0.00% | 0.00% | Same |
-| 📦 Image Size | 527 MB | 527 MB | Same |
+| Memory (Idle) | 82.5 MiB | 40.45 MiB | **51% less** |
+| CPU (Idle) | 0.00% | 0.00% | Same |
+| Image Size | 527 MB | 527 MB | Same |
 | ⏱️ Build Time | ~4 min | ~38 min | 9.5x longer |
 
 ### The Dramatic Improvements
 
-#### 🚀 98% Faster Cold Starts
+#### 98% Faster Cold Starts
 
 The most **shocking** improvement: cold start dropped from **278ms to 5.6ms**. This is a game-changer for user experience—the first page load is now **nearly instantaneous**.
 
 This massive improvement comes from eliminating QEMU's instruction translation overhead on the first request.
 
-#### ⚡ 34% Faster Response Times
+#### 34% Faster Response Times
 
 Even warm requests improved significantly: 9.97ms → 6.6ms. While both are fast, this compounds across thousands of requests daily.
 
-#### 💾 51% Memory Reduction
+#### 51% Memory Reduction
 
 Memory usage dropped from 82.5 MiB to 40.45 MiB—**over 50% reduction**. This means better resource utilization and the ability to run more containers on the same hardware.
 
-#### 🏃 22% Faster Container Startup
+#### 22% Faster Container Startup
 
 Container startup improved from 0.236s to 0.183s. This matters for deployments, scaling events, and recovery from failures.
 
@@ -293,7 +293,7 @@ Deployments happen occasionally. The app runs 24/7. The math clearly favors nati
 
 ---
 
-## 💡 Lessons Learned
+## Lessons Learned
 
 ### 1. QEMU Works, But Native is Better
 
@@ -340,7 +340,7 @@ I almost didn't benchmark because "everything worked." The 98% cold start improv
 
 ---
 
-## 🎯 Best Practices for ARM64 Deployments
+## Best Practices for ARM64 Deployments
 
 ### 1. Use Multi-Architecture Builds by Default
 ```yaml
@@ -380,7 +380,7 @@ image: portfolio:latest
 
 ---
 
-## 💰 Cost Implications
+## Cost Implications
 
 ### Oracle Cloud Infrastructure (Ampere A1)
 - **Free Tier**: 4 ARM cores, 24GB RAM
@@ -397,16 +397,16 @@ Native ARM64 builds provide **dramatically better performance** at **zero additi
 
 ---
 
-## 🚀 Conclusion
+## Conclusion
 
 Migrating to native ARM64 Docker builds was straightforward and delivered **game-changing performance improvements**:
 
-- ✅ **98% faster cold starts** (278ms → 5.6ms)
-- ✅ **34% faster warm responses** (9.97ms → 6.6ms)
-- ✅ **51% less memory** (82.5 MiB → 40.45 MiB)
-- ✅ **22% faster container startup** (0.236s → 0.183s)
-- ✅ Eliminated QEMU emulation overhead
-- ✅ Future-proof multi-architecture support
+- **98% faster cold starts** (278ms → 5.6ms)
+- **34% faster warm responses** (9.97ms → 6.6ms)
+- **51% less memory** (82.5 MiB → 40.45 MiB)
+- **22% faster container startup** (0.236s → 0.183s)
+- Eliminated QEMU emulation overhead
+- Future-proof multi-architecture support
 
 ### Key Takeaways
 
@@ -429,7 +429,7 @@ The cold start improvement alone (278ms → 5.6ms) justifies the migration. When
 
 ---
 
-## 📚 Resources
+## Resources
 
 - [Docker Buildx Documentation](https://docs.docker.com/buildx/working-with-buildx/)
 - [Multi-platform Images Guide](https://docs.docker.com/build/building/multi-platform/)

@@ -89,7 +89,7 @@ export function useTypewriter(phrases: string[], typeSpeed = 90) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     const type = () => {
