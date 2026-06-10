@@ -216,17 +216,6 @@ export default function Timeline({ items }: TimelineProps) {
                 >
                   <div className="neural-card-soft rounded-2xl p-4 sm:p-6 border border-slate-600/55 transition-all duration-200 hover:border-amber-300/55">
                     <div className="flex items-center gap-2 mb-2">
-                      {item.details && (
-                        <button
-                          type="button"
-                          onClick={() => toggleExpanded(index)}
-                          className="w-7 h-7 rounded-full border border-amber-500/40 text-amber-400 hover:bg-amber-500/15 hover:border-amber-400 transition-all flex items-center justify-center text-base leading-none flex-shrink-0"
-                          aria-expanded={expanded.includes(index)}
-                          aria-label={`Toggle timeline details for ${item.title}`}
-                        >
-                          {expanded.includes(index) ? "−" : "+"}
-                        </button>
-                      )}
                       <span className="text-2xl flex items-center">
                         {item.icon ? (
                           (timelineIconMap[item.icon] ?? (
@@ -239,6 +228,17 @@ export default function Timeline({ items }: TimelineProps) {
                       <h3 className="text-base sm:text-lg font-semibold text-amber-200 flex-1">
                         {item.title}
                       </h3>
+                      {item.details && (
+                        <button
+                          type="button"
+                          onClick={() => toggleExpanded(index)}
+                          className="w-7 h-7 rounded-full border border-amber-500/40 text-amber-400 hover:bg-amber-500/15 hover:border-amber-400 transition-all flex items-center justify-center text-base leading-none flex-shrink-0"
+                          aria-expanded={expanded.includes(index)}
+                          aria-label={`Toggle timeline details for ${item.title}`}
+                        >
+                          {expanded.includes(index) ? "−" : "+"}
+                        </button>
+                      )}
                     </div>
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <span className="neural-pill-intro text-[11px]">

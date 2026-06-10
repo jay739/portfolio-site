@@ -656,7 +656,7 @@ export default function GalleryCarousel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[500] bg-black/70 backdrop-blur-lg flex items-center justify-center p-4 cursor-zoom-out"
+            className="fixed inset-0 z-[500] overflow-y-auto bg-black/70 backdrop-blur-lg cursor-zoom-out"
             onClick={() => setLightboxId(null)}
           >
             <button
@@ -665,7 +665,7 @@ export default function GalleryCarousel({
                 e.stopPropagation();
                 setLightboxId(null);
               }}
-              className="absolute top-4 right-4 text-white text-3xl hover:text-amber-300 transition-colors z-10"
+              className="fixed top-4 right-4 text-white text-3xl hover:text-amber-300 transition-colors z-10"
               aria-label="Close (Esc)"
             >
               <FaTimes />
@@ -678,7 +678,7 @@ export default function GalleryCarousel({
                     e.stopPropagation();
                     moveLightbox("prev");
                   }}
-                  className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-950/75 text-white transition hover:border-amber-400/45 hover:text-amber-200"
+                  className="fixed left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-950/75 text-white transition hover:border-amber-400/45 hover:text-amber-200"
                   aria-label="Previous image"
                 >
                   ‹
@@ -689,65 +689,68 @@ export default function GalleryCarousel({
                     e.stopPropagation();
                     moveLightbox("next");
                   }}
-                  className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-950/75 text-white transition hover:border-amber-400/45 hover:text-amber-200"
+                  className="fixed right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-950/75 text-white transition hover:border-amber-400/45 hover:text-amber-200"
                   aria-label="Next image"
                 >
                   ›
                 </button>
               </>
             )}
-            <div className="flex flex-col items-center gap-4 max-w-4xl cursor-zoom-out">
-              <Image
-                src={`/api/gallery/image/${lightbox.filename}`}
-                alt={lightbox.prompt}
-                width={lightbox.width}
-                height={lightbox.height}
-                sizes="90vw"
-                // w-auto h-auto + object-contain keep the real aspect ratio:
-                // with explicit width/height, clamping both max-w and max-h
-                // independently would otherwise squash the image.
-                className="h-auto w-auto max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl"
-                unoptimized
-              />
-              <div className="text-center max-w-lg">
-                <p
-                  className={`text-sm text-slate-200 mb-1 ${promptExpanded ? "" : "line-clamp-2"}`}
-                >
-                  {lightbox.prompt}
-                </p>
-                {lightbox.prompt.length > 110 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPromptExpanded((v) => !v);
-                    }}
-                    className="mb-2 text-xs font-medium text-amber-300 transition-colors hover:text-amber-200"
+            <div className="flex min-h-full items-center justify-center p-4">
+              <div className="flex flex-col items-center gap-4 max-w-4xl cursor-zoom-out">
+                <Image
+                  src={`/api/gallery/image/${lightbox.filename}`}
+                  alt={lightbox.prompt}
+                  width={lightbox.width}
+                  height={lightbox.height}
+                  sizes="90vw"
+                  // w-auto h-auto + object-contain keep the real aspect ratio:
+                  // with explicit width/height, clamping both max-w and max-h
+                  // independently would otherwise squash the image.
+                  className="h-auto w-auto max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                  unoptimized
+                />
+                <div className="text-center max-w-lg">
+                  <p
+                    className={`text-sm text-slate-200 mb-1 ${promptExpanded ? "" : "line-clamp-2"}`}
                   >
-                    {promptExpanded ? "Show less" : "Read more"}
-                  </button>
-                )}
-                <div className="flex gap-2 justify-center flex-wrap">
-                  {lightbox.style !== "none" && (
-                    <span className="px-2 py-1 rounded-full bg-amber-500/20 text-xs text-amber-300">
-                      {lightbox.style}
-                    </span>
+                    {lightbox.prompt}
+                  </p>
+                  {lightbox.prompt.length > 110 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPromptExpanded((v) => !v);
+                      }}
+                      className="mb-2 text-xs font-medium text-amber-300 transition-colors hover:text-amber-200"
+                    >
+                      {promptExpanded ? "Show less" : "View full prompt"}
+                    </button>
                   )}
-                  <span className="px-2 py-1 rounded-full bg-slate-500/20 text-xs text-slate-300">
-                    {lightbox.width}×{lightbox.height}
-                  </span>
-                  <span className="px-2 py-1 rounded-full bg-slate-500/20 text-xs text-slate-300">
-                    seed {lightbox.seed}
-                  </span>
-                  <span className="px-2 py-1 rounded-full bg-slate-500/20 text-xs text-slate-300">
-                    {(lightbox.model ?? "").replace(".safetensors", "")}
-                  </span>
+                  <div className="flex gap-2 justify-center flex-wrap">
+                    {lightbox.style !== "none" && (
+                      <span className="px-2 py-1 rounded-full bg-amber-500/20 text-xs text-amber-300">
+                        {lightbox.style}
+                      </span>
+                    )}
+                    <span className="px-2 py-1 rounded-full bg-slate-500/20 text-xs text-slate-300">
+                      {lightbox.width}×{lightbox.height}
+                    </span>
+                    <span className="px-2 py-1 rounded-full bg-slate-500/20 text-xs text-slate-300">
+                      seed {lightbox.seed}
+                    </span>
+                    <span className="px-2 py-1 rounded-full bg-slate-500/20 text-xs text-slate-300">
+                      {(lightbox.model ?? "").replace(".safetensors", "")}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-2">
+                    Press <kbd className="bg-slate-700 px-1 rounded">Esc</kbd>{" "}
+                    to close and{" "}
+                    <kbd className="bg-slate-700 px-1 rounded">←</kbd>/
+                    <kbd className="bg-slate-700 px-1 rounded">→</kbd> to browse
+                  </p>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-2">
-                  Press <kbd className="bg-slate-700 px-1 rounded">Esc</kbd> to
-                  close and <kbd className="bg-slate-700 px-1 rounded">←</kbd>/
-                  <kbd className="bg-slate-700 px-1 rounded">→</kbd> to browse
-                </p>
               </div>
             </div>
           </motion.div>
