@@ -605,10 +605,12 @@
 }
 
 .neural-page-shell {
-  /* Tighter, consistent top gap: the fixed navbar is cleared by the status
-     strip above <main>, so the shell only needs a small top pad (home still
-     overrides to !pt-0 for its hero). Generous bottom pad kept before footer. */
-  @apply w-full max-w-[1800px] mx-auto px-3 sm:px-6 pt-8 sm:pt-10 pb-24 sm:pb-28;
+  /* Top pad clears the fixed navbar (~60px) with a tight, consistent gap on
+     every page. The status strip used to sit above <main> and clear the nav
+     via its own margin, but it now lives in the footer, so the shell owns the
+     clearance. Home still overrides to !pt-0 for its full-bleed hero.
+     Generous bottom pad kept before the footer. */
+  @apply w-full max-w-[1800px] mx-auto px-3 sm:px-6 pt-20 sm:pt-24 pb-24 sm:pb-28;
 }
 
 .neural-intro-panel {

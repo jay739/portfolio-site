@@ -34,12 +34,26 @@ function tidy(line, wasIndented) {
 function cleanFile(file) {
   const raw = fs.readFileSync(file, 'utf8');
   const m = raw.match(/^(---[\s\S]*?---\n?)([\s\S]*)$/);
-  const front = m ? m[1] : '';
+  let front = m ? m[1] : '';
   const body = m ? m[2] : raw;
 
   let removedHead = 0;
   let removedBody = 0;
   let inFence = false;
+
+  // The frontmatter `title:` renders as the post's <h1>, so it counts as a
+  // heading: strip ALL emojis from it (even the warm/amber ones we keep in
+  // body prose), then collapse any leading space left inside the quotes.
+  if (front) {
+    front = front.replace(/^(title:\s*"?)([^\n"]*)("?\s*)$/m, (whole, pre, val, post) => {
+      const cleaned = val.replace(EMOJI, () => {
+        removedHead += 1;
+        return '';
+      });
+      if (cleaned === val) return whole;
+      return pre + cleaned.replace(/^[ \t]+/, '') + post;
+    });
+  }
 
   const lines = body.split('\n').map((line) => {
     if (/^\s*```/.test(line)) {
