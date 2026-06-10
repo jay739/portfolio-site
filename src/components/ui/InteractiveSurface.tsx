@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { CSSProperties, ReactNode, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { CSSProperties, ReactNode, useState } from "react";
+import { motion, useReducedMotion, type Easing } from "framer-motion";
 
 interface InteractiveSurfaceProps {
   children: ReactNode;
   className?: string;
 }
 
-export default function InteractiveSurface({ children, className = '' }: InteractiveSurfaceProps) {
+export default function InteractiveSurface({
+  children,
+  className = "",
+}: InteractiveSurfaceProps) {
   const [glow, setGlow] = useState({ x: 50, y: 50 });
   const prefersReducedMotion = useReducedMotion();
   const hoverMotion = prefersReducedMotion
@@ -18,7 +21,7 @@ export default function InteractiveSurface({ children, className = '' }: Interac
         scale: 1.006,
         transition: {
           duration: 0.16,
-          ease: [0.22, 1, 0.36, 1],
+          ease: [0.22, 1, 0.36, 1] as Easing,
         },
       };
 
@@ -39,9 +42,11 @@ export default function InteractiveSurface({ children, className = '' }: Interac
       }}
       style={
         {
-          '--surface-glow-x': `${glow.x}%`,
-          '--surface-glow-y': `${glow.y}%`,
-          boxShadow: prefersReducedMotion ? undefined : '0 18px 42px rgba(0,0,0,0.34)',
+          "--surface-glow-x": `${glow.x}%`,
+          "--surface-glow-y": `${glow.y}%`,
+          boxShadow: prefersReducedMotion
+            ? undefined
+            : "0 18px 42px rgba(0,0,0,0.34)",
         } as CSSProperties
       }
     >
