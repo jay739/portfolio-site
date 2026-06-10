@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaImages, FaPlay, FaPause, FaTimes } from "react-icons/fa";
@@ -744,6 +745,13 @@ export default function GalleryCarousel({
                       {(lightbox.model ?? "").replace(".safetensors", "")}
                     </span>
                   </div>
+                  <Link
+                    href={`/gallery/${lightbox.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-3 inline-flex text-xs font-medium text-amber-300 transition-colors hover:text-amber-200"
+                  >
+                    Open shareable page ↗
+                  </Link>
                   <p className="text-[10px] text-slate-500 mt-2">
                     Press <kbd className="bg-slate-700 px-1 rounded">Esc</kbd>{" "}
                     to close and{" "}
