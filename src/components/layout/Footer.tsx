@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { DynamicIcon } from '@/lib/icons';
+import { DynamicIcon } from "@/lib/icons";
+import LiveStatusStrip from "@/components/layout/LiveStatusStrip";
 
-export default function Footer() {
+interface FooterProps {
+  latestBlogDate?: string;
+}
+
+export default function Footer({ latestBlogDate }: FooterProps) {
   // Computed server-side so the year renders correctly on first paint.
   const year = new Date().getFullYear();
   return (
     <footer className="relative py-8 bg-slate-100/85 dark:bg-black/80 border-t border-amber-500/30 dark:border-amber-400/20 backdrop-blur-2xl">
+      <LiveStatusStrip latestBlogDate={latestBlogDate} />
       <div className="container mx-auto px-4 flex flex-col items-center justify-center text-center">
         <p className="text-slate-700 dark:text-slate-200">
           © {year} Jayakrishna Konda. All rights reserved.
@@ -18,10 +24,22 @@ export default function Footer() {
           contact@jay739.dev
         </a>
         <div className="flex gap-4 mt-4">
-          <a href="https://github.com/jay739" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="neural-control-btn text-base">
+          <a
+            href="https://github.com/jay739"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            className="neural-control-btn text-base"
+          >
             <DynamicIcon name="github" className="text-amber-400" />
           </a>
-          <a href="https://www.linkedin.com/in/jaya-krishna-konda/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="neural-control-btn text-base">
+          <a
+            href="https://www.linkedin.com/in/jaya-krishna-konda/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn"
+            className="neural-control-btn text-base"
+          >
             <DynamicIcon name="linkedin" className="text-amber-400" />
           </a>
         </div>
@@ -29,4 +47,4 @@ export default function Footer() {
       <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-orange-700 via-orange-500 to-amber-300 animate-gradientBG" />
     </footer>
   );
-} 
+}
