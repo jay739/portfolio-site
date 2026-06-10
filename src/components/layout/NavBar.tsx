@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { SunIcon, MoonIcon, XIcon, MenuIcon } from "@/components/ui/icons";
 import { latestSiteUpdateTimestamp } from "@/data/site-updates";
 import { getSeenUpdatesTimestamp } from "@/lib/site-ux";
@@ -36,7 +36,7 @@ const sections = [
   { id: "blog", label: "Blog", href: "/blog", isAnchor: false },
 ];
 
-const mobileMenuVariants = {
+const mobileMenuVariants: Variants = {
   closed: {
     opacity: 0,
     y: -10,
@@ -64,7 +64,7 @@ const mobileMenuVariants = {
   },
 };
 
-const mobileMenuItemVariants = {
+const mobileMenuItemVariants: Variants = {
   closed: { opacity: 0, y: 10, filter: "blur(6px)" },
   open: {
     opacity: 1,
