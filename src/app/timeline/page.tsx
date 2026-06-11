@@ -25,11 +25,11 @@ export default function TimelinePage() {
         chips={["Journey Map", "Milestones", "Narrative Flow"]}
         theme="timeline"
       />
-      <section id="timeline" className="relative w-full">
-        <div className="absolute right-3 top-3 z-20">
-          <SectionDeepLink id="timeline" title="Timeline" />
-        </div>
-        <Timeline items={timelineItems} />
+      <section id="timeline" className="w-full">
+        <Timeline
+          items={timelineItems}
+          deepLink={<SectionDeepLink id="timeline" title="Timeline" />}
+        />
       </section>
       <RouteNextSteps
         items={[
