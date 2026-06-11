@@ -56,6 +56,10 @@ const NAV_SUBSECTIONS: Record<string, { label: string; href: string }[]> = {
     { label: "Architecture", href: "/homeserver#architecture" },
     { label: "Live Telemetry", href: "/homeserver#home-server" },
   ],
+  "ai-tools": [
+    { label: "AI Tools Lab", href: "/ai-tools#ai-tools" },
+    { label: "Batcave Tools", href: "/ai-tools#batcave-tools" },
+  ],
 };
 
 const mobileMenuVariants: Variants = {
@@ -510,13 +514,13 @@ export default function NavBar() {
                   onMouseEnter={cancelCloseFlyout}
                   onMouseLeave={scheduleCloseFlyout}
                 >
-                  <div className="min-w-[180px] overflow-hidden rounded-xl border border-amber-400/25 bg-slate-950/95 p-1.5 shadow-[0_18px_48px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                  <div className="min-w-[180px] overflow-hidden rounded-xl border border-amber-500/30 bg-white/95 p-1.5 shadow-[0_18px_48px_rgba(120,53,15,0.22)] backdrop-blur-xl dark:border-amber-400/25 dark:bg-slate-950/95 dark:shadow-[0_18px_48px_rgba(0,0,0,0.5)]">
                     {NAV_SUBSECTIONS[flyout.id].map((sub) => (
                       <Link
                         key={sub.href}
                         href={sub.href}
                         onClick={() => setFlyout(null)}
-                        className="block rounded-lg px-3 py-2 text-xs font-medium text-amber-100/85 transition hover:bg-amber-500/15 hover:text-white"
+                        className="block rounded-lg px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-amber-500/10 hover:text-amber-800 dark:text-amber-100/85 dark:hover:bg-amber-500/15 dark:hover:text-white"
                       >
                         {sub.label}
                       </Link>

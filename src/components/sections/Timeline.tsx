@@ -30,6 +30,9 @@ interface TimelineItem {
 
 interface TimelineProps {
   items: TimelineItem[];
+  // Rendered at the card's top-right (e.g. the "Copy section link" control),
+  // so it sits inside the card like the impact page rather than floating above.
+  deepLink?: React.ReactNode;
 }
 
 const timelineIconMap: Record<string, React.ReactElement> = {
@@ -63,7 +66,7 @@ function getOrgLink(subtitle?: string): string | null {
   return orgLinks[normalized] || null;
 }
 
-export default function Timeline({ items }: TimelineProps) {
+export default function Timeline({ items, deepLink }: TimelineProps) {
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
   const [expanded, setExpanded] = useState<number[]>([]);
@@ -193,6 +196,11 @@ export default function Timeline({ items }: TimelineProps) {
           />
         </svg>
         <div className="relative w-full neural-card neural-glow-border p-4 sm:p-8">
+          {deepLink && (
+            <div className="absolute right-4 top-4 sm:right-6 sm:top-6 z-10">
+              {deepLink}
+            </div>
+          )}
           <div className="mb-8">
             <p className="neural-kicker">Career Chronology</p>
             <h2 className="neural-section-title mt-2 flex items-center gap-2">

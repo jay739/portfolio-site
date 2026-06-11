@@ -1428,6 +1428,20 @@ html:not(.dark)
   color: rgb(124, 45, 18);
 }
 
+/* Light mode: pale slate utility text (slate-300/400/500) is used on chips and
+   labels whose backgrounds flip light, leaving the text too faint to read. Remap
+   it to the theme-aware neural text vars. Scoped to .neural-page-shell so it does
+   NOT touch portaled overlays that stay on a dark backdrop (the gallery lightbox
+   renders outside the shell via createPortal). Dark mode is untouched. */
+html:not(.dark) .neural-page-shell :where([class*="text-slate-300"]) {
+  color: var(--neural-text-body);
+}
+html:not(.dark)
+  .neural-page-shell
+  :where([class*="text-slate-400"], [class*="text-slate-500"]) {
+  color: var(--neural-text-muted);
+}
+
 /* Neural shell extras */
 :root {
   --neural-grid-line: rgba(15, 23, 42, 0.06);
