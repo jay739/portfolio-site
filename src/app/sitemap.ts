@@ -6,6 +6,11 @@ import { projectSlug } from "@/lib/project-utils";
 
 const SITE_URL = "https://jay739.dev";
 
+// Re-read the live content/gallery mounts at most every 5 min so newly added
+// blog posts and gallery images appear in the sitemap without a rebuild.
+// Without this the sitemap is baked statically at build time.
+export const revalidate = 300;
+
 // Top-level routes that are stable parts of the site.
 const STATIC_ROUTES = [
   "",
