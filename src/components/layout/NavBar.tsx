@@ -56,6 +56,10 @@ const NAV_SUBSECTIONS: Record<string, { label: string; href: string }[]> = {
     { label: "Architecture", href: "/homeserver#architecture" },
     { label: "Live Telemetry", href: "/homeserver#home-server" },
   ],
+  "ai-tools": [
+    { label: "AI Tools Lab", href: "/ai-tools#ai-tools" },
+    { label: "Batcave Tools", href: "/ai-tools#batcave-tools" },
+  ],
 };
 
 const mobileMenuVariants: Variants = {

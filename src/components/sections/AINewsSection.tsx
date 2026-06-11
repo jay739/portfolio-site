@@ -1,9 +1,9 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { DynamicIcon } from '@/lib/icons';
-import { motion, AnimatePresence } from 'framer-motion';
-import GuidedEmptyState from '@/components/ui/GuidedEmptyState';
+"use client";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { DynamicIcon } from "@/lib/icons";
+import { motion, AnimatePresence } from "framer-motion";
+import GuidedEmptyState from "@/components/ui/GuidedEmptyState";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,78 +16,81 @@ interface NewsItem {
   source: string | null;
 }
 
-type Category = 'All' | 'Research' | 'Models' | 'Tools' | 'Industry';
+type Category = "All" | "Research" | "Models" | "Tools" | "Industry";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const TAG_MAP: [RegExp, string][] = [
-  [/openai|chatgpt|gpt-?[0-9]/i,               'OpenAI'],
-  [/anthropic|claude/i,                         'Anthropic'],
-  [/google|gemini|deepmind|bard/i,              'Google'],
-  [/meta(?!\w)|llama/i,                         'Meta'],
-  [/mistral/i,                                  'Mistral'],
-  [/hugging\s?face/i,                           'HuggingFace'],
-  [/\brag\b|retrieval.augmented/i,              'RAG'],
-  [/\bllm\b|large language model/i,             'LLM'],
-  [/\bagent(s)?\b|agentic/i,                    'Agents'],
-  [/multimodal|vision|image gen|diffusion/i,    'Multimodal'],
-  [/open.source/i,                              'Open Source'],
-  [/benchmark|eval|leaderboard/i,               'Benchmarks'],
+  [/openai|chatgpt|gpt-?[0-9]/i, "OpenAI"],
+  [/anthropic|claude/i, "Anthropic"],
+  [/google|gemini|deepmind|bard/i, "Google"],
+  [/meta(?!\w)|llama/i, "Meta"],
+  [/mistral/i, "Mistral"],
+  [/hugging\s?face/i, "HuggingFace"],
+  [/\brag\b|retrieval.augmented/i, "RAG"],
+  [/\bllm\b|large language model/i, "LLM"],
+  [/\bagent(s)?\b|agentic/i, "Agents"],
+  [/multimodal|vision|image gen|diffusion/i, "Multimodal"],
+  [/open.source/i, "Open Source"],
+  [/benchmark|eval|leaderboard/i, "Benchmarks"],
 ];
 
 function extractTags(title: string, summary: string): string[] {
   const text = `${title} ${summary}`;
-  return TAG_MAP
-    .filter(([rx]) => rx.test(text))
+  return TAG_MAP.filter(([rx]) => rx.test(text))
     .map(([, label]) => label)
     .filter((v, i, a) => a.indexOf(v) === i)
     .slice(0, 3);
 }
 
-const CATEGORY_PATTERNS: Record<Exclude<Category, 'All'>, RegExp> = {
-  Research:  /paper|arxiv|research|study|benchmark|dataset|training|architecture|survey/i,
-  Models:    /GPT|Claude|Gemini|LLaMA|Mistral|model release|version \d|launch|announce/i,
-  Tools:     /API|SDK|library|framework|plugin|integration|open.source|open source|tool|release/i,
-  Industry:  /startup|funding|partnership|acquisition|investment|valuation|billion|deal|raises/i,
+const CATEGORY_PATTERNS: Record<Exclude<Category, "All">, RegExp> = {
+  Research:
+    /paper|arxiv|research|study|benchmark|dataset|training|architecture|survey/i,
+  Models:
+    /GPT|Claude|Gemini|LLaMA|Mistral|model release|version \d|launch|announce/i,
+  Tools:
+    /API|SDK|library|framework|plugin|integration|open.source|open source|tool|release/i,
+  Industry:
+    /startup|funding|partnership|acquisition|investment|valuation|billion|deal|raises/i,
 };
 
 function matchesCategory(item: NewsItem, category: Category): boolean {
-  if (category === 'All') return true;
+  if (category === "All") return true;
   const text = `${item.title} ${item.summary}`;
   return CATEGORY_PATTERNS[category].test(text);
 }
 
 // Deterministic gradient per source so the same outlet always gets the same colour
 const PLACEHOLDER_GRADIENTS = [
-  'from-amber-950 to-orange-900',
-  'from-orange-950 to-amber-900',
-  'from-stone-950 to-orange-950',
-  'from-amber-950 to-orange-900',
-  'from-orange-950 to-yellow-900',
-  'from-neutral-950 to-amber-950',
+  "from-amber-950 to-orange-900",
+  "from-orange-950 to-amber-900",
+  "from-stone-950 to-orange-950",
+  "from-amber-950 to-orange-900",
+  "from-orange-950 to-yellow-900",
+  "from-neutral-950 to-amber-950",
 ];
 
 function sourceGradient(source: string | null): string {
   if (!source) return PLACEHOLDER_GRADIENTS[0];
-  const hash = source.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const hash = source.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   return PLACEHOLDER_GRADIENTS[hash % PLACEHOLDER_GRADIENTS.length];
 }
 
 function articleDomain(url: string): string {
   try {
-    return new URL(url).hostname.replace(/^www\./, '');
+    return new URL(url).hostname.replace(/^www\./, "");
   } catch {
-    return '';
+    return "";
   }
 }
 
 function relativeTime(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
-  const h  = Math.floor(ms / 3_600_000);
-  if (h < 1)  return 'Just now';
+  const h = Math.floor(ms / 3_600_000);
+  if (h < 1) return "Just now";
   if (h < 24) return `${h}h ago`;
   const d = Math.floor(h / 24);
-  return d === 1 ? 'Yesterday' : `${d}d ago`;
+  return d === 1 ? "Yesterday" : `${d}d ago`;
 }
 
 function isNew(iso: string): boolean {
@@ -135,8 +138,8 @@ function CategoryTab({
       onClick={onClick}
       className={`whitespace-nowrap px-3 py-1 text-xs rounded-full font-medium transition-all border ${
         active
-          ? 'bg-amber-600 border-amber-500 text-white'
-          : 'border-slate-700 text-slate-400 hover:border-amber-500/50 hover:text-slate-200'
+          ? "bg-amber-600 border-amber-500 text-white"
+          : "border-slate-700 text-slate-400 hover:border-amber-500/50 hover:text-slate-200"
       }`}
     >
       {label}
@@ -144,14 +147,28 @@ function CategoryTab({
   );
 }
 
-function ImagePlaceholder({ source, url }: { source: string | null; url: string }) {
-  const domain   = articleDomain(url);
+function ImagePlaceholder({
+  source,
+  url,
+}: {
+  source: string | null;
+  url: string;
+}) {
+  const domain = articleDomain(url);
   const gradient = sourceGradient(source);
-  const initial  = (source ?? domain).charAt(0).toUpperCase();
+  const initial = (source ?? domain).charAt(0).toUpperCase();
   return (
-    <div className={`w-full h-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-2`}>
-      <span className="text-lg font-bold text-white/20 leading-none">{initial}</span>
-      {domain && <span className="text-[10px] text-white/45 uppercase tracking-[0.2em]">{domain.split('.')[0]}</span>}
+    <div
+      className={`w-full h-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-2`}
+    >
+      <span className="text-lg font-bold text-white/20 leading-none">
+        {initial}
+      </span>
+      {domain && (
+        <span className="text-[10px] text-white/45 uppercase tracking-[0.2em]">
+          {domain.split(".")[0]}
+        </span>
+      )}
     </div>
   );
 }
@@ -166,7 +183,10 @@ function NewsCard({ item }: { item: NewsItem & { tags: string[] } }) {
       target="_blank"
       rel="noopener noreferrer"
       className="group block neural-card-soft rounded-xl overflow-hidden border border-transparent hover:border-amber-500/30 transition-all"
-      variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+      variants={{
+        hidden: { opacity: 0, y: 16 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+      }}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
     >
@@ -178,10 +198,14 @@ function NewsCard({ item }: { item: NewsItem & { tags: string[] } }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`/api/image-proxy?url=${encodeURIComponent(item.image!)}`}
-                alt=""
+                alt={
+                  item.title
+                    ? `Thumbnail for: ${item.title}`
+                    : "News article thumbnail"
+                }
                 onError={() => setImgError(true)}
                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                style={{ minHeight: '120px' }}
+                style={{ minHeight: "120px" }}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900/60" />
             </>
@@ -202,7 +226,9 @@ function NewsCard({ item }: { item: NewsItem & { tags: string[] } }) {
             {item.publishedAt && (
               <>
                 <span className="text-slate-600">·</span>
-                <span className="text-[11px] text-slate-500">{relativeTime(item.publishedAt)}</span>
+                <span className="text-[11px] text-slate-500">
+                  {relativeTime(item.publishedAt)}
+                </span>
                 {isNew(item.publishedAt) && (
                   <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     NEW
@@ -233,8 +259,18 @@ function NewsCard({ item }: { item: NewsItem & { tags: string[] } }) {
             </div>
             <div className="flex items-center text-xs text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity gap-1">
               <span>Read more</span>
-              <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </div>
           </div>
@@ -246,30 +282,38 @@ function NewsCard({ item }: { item: NewsItem & { tags: string[] } }) {
 
 // ─── Main Section ─────────────────────────────────────────────────────────────
 
-const CATEGORIES: Category[] = ['All', 'Research', 'Models', 'Tools', 'Industry'];
+const CATEGORIES: Category[] = [
+  "All",
+  "Research",
+  "Models",
+  "Tools",
+  "Industry",
+];
 
 export default function AINewsSection() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [news, setNews]           = useState<NewsItem[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState('');
-  const [query, setQuery]         = useState(searchParams.get('q') ?? '');
-  const [category, setCategory]   = useState<Category>((searchParams.get('category') as Category) ?? 'All');
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [category, setCategory] = useState<Category>(
+    (searchParams.get("category") as Category) ?? "All",
+  );
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   async function fetchNews() {
     setLoading(true);
-    setError('');
+    setError("");
     try {
       const res = await fetch(`/api/ai-news?t=${Date.now()}`);
-      if (!res.ok) throw new Error('Failed to fetch news');
+      if (!res.ok) throw new Error("Failed to fetch news");
       const data = await res.json();
       setNews(data.articles || []);
       setLastUpdated(new Date());
     } catch {
-      setError('Could not load news. Please try again later.');
+      setError("Could not load news. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -282,27 +326,29 @@ export default function AINewsSection() {
   }, []);
 
   useEffect(() => {
-    setQuery(searchParams.get('q') ?? '');
-    setCategory((searchParams.get('category') as Category) ?? 'All');
+    setQuery(searchParams.get("q") ?? "");
+    setCategory((searchParams.get("category") as Category) ?? "All");
   }, [searchParams]);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (query.trim()) {
-      params.set('q', query.trim());
+      params.set("q", query.trim());
     } else {
-      params.delete('q');
+      params.delete("q");
     }
 
-    if (category !== 'All') {
-      params.set('category', category);
+    if (category !== "All") {
+      params.set("category", category);
     } else {
-      params.delete('category');
+      params.delete("category");
     }
 
-    const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    const nextUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname;
     router.replace(nextUrl, { scroll: false });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, pathname, query]);
 
   // Enrich with tags, then filter
@@ -322,7 +368,10 @@ export default function AINewsSection() {
   });
 
   return (
-    <section className="w-full mt-0 mb-16 rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-indigo-50 via-blue-50 to-indigo-100 dark:from-indigo-950/25 dark:via-slate-950/85 dark:to-slate-950/90 p-4 sm:p-8 neural-card neural-glow-border" id="ai-news">
+    <section
+      className="w-full mt-0 mb-16 rounded-[28px] border border-slate-700/60 bg-gradient-to-br from-indigo-50 via-blue-50 to-indigo-100 dark:from-indigo-950/25 dark:via-slate-950/85 dark:to-slate-950/90 p-4 sm:p-8 neural-card neural-glow-border"
+      id="ai-news"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
         <div className="flex items-center gap-2">
@@ -341,15 +390,26 @@ export default function AINewsSection() {
             className="p-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-500/50 transition-all disabled:opacity-40"
             aria-label="Refresh"
           >
-            <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </button>
         </div>
       </div>
 
       <p className="neural-section-copy mb-5">
-        High-signal updates on models, research, and tooling — refreshed every 5 minutes.
+        High-signal updates on models, research, and tooling — refreshed every 5
+        minutes.
       </p>
 
       {/* Filter row */}
@@ -370,12 +430,12 @@ export default function AINewsSection() {
               onClick={() => setCategory(cat)}
             />
           ))}
-          {(query.trim() || category !== 'All') && (
+          {(query.trim() || category !== "All") && (
             <button
               type="button"
               onClick={() => {
-                setQuery('');
-                setCategory('All');
+                setQuery("");
+                setCategory("All");
               }}
               className="px-3 py-1 text-xs rounded-full font-medium transition-all border border-slate-700 text-slate-400 hover:border-amber-500/50 hover:text-slate-200"
             >
@@ -388,7 +448,9 @@ export default function AINewsSection() {
       {/* Content */}
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+          {[1, 2, 3, 4].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       ) : error ? (
         <GuidedEmptyState
@@ -416,8 +478,8 @@ export default function AINewsSection() {
                 description="Try a broader keyword or switch back to All to widen the signal stream."
                 secondaryLabel="Clear filters"
                 onSecondaryClick={() => {
-                  setQuery('');
-                  setCategory('All');
+                  setQuery("");
+                  setCategory("All");
                 }}
               />
             )}
@@ -428,8 +490,8 @@ export default function AINewsSection() {
       {/* Footer count */}
       {!loading && !error && filtered.length > 0 && (
         <p className="text-xs text-slate-600 text-right mt-4">
-          {filtered.length} article{filtered.length !== 1 ? 's' : ''}
-          {category !== 'All' || query ? ` · filtered from ${news.length}` : ''}
+          {filtered.length} article{filtered.length !== 1 ? "s" : ""}
+          {category !== "All" || query ? ` · filtered from ${news.length}` : ""}
         </p>
       )}
     </section>
