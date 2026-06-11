@@ -59,7 +59,7 @@ RUN npm run build
 # against a system libvips that won't exist in the runner. Just sharp + deps.
 FROM node:22-alpine AS sharp
 WORKDIR /sharp
-RUN npm init -y >/dev/null 2>&1 && npm install sharp@0.34.5 --no-audit --no-fund
+RUN npm init -y >/dev/null 2>&1 && npm install sharp@0.32.6 --no-audit --no-fund
 
 # 7. Production image with only runtime artifacts
 FROM node:22-alpine AS runner
