@@ -16,16 +16,16 @@ export default function ProjectsPage() {
         chips={["Case Studies", "Interactive Cards", "Production Focus"]}
         theme="projects"
       />
-      <section id="projects" className="relative w-full">
-        <div className="absolute right-3 top-3 z-20">
-          <SectionDeepLink id="projects" title="Projects" />
-        </div>
+      <section id="projects" className="w-full">
         <Suspense
           fallback={
             <div className="w-full min-h-[420px] neural-card-soft rounded-xl animate-pulse" />
           }
         >
-          <Projects projects={projects} />
+          <Projects
+            projects={projects}
+            deepLink={<SectionDeepLink id="projects" title="Projects" />}
+          />
         </Suspense>
       </section>
       <RouteNextSteps
