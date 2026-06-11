@@ -36,6 +36,28 @@ const sections = [
   { id: "blog", label: "Blog", href: "/blog", isAnchor: false },
 ];
 
+// Sub-sections revealed on hover for nav items that have more than one
+// in-page anchor, so visitors can jump straight to a section. Keyed by the
+// nav item id; only multi-section pages are listed (a one-item flyout is noise).
+const NAV_SUBSECTIONS: Record<string, { label: string; href: string }[]> = {
+  impact: [
+    { label: "Highlights by Role", href: "/impact#impact-highlights" },
+    { label: "Impact Metrics", href: "/impact#impact" },
+  ],
+  skills: [
+    { label: "Skills Map", href: "/skills#skills-map" },
+    { label: "Skills Chart", href: "/skills#skills" },
+  ],
+  gallery: [
+    { label: "Images", href: "/gallery#gallery" },
+    { label: "Podcasts", href: "/gallery#podcasts" },
+  ],
+  "home-server": [
+    { label: "Architecture", href: "/homeserver#architecture" },
+    { label: "Live Telemetry", href: "/homeserver#home-server" },
+  ],
+};
+
 const mobileMenuVariants: Variants = {
   closed: {
     opacity: 0,
@@ -81,11 +103,37 @@ export default function NavBar() {
   const [isNavHidden, setIsNavHidden] = useState(false);
   const [activeSection, setActiveSection] = useState("welcome");
   const [updatesBadge, setUpdatesBadge] = useState<string | undefined>("New");
+  // Hover flyout: which nav item is open + where to anchor the fixed panel.
+  // Fixed positioning is required because the menubar uses overflow-x-auto,
+  // which would otherwise clip an in-flow dropdown.
+  const [flyout, setFlyout] = useState<{
+    id: string;
+    left: number;
+    top: number;
+  } | null>(null);
+  const flyoutTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { setTheme, resolvedTheme } = useTheme();
   const navRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const lastScrollY = useRef(0);
+
+  const openFlyout = (id: string, el: HTMLElement) => {
+    if (!NAV_SUBSECTIONS[id]) return;
+    if (flyoutTimer.current) clearTimeout(flyoutTimer.current);
+    const rect = el.getBoundingClientRect();
+    // Clamp so a right-edge item's 180px panel stays on-screen.
+    const left = Math.min(rect.left, window.innerWidth - 196);
+    setFlyout({ id, left: Math.max(8, left), top: rect.bottom + 8 });
+  };
+  // Small close delay gives hover-intent slack to move into the panel.
+  const scheduleCloseFlyout = () => {
+    if (flyoutTimer.current) clearTimeout(flyoutTimer.current);
+    flyoutTimer.current = setTimeout(() => setFlyout(null), 140);
+  };
+  const cancelCloseFlyout = () => {
+    if (flyoutTimer.current) clearTimeout(flyoutTimer.current);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -118,6 +166,9 @@ export default function NavBar() {
       setIsNavHidden(movingDown && currentY > 160 && !isOpen);
       lastScrollY.current = currentY;
       ticking = false;
+      // The flyout is anchored to a nav item's viewport rect; close it on
+      // scroll so it never floats detached.
+      setFlyout(null);
     };
 
     handleScrollState();
@@ -370,7 +421,17 @@ export default function NavBar() {
                       ? "text-white bg-[linear-gradient(135deg,rgba(194,65,12,0.94),rgba(234,88,12,0.88)_54%,rgba(245,158,11,0.84))] shadow-[0_14px_28px_rgba(120,53,15,0.34)] border border-amber-300/35"
                       : "text-amber-100/80 hover:text-white hover:bg-amber-500/[0.12] border border-amber-500/10 hover:border-amber-400/30 hover:shadow-[0_8px_18px_rgba(120,53,15,0.28)]"
                   }`}
-                    onClick={handleNavClick(section)}
+                    onClick={(e) => {
+                      setFlyout(null);
+                      handleNavClick(section)(e);
+                    }}
+                    onMouseEnter={(e) =>
+                      openFlyout(section.id, e.currentTarget)
+                    }
+                    onMouseLeave={scheduleCloseFlyout}
+                    aria-haspopup={
+                      NAV_SUBSECTIONS[section.id] ? true : undefined
+                    }
                     whileHover={{ y: -1.5, scale: 1.02 }}
                     whileTap={{ scale: 0.985 }}
                     transition={{
@@ -434,6 +495,36 @@ export default function NavBar() {
                 </button>
               </div>
             </div>
+
+            {/* Desktop hover flyout: jump links to a page's sub-sections. Fixed
+                so it escapes the menubar's overflow-x-auto clipping. */}
+            <AnimatePresence>
+              {flyout && NAV_SUBSECTIONS[flyout.id] && (
+                <motion.div
+                  className="pointer-events-auto fixed z-[60] hidden xl:block"
+                  style={{ left: flyout.left, top: flyout.top }}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.14 }}
+                  onMouseEnter={cancelCloseFlyout}
+                  onMouseLeave={scheduleCloseFlyout}
+                >
+                  <div className="min-w-[180px] overflow-hidden rounded-xl border border-amber-400/25 bg-slate-950/95 p-1.5 shadow-[0_18px_48px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                    {NAV_SUBSECTIONS[flyout.id].map((sub) => (
+                      <Link
+                        key={sub.href}
+                        href={sub.href}
+                        onClick={() => setFlyout(null)}
+                        className="block rounded-lg px-3 py-2 text-xs font-medium text-amber-100/85 transition hover:bg-amber-500/15 hover:text-white"
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Mobile controls: keep the theme toggle visible in the header at the
                 hamburger breakpoint (the desktop toggle lives inside the xl:flex menu). */}
