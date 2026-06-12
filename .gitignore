@@ -74,3 +74,6 @@ portfolio-site-mirror/  # Bare git repo clone, shouldn't be committed
 
 # ===== Shell Scripts =====
 *.sh
+
+# Generated dependency catalog (via /packages skill); kept local, not pushed
+docs/PACKAGES.md
