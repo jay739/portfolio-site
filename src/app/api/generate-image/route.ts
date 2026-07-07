@@ -1,8 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getClientIpFromHeaders, rateLimit } from '@/lib/rate-limit';
+import { NextRequest, NextResponse } from "next/server";
+import { getClientIpFromHeaders, rateLimit } from "@/lib/rate-limit";
+import {
+  resolveHost,
+  invalidateHost,
+  fallbackHost,
+  hostLabel,
+} from "@/lib/host-failover";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 // In-memory job metadata (prompt_id → request context). Keyed to ComfyUI's prompt_id.
 // Small map, entries cleaned up when client polls a completed job.
@@ -18,6 +24,7 @@ interface JobMeta {
   model: string;
   vae: string;
   startedAt: number;
+  comfyHost: string; // whichever host actually queued this job — GET must poll the same one
 }
 const jobs = new Map<string, JobMeta>();
 // Track one active job per IP (promptId → ip and ip → promptId)
@@ -33,29 +40,53 @@ function releaseIp(promptId: string) {
 }
 
 // Cleanup: drop entries older than 15 min
-setInterval(() => {
-  const cutoff = Date.now() - 15 * 60 * 1000;
-  for (const [id, meta] of jobs.entries()) {
-    if (meta.startedAt < cutoff) {
-      releaseIp(id);
-      jobs.delete(id);
+setInterval(
+  () => {
+    const cutoff = Date.now() - 15 * 60 * 1000;
+    for (const [id, meta] of jobs.entries()) {
+      if (meta.startedAt < cutoff) {
+        releaseIp(id);
+        jobs.delete(id);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000,
+);
 
-const COMFYUI = process.env.COMFYUI_ENDPOINT ?? 'http://localhost:8188';
 // Per-mode timeouts (SDXL on M4 MPS can take 150s+ plus 30s model load)
-const TIMEOUTS: Record<'fast' | 'balanced' | 'quality', number> = {
+const TIMEOUTS: Record<"fast" | "balanced" | "quality", number> = {
   fast: 90_000,
   balanced: 180_000,
   quality: 300_000,
 };
 
-type ModelFamily = 'sd' | 'flux';
-type SpeedMode = 'fast' | 'balanced' | 'quality';
-type Quality = 'low' | 'medium' | 'high';
-type AspectRatio = 'square' | 'portrait' | 'landscape';
-type Style = 'none' | 'anime' | 'cinematic' | 'pixel-art' | 'cyberpunk' | 'photorealistic';
+// Rough peak VRAM a generation needs on a CUDA device (checkpoint + activations
+// + decode buffer), used only as a pre-flight guard on shared/VRAM-constrained
+// hosts (e.g. a desktop GPU also running other apps) — not a hard model limit.
+// MPS (Apple Silicon) devices report no vram_free from ComfyUI, so this check
+// is skipped there; it only applies when /system_stats reports a cuda device.
+const ESTIMATED_VRAM_BYTES: Record<
+  "fast" | "balanced" | "quality" | "flux",
+  number
+> = {
+  fast: 3 * 1024 ** 3,
+  balanced: 4 * 1024 ** 3,
+  quality: 6.5 * 1024 ** 3,
+  flux: 7 * 1024 ** 3,
+};
+const VRAM_SAFETY_MARGIN_BYTES = 512 * 1024 ** 2;
+
+type ModelFamily = "sd" | "flux";
+type SpeedMode = "fast" | "balanced" | "quality";
+type Quality = "low" | "medium" | "high";
+type AspectRatio = "square" | "portrait" | "landscape";
+type Style =
+  | "none"
+  | "anime"
+  | "cinematic"
+  | "pixel-art"
+  | "cyberpunk"
+  | "photorealistic";
 
 interface ModelPreset {
   ckpt: string;
@@ -71,7 +102,10 @@ interface ModelPreset {
 }
 
 type ComfyHistoryEntry = {
-  outputs?: Record<string, { images?: Array<{ filename: string; subfolder?: string }> }>;
+  outputs?: Record<
+    string,
+    { images?: Array<{ filename: string; subfolder?: string }> }
+  >;
 };
 
 type ComfyHistoryResponse = Record<string, ComfyHistoryEntry>;
@@ -80,74 +114,83 @@ type QueueEntry = [number, string, ...unknown[]];
 
 const MODELS: Record<SpeedMode, ModelPreset> = {
   fast: {
-    ckpt: 'sd_turbo.safetensors',
+    ckpt: "sd_turbo.safetensors",
     baseSteps: 2,
     cfg: 1,
-    sampler: 'euler_ancestral',
-    scheduler: 'simple',
+    sampler: "euler_ancestral",
+    scheduler: "simple",
     maxSide: 512,
     supportsSd15Embeddings: true,
   },
   balanced: {
-    ckpt: 'v1-5-pruned-emaonly.safetensors',
+    ckpt: "v1-5-pruned-emaonly.safetensors",
     baseSteps: 20,
     cfg: 7,
-    sampler: 'euler',
-    scheduler: 'normal',
+    sampler: "euler",
+    scheduler: "normal",
     maxSide: 640,
-    externalVae: 'vae-ft-mse-840000-ema-pruned.safetensors',
+    externalVae: "vae-ft-mse-840000-ema-pruned.safetensors",
     supportsSd15Embeddings: true,
   },
   quality: {
-    ckpt: 'sd_xl_turbo_1.0_fp16.safetensors',
+    ckpt: "sd_xl_turbo_1.0_fp16.safetensors",
     baseSteps: 6,
     cfg: 1.5,
-    sampler: 'euler_ancestral',
-    scheduler: 'simple',
+    sampler: "euler_ancestral",
+    scheduler: "simple",
     maxSide: 1024,
     // SDXL uses its own VAE and its own embedding format — skip SD 1.5 embeddings
   },
 };
 
-const QUALITY_MULT: Record<Quality, number> = { low: 0.5, medium: 1, high: 1.5 };
+const QUALITY_MULT: Record<Quality, number> = {
+  low: 0.5,
+  medium: 1,
+  high: 1.5,
+};
 
 // Prompt-style augmentation (no LoRAs = no extra RAM, works across all checkpoints).
 // { add: appended to positive prompt, neg: appended to negative prompt }
 const STYLE_TOKENS: Record<Style, { add: string; neg: string }> = {
-  none: { add: '', neg: '' },
+  none: { add: "", neg: "" },
   anime: {
-    add: 'anime style, manga, cel shading, vibrant colors, detailed line art, studio ghibli influence',
-    neg: 'photorealistic, 3d render, western cartoon',
+    add: "anime style, manga, cel shading, vibrant colors, detailed line art, studio ghibli influence",
+    neg: "photorealistic, 3d render, western cartoon",
   },
   cinematic: {
-    add: 'cinematic lighting, film grain, anamorphic lens, dramatic shadows, shallow depth of field, color graded',
-    neg: 'flat lighting, overexposed',
+    add: "cinematic lighting, film grain, anamorphic lens, dramatic shadows, shallow depth of field, color graded",
+    neg: "flat lighting, overexposed",
   },
-  'pixel-art': {
-    add: 'pixel art, 8-bit, 16-bit, retro game sprite, limited color palette, crisp pixels',
-    neg: 'smooth shading, anti-aliasing, photorealistic, blurry',
+  "pixel-art": {
+    add: "pixel art, 8-bit, 16-bit, retro game sprite, limited color palette, crisp pixels",
+    neg: "smooth shading, anti-aliasing, photorealistic, blurry",
   },
   cyberpunk: {
-    add: 'cyberpunk, neon lights, rain-soaked streets, blade runner aesthetic, holographic signs, futuristic city, moody atmosphere',
-    neg: 'rural, daylight, pastoral',
+    add: "cyberpunk, neon lights, rain-soaked streets, blade runner aesthetic, holographic signs, futuristic city, moody atmosphere",
+    neg: "rural, daylight, pastoral",
   },
   photorealistic: {
-    add: 'photorealistic, ultra detailed, 85mm lens, natural lighting, high dynamic range, sharp focus',
-    neg: 'illustration, cartoon, anime, painting',
+    add: "photorealistic, ultra detailed, 85mm lens, natural lighting, high dynamic range, sharp focus",
+    neg: "illustration, cartoon, anime, painting",
   },
 };
 
 // Auto-applied negative embeddings for SD 1.5 family (EasyNegative lives in models/embeddings/)
-const SD15_AUTO_NEG = 'embedding:EasyNegative';
+const SD15_AUTO_NEG = "embedding:EasyNegative";
 // Generic quality negatives auto-applied to every generation
 const QUALITY_AUTO_NEG =
-  'blurry, low quality, bad anatomy, extra fingers, extra limbs, deformed face, distorted eyes, watermark, text';
+  "blurry, low quality, bad anatomy, extra fingers, extra limbs, deformed face, distorted eyes, watermark, text";
 
-function dimsFor(aspect: AspectRatio, max: number): { width: number; height: number } {
+function dimsFor(
+  aspect: AspectRatio,
+  max: number,
+): { width: number; height: number } {
   // Snap to 64px multiples (SD requirement)
   const snap = (n: number) => Math.max(256, Math.round(n / 64) * 64);
-  if (aspect === 'portrait') return { width: snap(max * 0.75), height: snap(max) };
-  if (aspect === 'landscape') return { width: snap(max), height: snap(max * 0.75) };
+  if (aspect === "portrait")
+    return { width: snap(max * 0.75), height: snap(max) };
+  if (aspect === "landscape")
+    return { width: snap(max), height: snap(max * 0.75) };
   return { width: snap(max), height: snap(max) };
 }
 
@@ -161,11 +204,11 @@ function buildWorkflow(
   height: number,
 ) {
   // Pick VAE source: external VAELoader if set, else the one bundled in the checkpoint
-  const vaeRef: [string, number] = preset.externalVae ? ['10', 0] : ['4', 2];
+  const vaeRef: [string, number] = preset.externalVae ? ["10", 0] : ["4", 2];
 
   const workflow: Record<string, unknown> = {
-    '3': {
-      class_type: 'KSampler',
+    "3": {
+      class_type: "KSampler",
       inputs: {
         seed,
         steps,
@@ -173,22 +216,43 @@ function buildWorkflow(
         sampler_name: preset.sampler,
         scheduler: preset.scheduler,
         denoise: 1,
-        model: ['4', 0],
-        positive: ['6', 0],
-        negative: ['7', 0],
-        latent_image: ['5', 0],
+        model: ["4", 0],
+        positive: ["6", 0],
+        negative: ["7", 0],
+        latent_image: ["5", 0],
       },
     },
-    '4': { class_type: 'CheckpointLoaderSimple', inputs: { ckpt_name: preset.ckpt } },
-    '5': { class_type: 'EmptyLatentImage', inputs: { width, height, batch_size: 1 } },
-    '6': { class_type: 'CLIPTextEncode', inputs: { text: prompt, clip: ['4', 1] } },
-    '7': { class_type: 'CLIPTextEncode', inputs: { text: negativePrompt, clip: ['4', 1] } },
-    '8': { class_type: 'VAEDecode', inputs: { samples: ['3', 0], vae: vaeRef } },
-    '9': { class_type: 'SaveImage', inputs: { filename_prefix: 'portfolio_gen', images: ['8', 0] } },
+    "4": {
+      class_type: "CheckpointLoaderSimple",
+      inputs: { ckpt_name: preset.ckpt },
+    },
+    "5": {
+      class_type: "EmptyLatentImage",
+      inputs: { width, height, batch_size: 1 },
+    },
+    "6": {
+      class_type: "CLIPTextEncode",
+      inputs: { text: prompt, clip: ["4", 1] },
+    },
+    "7": {
+      class_type: "CLIPTextEncode",
+      inputs: { text: negativePrompt, clip: ["4", 1] },
+    },
+    "8": {
+      class_type: "VAEDecode",
+      inputs: { samples: ["3", 0], vae: vaeRef },
+    },
+    "9": {
+      class_type: "SaveImage",
+      inputs: { filename_prefix: "portfolio_gen", images: ["8", 0] },
+    },
   };
 
   if (preset.externalVae) {
-    workflow['10'] = { class_type: 'VAELoader', inputs: { vae_name: preset.externalVae } };
+    workflow["10"] = {
+      class_type: "VAELoader",
+      inputs: { vae_name: preset.externalVae },
+    };
   }
 
   return workflow;
@@ -201,36 +265,64 @@ function buildFluxWorkflow(
   height: number,
 ) {
   return {
-    '1': { class_type: 'UnetLoaderGGUF', inputs: { unet_name: 'flux1-schnell-Q2_K.gguf' } },
-    '2': { class_type: 'DualCLIPLoader', inputs: { clip_name1: 'clip_l.safetensors', clip_name2: 't5xxl_fp8_e4m3fn.safetensors', type: 'flux' } },
-    '3': { class_type: 'VAELoader', inputs: { vae_name: 'ae.safetensors' } },
-    '4': { class_type: 'CLIPTextEncode', inputs: { text: prompt, clip: ['2', 0] } },
-    '5': { class_type: 'FluxGuidance', inputs: { conditioning: ['4', 0], guidance: 3.5 } },
-    '6': { class_type: 'EmptyLatentImage', inputs: { width, height, batch_size: 1 } },
-    '7': {
-      class_type: 'KSampler',
+    "1": {
+      class_type: "UnetLoaderGGUF",
+      inputs: { unet_name: "flux1-schnell-Q2_K.gguf" },
+    },
+    "2": {
+      class_type: "DualCLIPLoader",
+      inputs: {
+        clip_name1: "clip_l.safetensors",
+        clip_name2: "t5xxl_fp8_e4m3fn.safetensors",
+        type: "flux",
+      },
+    },
+    "3": { class_type: "VAELoader", inputs: { vae_name: "ae.safetensors" } },
+    "4": {
+      class_type: "CLIPTextEncode",
+      inputs: { text: prompt, clip: ["2", 0] },
+    },
+    "5": {
+      class_type: "FluxGuidance",
+      inputs: { conditioning: ["4", 0], guidance: 3.5 },
+    },
+    "6": {
+      class_type: "EmptyLatentImage",
+      inputs: { width, height, batch_size: 1 },
+    },
+    "7": {
+      class_type: "KSampler",
       inputs: {
         seed,
         steps: 4,
         cfg: 1.0,
-        sampler_name: 'euler',
-        scheduler: 'simple',
+        sampler_name: "euler",
+        scheduler: "simple",
         denoise: 1,
-        model: ['1', 0],
-        positive: ['5', 0],
-        negative: ['4', 0],
-        latent_image: ['6', 0],
+        model: ["1", 0],
+        positive: ["5", 0],
+        negative: ["4", 0],
+        latent_image: ["6", 0],
       },
     },
-    '8': { class_type: 'VAEDecode', inputs: { samples: ['7', 0], vae: ['3', 0] } },
-    '9': { class_type: 'SaveImage', inputs: { filename_prefix: 'portfolio_flux', images: ['8', 0] } },
+    "8": {
+      class_type: "VAEDecode",
+      inputs: { samples: ["7", 0], vae: ["3", 0] },
+    },
+    "9": {
+      class_type: "SaveImage",
+      inputs: { filename_prefix: "portfolio_flux", images: ["8", 0] },
+    },
   };
 }
 
 async function fetchHistoryImage(
+  comfyHost: string,
   promptId: string,
 ): Promise<{ filename: string; subfolder?: string } | null> {
-  const res = await fetch(`${COMFYUI}/history/${promptId}`, { signal: AbortSignal.timeout(5_000) });
+  const res = await fetch(`${comfyHost}/history/${promptId}`, {
+    signal: AbortSignal.timeout(5_000),
+  });
   if (!res.ok) return null;
   const history = (await res.json()) as ComfyHistoryResponse;
   const entry = history[promptId];
@@ -242,14 +334,24 @@ async function fetchHistoryImage(
 }
 
 // Rate limits
-const perMinute = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500 });
-const perHour = rateLimit({ interval: 60 * 60 * 1000, uniqueTokenPerInterval: 500 });
-const perDayGlobal = rateLimit({ interval: 24 * 60 * 60 * 1000, uniqueTokenPerInterval: 2 });
+const perMinute = rateLimit({
+  interval: 60 * 1000,
+  uniqueTokenPerInterval: 500,
+});
+const perHour = rateLimit({
+  interval: 60 * 60 * 1000,
+  uniqueTokenPerInterval: 500,
+});
+const perDayGlobal = rateLimit({
+  interval: 24 * 60 * 60 * 1000,
+  uniqueTokenPerInterval: 2,
+});
 
 // Cap concurrent queued/running jobs on ComfyUI (Mac Mini is single-tenant)
 const MAX_IN_FLIGHT = 2; // 1 running + 1 pending
 
-const BANNED = /\b(nsfw|nude|naked|porn|sex|explicit|gore|child|underage|loli|shota)\b/i;
+const BANNED =
+  /\b(nsfw|nude|naked|porn|sex|explicit|gore|child|underage|loli|shota)\b/i;
 
 function clientIp(req: NextRequest): string {
   return getClientIpFromHeaders(req.headers);
@@ -262,10 +364,10 @@ export async function POST(req: NextRequest) {
   try {
     await perMinute.check(2, `img:min:${ip}`);
     await perHour.check(10, `img:hr:${ip}`);
-    await perDayGlobal.check(200, 'img:day:global');
+    await perDayGlobal.check(200, "img:day:global");
   } catch {
     return NextResponse.json(
-      { error: 'Rate limit exceeded. Try again in a minute.' },
+      { error: "Rate limit exceeded. Try again in a minute." },
       { status: 429 },
     );
   }
@@ -273,43 +375,73 @@ export async function POST(req: NextRequest) {
   // Reject if this IP already has an active generation (multi-tab protection)
   if (activeByIp.has(ip)) {
     return NextResponse.json(
-      { error: 'You already have a generation in progress. Please wait for it to finish.' },
+      {
+        error:
+          "You already have a generation in progress. Please wait for it to finish.",
+      },
       { status: 409 },
     );
   }
 
-  // Check ComfyUI queue depth before accepting
-  try {
-    const qRes = await fetch(`${COMFYUI}/queue`, { signal: AbortSignal.timeout(5_000) });
-    if (qRes.ok) {
+  // Resolve which ComfyUI host to use (RTX box if reachable, else Mac Mini),
+  // retrying the fallback if the cached-healthy host turns out to be down
+  // right now (e.g. it went offline within the 60s health-check TTL).
+  let comfyHost = await resolveHost("comfyui");
+  let queueDepth: number | null = null;
+  {
+    const checkQueue = async (host: string) => {
+      const qRes = await fetch(`${host}/queue`, {
+        signal: AbortSignal.timeout(5_000),
+      });
+      if (!qRes.ok) return null;
       const q = await qRes.json();
-      const depth = (q.queue_running?.length ?? 0) + (q.queue_pending?.length ?? 0);
-      if (depth >= MAX_IN_FLIGHT) {
-        return NextResponse.json(
-          { error: 'GPU busy — another image is generating. Try again in ~30s.' },
-          { status: 503 },
-        );
+      return (q.queue_running?.length ?? 0) + (q.queue_pending?.length ?? 0);
+    };
+
+    try {
+      queueDepth = await checkQueue(comfyHost);
+    } catch {
+      queueDepth = null;
+    }
+    if (queueDepth === null) {
+      invalidateHost("comfyui");
+      const fallback = fallbackHost("comfyui");
+      if (fallback !== comfyHost) {
+        try {
+          queueDepth = await checkQueue(fallback);
+          if (queueDepth !== null) comfyHost = fallback;
+        } catch {
+          queueDepth = null;
+        }
       }
     }
-  } catch {
-    return NextResponse.json({ error: 'ComfyUI unreachable' }, { status: 503 });
+  }
+
+  if (queueDepth === null) {
+    return NextResponse.json({ error: "ComfyUI unreachable" }, { status: 503 });
+  }
+  if (queueDepth >= MAX_IN_FLIGHT) {
+    return NextResponse.json(
+      { error: "GPU busy — another image is generating. Try again in ~30s." },
+      { status: 503 },
+    );
   }
 
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const {
     prompt,
-    negativePrompt = '',
-    modelFamily = 'sd',
-    speedMode = 'balanced',
-    quality = 'medium',
-    aspect = 'square',
-    style = 'none',
+    negativePrompt = "",
+    modelFamily = "sd",
+    speedMode = "balanced",
+    quality = "medium",
+    aspect = "square",
+    style = "none",
     seed: userSeed,
   } = body as {
     prompt?: string;
@@ -322,26 +454,71 @@ export async function POST(req: NextRequest) {
     seed?: number;
   };
 
-  if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 3) {
-    return NextResponse.json({ error: 'Prompt must be at least 3 characters' }, { status: 400 });
+  if (!prompt || typeof prompt !== "string" || prompt.trim().length < 3) {
+    return NextResponse.json(
+      { error: "Prompt must be at least 3 characters" },
+      { status: 400 },
+    );
   }
   if (prompt.length > 3000) {
-    return NextResponse.json({ error: 'Prompt too long (max 3000 chars)' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Prompt too long (max 3000 chars)" },
+      { status: 400 },
+    );
   }
-  if (!['sd', 'flux'].includes(modelFamily)) {
-    return NextResponse.json({ error: 'Invalid modelFamily' }, { status: 400 });
+  if (!["sd", "flux"].includes(modelFamily)) {
+    return NextResponse.json({ error: "Invalid modelFamily" }, { status: 400 });
   }
   if (BANNED.test(prompt) || BANNED.test(negativePrompt)) {
-    return NextResponse.json({ error: 'Prompt violates content policy' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Prompt violates content policy" },
+      { status: 400 },
+    );
   }
   if (!(speedMode in MODELS)) {
-    return NextResponse.json({ error: 'Invalid speedMode' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid speedMode" }, { status: 400 });
   }
-  if (!(quality in QUALITY_MULT) || !['square', 'portrait', 'landscape'].includes(aspect)) {
-    return NextResponse.json({ error: 'Invalid quality or aspect' }, { status: 400 });
+  if (
+    !(quality in QUALITY_MULT) ||
+    !["square", "portrait", "landscape"].includes(aspect)
+  ) {
+    return NextResponse.json(
+      { error: "Invalid quality or aspect" },
+      { status: 400 },
+    );
   }
   if (!(style in STYLE_TOKENS)) {
-    return NextResponse.json({ error: 'Invalid style' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid style" }, { status: 400 });
+  }
+
+  // Pre-flight VRAM guard: on a CUDA host shared with other GPU use (e.g. a
+  // desktop also running apps), check there's plausibly enough free VRAM
+  // before committing to a generation, rather than letting it OOM mid-render.
+  // MPS (Apple Silicon) reports no vram_free, so this only gates CUDA hosts.
+  try {
+    const statsRes = await fetch(`${comfyHost}/system_stats`, {
+      signal: AbortSignal.timeout(3_000),
+    });
+    if (statsRes.ok) {
+      const stats = await statsRes.json();
+      const device = stats.devices?.[0];
+      if (device?.type === "cuda" && typeof device.vram_free === "number") {
+        const required =
+          ESTIMATED_VRAM_BYTES[modelFamily === "flux" ? "flux" : speedMode];
+        if (device.vram_free < required + VRAM_SAFETY_MARGIN_BYTES) {
+          return NextResponse.json(
+            {
+              error:
+                "GPU memory is tight right now (other apps may be using it). Try again in a moment or pick a lighter mode.",
+            },
+            { status: 503 },
+          );
+        }
+      }
+    }
+  } catch {
+    // Stats endpoint being flaky isn't worth blocking generation over — the
+    // queue-depth check above already confirmed the host is reachable.
   }
 
   try {
@@ -351,7 +528,9 @@ export async function POST(req: NextRequest) {
         : Math.floor(Math.random() * 2 ** 32);
 
     const styleTokens = STYLE_TOKENS[style];
-    const finalPrompt = [prompt.trim(), styleTokens.add].filter(Boolean).join(', ');
+    const finalPrompt = [prompt.trim(), styleTokens.add]
+      .filter(Boolean)
+      .join(", ");
 
     let workflow: Record<string, unknown>;
     let steps: number;
@@ -360,51 +539,68 @@ export async function POST(req: NextRequest) {
     let modelName: string;
     let vaeUsed: string;
 
-    if (modelFamily === 'flux') {
+    if (modelFamily === "flux") {
       // FLUX.1-schnell: 4-step, up to 1024px, no negative prompt
       const maxSide = 1024;
       ({ width, height } = dimsFor(aspect, maxSide));
       steps = 4;
-      modelName = 'flux1-schnell-Q2_K.gguf';
-      vaeUsed = 'ae.safetensors';
+      modelName = "flux1-schnell-Q2_K.gguf";
+      vaeUsed = "ae.safetensors";
       workflow = buildFluxWorkflow(finalPrompt, seed, width, height);
     } else {
       const preset = MODELS[speedMode];
       steps = Math.max(1, Math.round(preset.baseSteps * QUALITY_MULT[quality]));
       ({ width, height } = dimsFor(aspect, preset.maxSide));
       modelName = preset.ckpt;
-      vaeUsed = preset.externalVae ?? 'bundled';
+      vaeUsed = preset.externalVae ?? "bundled";
       const negPieces = [
         QUALITY_AUTO_NEG,
         negativePrompt.trim(),
         styleTokens.neg,
-        preset.supportsSd15Embeddings ? SD15_AUTO_NEG : '',
+        preset.supportsSd15Embeddings ? SD15_AUTO_NEG : "",
       ].filter(Boolean);
-      const finalNegative = negPieces.join(', ');
-      workflow = buildWorkflow(finalPrompt, finalNegative, seed, preset, steps, width, height);
+      const finalNegative = negPieces.join(", ");
+      workflow = buildWorkflow(
+        finalPrompt,
+        finalNegative,
+        seed,
+        preset,
+        steps,
+        width,
+        height,
+      );
     }
 
-    const queueRes = await fetch(`${COMFYUI}/prompt`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const queueRes = await fetch(`${comfyHost}/prompt`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt: workflow }),
       signal: AbortSignal.timeout(10_000),
     });
 
     if (!queueRes.ok) {
-      const text = await queueRes.text().catch(() => '');
-      console.error('ComfyUI rejected workflow:', text.slice(0, 500));
+      const text = await queueRes.text().catch(() => "");
+      console.error("ComfyUI rejected workflow:", text.slice(0, 500));
       return NextResponse.json(
-        { error: 'Image generation service rejected the request. Please try a different prompt.' },
+        {
+          error:
+            "Image generation service rejected the request. Please try a different prompt.",
+        },
         { status: 503 },
       );
     }
 
     const queued = await queueRes.json();
     if (!queued.prompt_id) {
-      console.error('ComfyUI validation failed:', JSON.stringify(queued.node_errors ?? queued).slice(0, 500));
+      console.error(
+        "ComfyUI validation failed:",
+        JSON.stringify(queued.node_errors ?? queued).slice(0, 500),
+      );
       return NextResponse.json(
-        { error: 'Image generation validation failed. Please try a different prompt.' },
+        {
+          error:
+            "Image generation validation failed. Please try a different prompt.",
+        },
         { status: 502 },
       );
     }
@@ -426,14 +622,15 @@ export async function POST(req: NextRequest) {
       model: modelName,
       vae: vaeUsed,
       startedAt: Date.now(),
+      comfyHost,
     });
 
-    const estimatedMs = modelFamily === 'flux' ? 600_000 : TIMEOUTS[speedMode];
+    const estimatedMs = modelFamily === "flux" ? 600_000 : TIMEOUTS[speedMode];
 
     // Return immediately — client polls GET ?id=<prompt_id>
     return NextResponse.json({
       promptId: queued.prompt_id,
-      status: 'queued',
+      status: "queued",
       estimatedMs,
       meta: {
         seed,
@@ -442,49 +639,68 @@ export async function POST(req: NextRequest) {
         steps,
         model: modelName,
         vae: vaeUsed,
-        speedMode: modelFamily === 'flux' ? 'flux' : speedMode,
+        speedMode: modelFamily === "flux" ? "flux" : speedMode,
         quality,
         aspect,
         style,
+        compute: hostLabel("comfyui", comfyHost),
       },
     });
   } catch (err) {
-    console.error('Image queue error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Image queue error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 // Poll job status; returns the image (base64) once ComfyUI finishes.
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const promptId = searchParams.get('id');
+  const promptId = searchParams.get("id");
   if (!promptId) {
-    return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
+
+  // Poll whichever host actually queued this job — a job's history/queue only
+  // exists on the host it was submitted to. Fall back to a fresh resolve if
+  // the job meta is gone (e.g. server restart between POST and this GET).
+  const jobMetaForHost = jobs.get(promptId);
+  const comfyHost = jobMetaForHost?.comfyHost ?? (await resolveHost("comfyui"));
 
   try {
     // Check history first — if the job finished, return the image
-    const imageInfo = await fetchHistoryImage(promptId);
+    const imageInfo = await fetchHistoryImage(comfyHost, promptId);
     if (imageInfo) {
-      if (!/^[\w\-. ]+$/.test(imageInfo.filename) || !/^[\w\-./]*$/.test(imageInfo.subfolder ?? '')) {
-        return NextResponse.json({ status: 'error', error: 'Invalid image path from upstream' }, { status: 500 });
+      if (
+        !/^[\w\-. ]+$/.test(imageInfo.filename) ||
+        !/^[\w\-./]*$/.test(imageInfo.subfolder ?? "")
+      ) {
+        return NextResponse.json(
+          { status: "error", error: "Invalid image path from upstream" },
+          { status: 500 },
+        );
       }
       const imageRes = await fetch(
-        `${COMFYUI}/view?filename=${encodeURIComponent(imageInfo.filename)}&subfolder=${encodeURIComponent(imageInfo.subfolder ?? '')}&type=output`,
+        `${comfyHost}/view?filename=${encodeURIComponent(imageInfo.filename)}&subfolder=${encodeURIComponent(imageInfo.subfolder ?? "")}&type=output`,
         { signal: AbortSignal.timeout(15_000) },
       );
       if (!imageRes.ok) {
-        return NextResponse.json({ status: 'error', error: 'Failed to fetch image' }, { status: 500 });
+        return NextResponse.json(
+          { status: "error", error: "Failed to fetch image" },
+          { status: 500 },
+        );
       }
       const buffer = await imageRes.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString('base64');
+      const base64 = Buffer.from(buffer).toString("base64");
 
       releaseIp(promptId);
 
-      // Fire-and-forget unload to free M4 unified memory
-      fetch(`${COMFYUI}/free`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Fire-and-forget unload to free unified/VRAM memory on whichever host ran it
+      fetch(`${comfyHost}/free`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ unload_models: true, free_memory: true }),
         signal: AbortSignal.timeout(5_000),
       }).catch(() => {});
@@ -493,47 +709,72 @@ export async function GET(req: NextRequest) {
       jobs.delete(promptId);
 
       return NextResponse.json({
-        status: 'done',
+        status: "done",
         image: `data:image/png;base64,${base64}`,
         promptId,
+        compute: hostLabel("comfyui", comfyHost),
         ...(meta ?? {}),
       });
     }
 
     // Still pending — report queue position
-    const qRes = await fetch(`${COMFYUI}/queue`, { signal: AbortSignal.timeout(5_000) });
+    const qRes = await fetch(`${comfyHost}/queue`, {
+      signal: AbortSignal.timeout(5_000),
+    });
     if (!qRes.ok) {
-      return NextResponse.json({ status: 'error', error: 'ComfyUI unreachable' }, { status: 503 });
+      return NextResponse.json(
+        { status: "error", error: "ComfyUI unreachable" },
+        { status: 503 },
+      );
     }
     const queue = await qRes.json();
-    const running = Array.isArray(queue.queue_running) ? (queue.queue_running as QueueEntry[]) : [];
-    const pending = Array.isArray(queue.queue_pending) ? (queue.queue_pending as QueueEntry[]) : [];
+    const running = Array.isArray(queue.queue_running)
+      ? (queue.queue_running as QueueEntry[])
+      : [];
+    const pending = Array.isArray(queue.queue_pending)
+      ? (queue.queue_pending as QueueEntry[])
+      : [];
 
     // ComfyUI queue entries look like [number, prompt_id, ...]
-    const isRunning = running.some((e) => Array.isArray(e) && e[1] === promptId);
-    const pendingIdx = pending.findIndex((e) => Array.isArray(e) && e[1] === promptId);
+    const isRunning = running.some(
+      (e) => Array.isArray(e) && e[1] === promptId,
+    );
+    const pendingIdx = pending.findIndex(
+      (e) => Array.isArray(e) && e[1] === promptId,
+    );
 
     if (isRunning) {
-      return NextResponse.json({ status: 'running', promptId });
+      return NextResponse.json({ status: "running", promptId });
     }
     if (pendingIdx >= 0) {
-      return NextResponse.json({ status: 'pending', promptId, position: pendingIdx + 1 });
+      return NextResponse.json({
+        status: "pending",
+        promptId,
+        position: pendingIdx + 1,
+      });
     }
 
     // Not in queue, not in history → either unknown id or job failed/dropped
     const meta = jobs.get(promptId);
     if (meta && Date.now() - meta.startedAt < 20_000) {
       // Grace window for propagation right after POST
-      return NextResponse.json({ status: 'pending', promptId });
+      return NextResponse.json({ status: "pending", promptId });
     }
     releaseIp(promptId);
     jobs.delete(promptId);
     return NextResponse.json(
-      { status: 'error', error: 'Job not found (may have failed or expired). You can generate a new image.' },
+      {
+        status: "error",
+        error:
+          "Job not found (may have failed or expired). You can generate a new image.",
+      },
       { status: 404 },
     );
   } catch (err) {
-    console.error('Image status error:', err);
-    return NextResponse.json({ status: 'error', error: 'Internal error' }, { status: 500 });
+    console.error("Image status error:", err);
+    return NextResponse.json(
+      { status: "error", error: "Internal error" },
+      { status: 500 },
+    );
   }
 }
