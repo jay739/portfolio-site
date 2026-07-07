@@ -9,6 +9,16 @@ export interface SiteUpdate {
 
 export const siteUpdates: SiteUpdate[] = [
   {
+    id: "rtx-gpu-failover",
+    date: "July 2026",
+    title:
+      "AI Image Generator now runs on RTX GPU first, with automatic fallback",
+    details:
+      "The image generator tries an on-demand RTX 3060Ti box first (faster renders, powered on only when needed) and falls back to the always-on Apple M4 Mac Mini if it's offline, with a health check cached for a minute so the switch never adds noticeable latency. A pre-flight VRAM check avoids overloading a shared GPU, and the UI now shows which hardware actually rendered each image.",
+    href: "/ai-tools?tool=image-generator",
+    timestamp: "2026-07-07T03:10:00.000Z",
+  },
+  {
     id: "per-page-og-cards",
     date: "June 2026",
     title: "Unique social preview cards for every page",

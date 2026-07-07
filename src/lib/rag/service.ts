@@ -1,43 +1,56 @@
-import { Document, Conversation, Message, SearchResult, RAGConfig } from './types';
-import { Intent, HybridWeights, docPrefixesForIntent, INTENT_CONFIG } from './intents';
-import { nanoid } from 'nanoid';
-import { z } from 'zod';
-import fs from 'fs/promises';
-import path from 'path';
+import {
+  Document,
+  Conversation,
+  Message,
+  SearchResult,
+  RAGConfig,
+} from "./types";
+import {
+  Intent,
+  HybridWeights,
+  docPrefixesForIntent,
+  INTENT_CONFIG,
+} from "./intents";
+import { nanoid } from "nanoid";
+import { z } from "zod";
+import fs from "fs/promises";
+import path from "path";
+import { withFailover } from "@/lib/host-failover";
 
 // Message schema validation
 const messageSchema = z.string().min(1).max(2000);
 
 // In-memory storage for conversations and rate limiting
 const conversations = new Map<string, Conversation>();
-const rateLimits = new Map<string, { count: number, resetTime: number }>();
+const rateLimits = new Map<string, { count: number; resetTime: number }>();
 
 // Default RAG configuration
 const defaultConfig: RAGConfig = {
-  model: 'phi3:mini', // Faster default for CPU deployments
+  model: "phi3:mini", // Faster default for CPU deployments
   temperature: 0.2,
   maxTokens: 512,
   topK: 30,
   topP: 0.9,
   contextWindow: 2048,
-  ollamaEndpoint: process.env.OLLAMA_ENDPOINT || 'http://localhost:11434',
+  ollamaEndpoint: process.env.OLLAMA_ENDPOINT || "http://localhost:11434",
 };
 
 // Simple in-memory rate limiter
 function checkRateLimit(identifier: string): boolean {
   const now = Date.now();
   const limit = rateLimits.get(identifier);
-  
+
   if (!limit || now > limit.resetTime) {
     // Reset or create new rate limit
     rateLimits.set(identifier, {
       count: 1,
-      resetTime: now + 10000 // 10 seconds window
+      resetTime: now + 10000, // 10 seconds window
     });
     return true;
   }
 
-  if (limit.count >= 10) { // 10 requests per 10 seconds
+  if (limit.count >= 10) {
+    // 10 requests per 10 seconds
     return false;
   }
 
@@ -67,11 +80,60 @@ export const documentSchema = z.object({
 });
 
 const STOP_WORDS = new Set([
-  'the', 'a', 'an', 'and', 'or', 'to', 'of', 'in', 'on', 'for', 'with', 'at',
-  'by', 'is', 'are', 'was', 'were', 'be', 'been', 'can', 'could', 'should',
-  'would', 'do', 'does', 'did', 'what', 'which', 'who', 'whom', 'where', 'when',
-  'why', 'how', 'about', 'from', 'that', 'this', 'it', 'as', 'if', 'i', 'you',
-  'we', 'they', 'he', 'she', 'my', 'your', 'our', 'their', 'hi', 'hello', 'hey'
+  "the",
+  "a",
+  "an",
+  "and",
+  "or",
+  "to",
+  "of",
+  "in",
+  "on",
+  "for",
+  "with",
+  "at",
+  "by",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "been",
+  "can",
+  "could",
+  "should",
+  "would",
+  "do",
+  "does",
+  "did",
+  "what",
+  "which",
+  "who",
+  "whom",
+  "where",
+  "when",
+  "why",
+  "how",
+  "about",
+  "from",
+  "that",
+  "this",
+  "it",
+  "as",
+  "if",
+  "i",
+  "you",
+  "we",
+  "they",
+  "he",
+  "she",
+  "my",
+  "your",
+  "our",
+  "their",
+  "hi",
+  "hello",
+  "hey",
 ]);
 
 export class RAGService {
@@ -90,34 +152,36 @@ export class RAGService {
 
   private async loadDocuments() {
     try {
-      const documentsPath = path.join(process.cwd(), 'src', 'rag', 'documents');
+      const documentsPath = path.join(process.cwd(), "src", "rag", "documents");
       const files = await fs.readdir(documentsPath);
-      
+
       for (const file of files) {
-        if (file.endsWith('.json')) {
+        if (file.endsWith(".json")) {
           const filePath = path.join(documentsPath, file);
-          const content = await fs.readFile(filePath, 'utf-8');
+          const content = await fs.readFile(filePath, "utf-8");
           const document = JSON.parse(content);
           // Exclude generic personality prompt dumps from retrieval context.
           // These can contaminate answers for impact/experience questions.
           if (
-            typeof document?.id === 'string' &&
-            document.id.toLowerCase().includes('gpt_personality')
+            typeof document?.id === "string" &&
+            document.id.toLowerCase().includes("gpt_personality")
           ) {
             continue;
           }
           this.documents.push(document);
         }
       }
-      
-      console.log(`Loaded ${this.documents.length} documents from ${documentsPath}`);
-      
+
+      console.log(
+        `Loaded ${this.documents.length} documents from ${documentsPath}`,
+      );
+
       // Log loaded document titles for debugging
-      this.documents.forEach(doc => {
+      this.documents.forEach((doc) => {
         console.log(`- ${doc.title || doc.id}: ${doc.content.length} chars`);
       });
     } catch (error) {
-      console.error('Error loading documents:', error);
+      console.error("Error loading documents:", error);
       throw error; // We want to know if document loading fails
     }
   }
@@ -134,37 +198,45 @@ export class RAGService {
     if (queryTerms.length === 0) {
       return [];
     }
-    
+
     const queryLower = query.toLowerCase();
 
     for (const doc of this.documents) {
-      const title = (doc.title || '').toLowerCase();
-      const id = (doc.id || '').toLowerCase();
-      const tags = Array.isArray(doc.metadata?.tags) ? doc.metadata.tags.join(' ').toLowerCase() : '';
+      const title = (doc.title || "").toLowerCase();
+      const id = (doc.id || "").toLowerCase();
+      const tags = Array.isArray(doc.metadata?.tags)
+        ? doc.metadata.tags.join(" ").toLowerCase()
+        : "";
       const content = doc.content.toLowerCase();
       const haystack = `${title}\n${id}\n${tags}\n${content}`;
-      const matches = queryTerms.filter(term => haystack.includes(term));
+      const matches = queryTerms.filter((term) => haystack.includes(term));
       if (matches.length > 0) {
         let bonus = 0;
-        const wantsStar = /(\bstar\b|situation|task|action|result|incident|debug|architecture|decision)/i.test(queryLower);
+        const wantsStar =
+          /(\bstar\b|situation|task|action|result|incident|debug|architecture|decision)/i.test(
+            queryLower,
+          );
         const wantsIncident = /(incident|debug)/i.test(queryLower);
-        const wantsArchitecture = /(architecture|decision|tradeoff|retrieval)/i.test(queryLower);
+        const wantsArchitecture =
+          /(architecture|decision|tradeoff|retrieval)/i.test(queryLower);
 
-        if (wantsStar && id.includes('chip_star_')) bonus += 0.2;
-        if (wantsIncident && id.includes('chip_star_incident_')) bonus += 0.2;
-        if (wantsArchitecture && id.includes('chip_star_arch_')) bonus += 0.2;
+        if (wantsStar && id.includes("chip_star_")) bonus += 0.2;
+        if (wantsIncident && id.includes("chip_star_incident_")) bonus += 0.2;
+        if (wantsArchitecture && id.includes("chip_star_arch_")) bonus += 0.2;
 
         results.push({
           document: doc,
-          score: Math.min(1, matches.length / queryTerms.length + bonus)
+          score: Math.min(1, matches.length / queryTerms.length + bonus),
         });
       }
     }
-    
+
     const searchResults = results.sort((a, b) => b.score - a.score).slice(0, 5);
 
     // Log search for transparency
-    console.log(`RAG Search - Query: "${query}", Found ${searchResults.length} documents, Scores: ${searchResults.map(r => r.score.toFixed(2)).join(', ')}`);
+    console.log(
+      `RAG Search - Query: "${query}", Found ${searchResults.length} documents, Scores: ${searchResults.map((r) => r.score.toFixed(2)).join(", ")}`,
+    );
 
     return searchResults;
   }
@@ -181,12 +253,16 @@ export class RAGService {
    * FallbackPolicy.allowSupplemental controls whether general-profile docs are
    * included as supplemental context (gamma receives a smaller prior for them).
    */
-  public async searchByIntent(query: string, intent: Intent): Promise<SearchResult[]> {
+  public async searchByIntent(
+    query: string,
+    intent: Intent,
+  ): Promise<SearchResult[]> {
     await this.ensureReady();
 
     const config = INTENT_CONFIG[intent];
     const weights: HybridWeights = config.hybridWeights;
-    const { primary: primaryPrefixes, supplemental: supplementalPrefixes } = docPrefixesForIntent(intent);
+    const { primary: primaryPrefixes, supplemental: supplementalPrefixes } =
+      docPrefixesForIntent(intent);
 
     const queryTerms = query
       .toLowerCase()
@@ -196,9 +272,13 @@ export class RAGService {
     const queryLower = query.toLowerCase();
 
     // STAR sub-intent signals for additional metadata priors
-    const wantsStar        = /(\bstar\b|situation|task|action|result|incident|debug|architecture|decision)/i.test(queryLower);
-    const wantsIncident    = /(incident|debug)/i.test(queryLower);
-    const wantsArchitecture = /(architecture|decision|tradeoff|retrieval)/i.test(queryLower);
+    const wantsStar =
+      /(\bstar\b|situation|task|action|result|incident|debug|architecture|decision)/i.test(
+        queryLower,
+      );
+    const wantsIncident = /(incident|debug)/i.test(queryLower);
+    const wantsArchitecture =
+      /(architecture|decision|tradeoff|retrieval)/i.test(queryLower);
 
     // Phase 2 hook: returns cosine similarity between query embedding and doc embedding.
     // Currently returns 0 (no embeddings pre-computed). When Phase 2 lands:
@@ -209,32 +289,41 @@ export class RAGService {
     const results: SearchResult[] = [];
 
     for (const doc of this.documents) {
-      const id      = (doc.id    || '').toLowerCase();
-      const title   = (doc.title || '').toLowerCase();
-      const tags    = Array.isArray(doc.metadata?.tags) ? doc.metadata.tags.join(' ').toLowerCase() : '';
+      const id = (doc.id || "").toLowerCase();
+      const title = (doc.title || "").toLowerCase();
+      const tags = Array.isArray(doc.metadata?.tags)
+        ? doc.metadata.tags.join(" ").toLowerCase()
+        : "";
       const content = doc.content.toLowerCase();
       const haystack = `${title}\n${id}\n${tags}\n${content}`;
 
       // ── gamma: metadata prior ────────────────────────────────────────────
       let metadataPrior = 0;
-      const isPrimary      = primaryPrefixes.some((p) => id.startsWith(p));
-      const isSupplemental = !isPrimary && supplementalPrefixes.some((p) => id.startsWith(p));
-      if (isPrimary)      metadataPrior = 1.0;          // full prior for intent-aligned docs
-      else if (isSupplemental) metadataPrior = 0.20;    // weak prior for supplemental docs
+      const isPrimary = primaryPrefixes.some((p) => id.startsWith(p));
+      const isSupplemental =
+        !isPrimary && supplementalPrefixes.some((p) => id.startsWith(p));
+      if (isPrimary)
+        metadataPrior = 1.0; // full prior for intent-aligned docs
+      else if (isSupplemental) metadataPrior = 0.2; // weak prior for supplemental docs
 
       // STAR sub-intent bonuses layered on top of metadata prior
-      if (wantsStar        && id.includes('chip_star_'))          metadataPrior = Math.min(1, metadataPrior + 0.30);
-      if (wantsIncident    && id.includes('chip_star_incident_')) metadataPrior = Math.min(1, metadataPrior + 0.30);
-      if (wantsArchitecture && id.includes('chip_star_arch_'))    metadataPrior = Math.min(1, metadataPrior + 0.30);
+      if (wantsStar && id.includes("chip_star_"))
+        metadataPrior = Math.min(1, metadataPrior + 0.3);
+      if (wantsIncident && id.includes("chip_star_incident_"))
+        metadataPrior = Math.min(1, metadataPrior + 0.3);
+      if (wantsArchitecture && id.includes("chip_star_arch_"))
+        metadataPrior = Math.min(1, metadataPrior + 0.3);
 
       // Skip docs with no alignment at all (no keyword, no prior)
       if (metadataPrior === 0 && queryTerms.length === 0) continue;
 
       // ── beta: keyword score ──────────────────────────────────────────────
-      const matchCount  = queryTerms.length > 0
-        ? queryTerms.filter((term) => haystack.includes(term)).length
-        : 0;
-      const keywordScore = queryTerms.length > 0 ? matchCount / queryTerms.length : 0;
+      const matchCount =
+        queryTerms.length > 0
+          ? queryTerms.filter((term) => haystack.includes(term)).length
+          : 0;
+      const keywordScore =
+        queryTerms.length > 0 ? matchCount / queryTerms.length : 0;
 
       // Skip docs with zero signal on both keyword and metadata
       if (keywordScore === 0 && metadataPrior === 0) continue;
@@ -246,8 +335,8 @@ export class RAGService {
       const hybrid = Math.min(
         1,
         weights.alpha * semanticScore +
-        weights.beta  * keywordScore  +
-        weights.gamma * metadataPrior
+          weights.beta * keywordScore +
+          weights.gamma * metadataPrior,
       );
 
       if (hybrid >= config.minScore || metadataPrior >= 0.5) {
@@ -255,11 +344,11 @@ export class RAGService {
       }
     }
 
-    const topK   = config.topK > 0 ? config.topK : 5;
+    const topK = config.topK > 0 ? config.topK : 5;
     const sorted = results.sort((a, b) => b.score - a.score).slice(0, topK);
 
     console.log(
-      `RAG Hybrid[${intent}] - "${query.slice(0, 60)}", docs=${sorted.length}, scores=${sorted.map((r) => r.score.toFixed(2)).join(', ')}`
+      `RAG Hybrid[${intent}] - "${query.slice(0, 60)}", docs=${sorted.length}, scores=${sorted.map((r) => r.score.toFixed(2)).join(", ")}`,
     );
     return sorted;
   }
@@ -268,8 +357,12 @@ export class RAGService {
     // Implement proper vector similarity calculation
     // For now, return a simple score based on keyword matching
     const keywords = text.toLowerCase().split(/\W+/);
-    const queryKeywords = embedding.map(e => e.toString()).join(' ').toLowerCase().split(/\W+/);
-    const matches = queryKeywords.filter(k => keywords.includes(k)).length;
+    const queryKeywords = embedding
+      .map((e) => e.toString())
+      .join(" ")
+      .toLowerCase()
+      .split(/\W+/);
+    const matches = queryKeywords.filter((k) => keywords.includes(k)).length;
     return matches / Math.max(keywords.length, queryKeywords.length);
   }
 
@@ -278,8 +371,10 @@ export class RAGService {
     const sentences = text.split(/[.!?]+/);
     const keywords = query.toLowerCase().split(/\W+/);
 
-    sentences.forEach(sentence => {
-      if (keywords.some(keyword => sentence.toLowerCase().includes(keyword))) {
+    sentences.forEach((sentence) => {
+      if (
+        keywords.some((keyword) => sentence.toLowerCase().includes(keyword))
+      ) {
         highlights.push(sentence.trim());
       }
     });
@@ -287,41 +382,65 @@ export class RAGService {
     return highlights.slice(0, 3);
   }
 
+  private async callOllamaGenerate(prompt: string): Promise<Response> {
+    const body = JSON.stringify({
+      model: this.config.model,
+      prompt,
+      stream: false,
+      options: {
+        temperature: 0.3,
+        top_k: this.config.topK,
+        top_p: this.config.topP,
+        num_ctx: this.config.contextWindow,
+      },
+    });
+    const post = (endpoint: string) =>
+      fetch(`${endpoint}/api/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      }).then((res) => (res.ok ? res : null));
+
+    // An explicitly injected ollamaEndpoint (e.g. a test mock) bypasses
+    // RTX/Mac-Mini failover entirely and is used as-is.
+    if (this.config.ollamaEndpoint !== defaultConfig.ollamaEndpoint) {
+      const res = await fetch(`${this.config.ollamaEndpoint}/api/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      return res;
+    }
+
+    const result = await withFailover("ollama", post);
+    if (!result)
+      throw new Error("Ollama API unreachable on all configured hosts");
+    return result;
+  }
+
   private async generateResponse(
     message: string,
-    context: SearchResult[]
+    context: SearchResult[],
   ): Promise<string> {
     const contextText = context
-      .map(result => result.document.content)
-      .join('\n\n');
+      .map((result) => result.document.content)
+      .join("\n\n");
 
     const prompt = `Based on this context about Jayakrishna Konda, answer the question:
 
-Context: ${contextText || 'No information found.'}
+Context: ${contextText || "No information found."}
 
 Question: ${message}
 Answer:`;
 
     try {
       // Use focused parameters for RAG generation
-      const response = await fetch(this.config.ollamaEndpoint + '/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.config.model,
-          prompt,
-          stream: false,
-          options: {
-            temperature: 0.3,
-            top_k: this.config.topK,
-            top_p: this.config.topP,
-            num_ctx: this.config.contextWindow
-          }
-        }),
-      });
+      const response = await this.callOllamaGenerate(prompt);
 
       if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Ollama API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const responseText = await response.text();
@@ -329,16 +448,18 @@ Answer:`;
       try {
         data = JSON.parse(responseText);
       } catch {
-        console.error('Failed to parse Ollama response as JSON:', responseText);
-        throw new Error('Invalid response from Ollama API');
+        console.error("Failed to parse Ollama response as JSON:", responseText);
+        throw new Error("Invalid response from Ollama API");
       }
-      
-      const generatedResponse = data.response || 'I apologize, but I was unable to generate a response.';
-      
+
+      const generatedResponse =
+        data.response ||
+        "I apologize, but I was unable to generate a response.";
+
       // Post-process response to ensure RAG compliance
       return this.validateRAGResponse(generatedResponse, contextText);
     } catch (error) {
-      console.error('Error generating response:', error);
+      console.error("Error generating response:", error);
       throw error;
     }
   }
@@ -346,16 +467,18 @@ Answer:`;
   async handleMessage(
     message: string,
     sessionId: string,
-    metadata: { userAgent?: string; ip?: string }
+    metadata: { userAgent?: string; ip?: string },
   ): Promise<{ reply: string; conversationId: string }> {
     try {
       await this.ensureReady();
       messageSchema.parse(message); // Validate input
-      
+
       // Rate limiting
       const identifier = metadata.ip || sessionId;
       if (!checkRateLimit(identifier)) {
-        throw new Error('Rate limit exceeded. Please try again in a few seconds.');
+        throw new Error(
+          "Rate limit exceeded. Please try again in a few seconds.",
+        );
       }
 
       // Get or create conversation
@@ -374,7 +497,7 @@ Answer:`;
       // Add user message
       const userMessage: Message = {
         id: nanoid(),
-        role: 'user',
+        role: "user",
         content: message,
         timestamp: new Date(),
       };
@@ -389,11 +512,11 @@ Answer:`;
       // Add assistant message
       const assistantMessage: Message = {
         id: nanoid(),
-        role: 'assistant',
+        role: "assistant",
         content: reply,
         timestamp: new Date(),
         metadata: {
-          context: context.map(result => result.document.content),
+          context: context.map((result) => result.document.content),
           model: this.config.model,
         },
       };
@@ -405,7 +528,7 @@ Answer:`;
 
       return { reply, conversationId: conversation.id };
     } catch (error) {
-      console.error('Error handling message:', error);
+      console.error("Error handling message:", error);
       throw error;
     }
   }
@@ -413,7 +536,7 @@ Answer:`;
   private cleanupOldConversations() {
     const now = Date.now();
     const oneHourAgo = now - 3600000; // 1 hour in milliseconds
-    
+
     for (const [sessionId, conversation] of conversations.entries()) {
       if (conversation.updatedAt.getTime() < oneHourAgo) {
         conversations.delete(sessionId);
@@ -424,40 +547,49 @@ Answer:`;
   private validateRAGResponse(response: string, contextText: string): string {
     // Red flags that indicate potential hallucination
     const hallucinationIndicators = [
-      'based on my knowledge',
-      'i know that',
-      'it\'s common that',
-      'typically',
-      'usually',
-      'in general',
-      'most people',
-      'according to',
-      'research shows',
-      'studies indicate'
+      "based on my knowledge",
+      "i know that",
+      "it's common that",
+      "typically",
+      "usually",
+      "in general",
+      "most people",
+      "according to",
+      "research shows",
+      "studies indicate",
     ];
 
     const lowerResponse = response.toLowerCase();
-    
+
     // Check for hallucination indicators
-    const hasHallucinationIndicators = hallucinationIndicators.some(indicator => 
-      lowerResponse.includes(indicator)
+    const hasHallucinationIndicators = hallucinationIndicators.some(
+      (indicator) => lowerResponse.includes(indicator),
     );
 
     if (hasHallucinationIndicators) {
-      console.warn('RAG Response Validation: Potential hallucination detected, filtering response');
+      console.warn(
+        "RAG Response Validation: Potential hallucination detected, filtering response",
+      );
       return "I don't have that specific information in my knowledge base. You can find more details in Jayakrishna's complete documents or contact him directly.";
     }
 
     // If context is empty but response is detailed, it's likely hallucination
-    if ((!contextText || contextText.trim().length < 50) && response.length > 100) {
-      console.warn('RAG Response Validation: Detailed response without sufficient context, filtering');
+    if (
+      (!contextText || contextText.trim().length < 50) &&
+      response.length > 100
+    ) {
+      console.warn(
+        "RAG Response Validation: Detailed response without sufficient context, filtering",
+      );
       return "I don't have that specific information in my knowledge base. You can find more details in Jayakrishna's complete documents or contact him directly.";
     }
 
     return response;
   }
 
-  public async getConversation(sessionId: string): Promise<Conversation | null> {
+  public async getConversation(
+    sessionId: string,
+  ): Promise<Conversation | null> {
     return conversations.get(sessionId) || null;
   }
-} 
+}
