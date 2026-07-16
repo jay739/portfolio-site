@@ -1,0 +1,130 @@
+---
+title: "Benchmarking Local LLMs Across an RTX 3060 Ti and an M4 Mac Mini (With a Kernel Panic Along the Way)"
+date: "2026-07-16"
+description: "A deep benchmarking session across two very different machines turned up an 8.5x speedup hiding in a single misconfigured setting, a genuine MLX advantage over GGUF, and one crash that took down an entire Mac Mini."
+tags:
+  [
+    "AI",
+    "Ollama",
+    "MLX",
+    "Benchmarking",
+    "Homelab",
+    "Machine Learning",
+    "Self-Hosted",
+  ]
+---
+
+# <Chart /> Benchmarking Local LLMs Across an RTX 3060 Ti and an M4 Mac Mini (With a Kernel Panic Along the Way)
+
+I run local LLM inference across two very different machines: a Windows box with an RTX 3060 Ti (8GB dedicated VRAM) and an Apple M4 Mac Mini (16GB unified memory). One session of properly benchmarking both, instead of assuming performance from spec sheets, turned up a lot more than tok/s numbers.
+
+## <Search /> Starting Point: Numbers That Didn't Add Up
+
+The RTX box was running one model per category — coding, general purpose, vision, reasoning, embeddings — all plain `ollama pull`-ed, no custom Modelfiles. The generation speeds looked bad for the hardware:
+
+| Model              | tok/s (before)                      | GPU/CPU split           | VRAM reported |
+| ------------------ | ----------------------------------- | ----------------------- | ------------- |
+| `llama3.1:8b`      | 8.6-9.2                             | 74%/26%                 | 23GB          |
+| `deepseek-r1:7b`   | 13.7                                | 51%/49%                 | 12GB          |
+| `llava:7b`         | 27.9 (looked fine on short prompts) | 28%/72% under real load | 8.7GB         |
+| `qwen2.5-coder:7b` | 61.6                                | 8%/92%                  | 6.8GB         |
+
+A 3060 Ti splitting compute 74/26 with a _system_ onto a card with only 8GB VRAM was the giveaway. `23GB reported` for a model that should fit in a few gigabytes was the real tell.
+
+## <Bulb /> Root Cause: Every Model Was Defaulting to a Massive Context Window
+
+Every one of these models ships from Ollama defaulting to a 32,768-131,072 token context window. The KV cache alone for that range exceeds 8GB before the model weights are even counted — so the moment a real generation started, Ollama was forced to spill part of the model onto slow system RAM over PCIe, instead of keeping it fully resident on the GPU.
+
+The first fix attempt was five near-identical Modelfiles, each just `FROM <model>` plus `PARAMETER num_ctx 8192`, tagged with a `-8k` suffix. It worked, but it was solving a global problem at a per-model layer — five copies of the same one-line fix. The actual fix was a single global environment variable:
+
+```
+OLLAMA_CONTEXT_LENGTH=8192
+```
+
+Set once as a persistent Windows User variable, Ollama reads it at server startup and caps every model's context to 8192 tokens (still plenty for chat and coding, not for long-document work) unless a model's own upstream Modelfile hardcodes something different.
+
+## <Rocket /> The Results
+
+| Model              | Before                  | After (8192 ctx, 100% GPU) | Speedup         |
+| ------------------ | ----------------------- | -------------------------- | --------------- |
+| `llama3.1:8b`      | 8.6-9.2 tok/s           | ~77 tok/s                  | **~8.5x**       |
+| `deepseek-r1:7b`   | 13.7 tok/s              | ~77 tok/s                  | **5.6x**        |
+| `llava:7b`         | 27.9 tok/s (misleading) | ~90 tok/s                  | **3.2x**        |
+| `qwen2.5-coder:7b` | 61.6 tok/s              | ~90 tok/s                  | modest but real |
+
+Every model landed at 100% GPU residency, verified through `ollama ps` mid-generation rather than trusting a short prompt's tok/s number — a fast result on a short prompt can hide a split that only shows up once the KV cache actually grows.
+
+Two models got removed entirely rather than force-fit: `codellama:13b` and `gemma4:12b`. Even with the context fix, they were too large to fit in 8GB at any context length worth using — a net loss for this card, not just "slower than ideal."
+
+## <Wrench /> Two Gotchas That Had Nothing to Do With the Env Var Itself
+
+Getting the fix to actually take effect surfaced two separate session-hygiene issues:
+
+1. **Stale shell environments don't propagate a newly-set variable.** Relaunching the Ollama tray app from a shell that was already running before the variable was set doesn't pick up the new value — the shell's own environment snapshot is frozen at spawn time. Either fully log off/on so the registry is re-read fresh, or set the variable explicitly in the current shell before launching the server process directly.
+2. **Orphaned worker processes silently ate VRAM.** Repeated kill/relaunch cycles during testing left `llama-server.exe` child processes resident on the GPU even after the parent `ollama.exe` was force-killed, quietly eating VRAM down to 200MB free and producing a misleading partial CPU/GPU split that had nothing to do with context length. `nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv` caught it; `Stop-Process -Force` on the orphans fixed it. Worth checking for zombie processes any time a model that should be fully GPU-resident unexpectedly shows a split after repeated restarts.
+
+## <Balance /> Cross-Validation Against a Second Tool
+
+Rather than trust one benchmarking script, I cross-checked against `llmfit` (an open-source Rust benchmarking tool) on the Mac Mini. Its `bench --all --provider ollama` subcommand measured real running models and matched the manual script closely: `qwen2.5-coder:7b` at 13.0 vs 13.0 tok/s, `deepseek-r1:8b` at 12.4 vs 12.3 tok/s. Good independent confirmation the manual methodology was sound.
+
+Worth flagging: `llmfit`'s model-_discovery_ subcommands (`fit`/`search`/`list`, separate from `bench`) pull an unfiltered, Hugging-Face-wide index full of parody and troll uploads — including one listing claiming to be "Qwen3.6-35B-Claude-4.7-Opus-Reasoning-Distilled," which is not a real model (Alibaba never released a "Qwen3.6"). The benchmarking subcommand measures real, currently-running models and is trustworthy; the discovery subcommand's rankings are not, since they're estimated from a size/bandwidth formula against a polluted index rather than measured speed.
+
+## <Cube /> The Mac Mini Doesn't Have This Problem — By Design
+
+Checking the Mac Mini's models via `/api/ps` confirmed something structural: `size_vram` matched `size` exactly for every model, including the largest (`qwen2.5:14b` at 9.31GB). Apple Silicon uses one unified memory pool shared by CPU and GPU, so there's no separate VRAM to spill out of the way there is on a card with dedicated VRAM connected over PCIe. Every model there also already defaulted to a 4096-token context, well under any danger zone — this box never had the RTX box's problem to begin with.
+
+That gave a clean routing rule: **for anything that fits in roughly 7-8B parameters, the RTX box wins by 3-5x once context is capped correctly. For 12B+ models, the Mac Mini is the better home** — it degrades gracefully with size on unified memory instead of falling off a hard VRAM cliff.
+
+## <Flask /> Then: Setting Up MLX, and a Real Speed Win
+
+Beyond Ollama's GGUF/llama.cpp path, Apple Silicon has a second, separate inference runtime: MLX. It wasn't actually installed on the Mac Mini yet, just some C-library dependencies pulled in incidentally by another tool. Setting it up properly meant a clean Python 3.12 virtualenv (not the ancient system Python 3.9) and `pip install mlx-lm`.
+
+That surfaced a real, current upstream bug: the default `mlx-lm` install pulled in `transformers==5.13.0`, which crashes on import with an `AttributeError` in tokenizer registration — a genuine incompatibility between the two libraries' latest releases, not a local misconfiguration. Pinning `transformers==5.0.0`, the earliest v5 release satisfying `mlx-lm`'s own minimum version constraint, fixed it.
+
+With that resolved, the payoff was real: `mlx_lm generate` running `Qwen2.5-7B-Instruct-4bit` hit **17.9 tok/s**, against Ollama's GGUF version of essentially the same model at 13.0 tok/s on identical hardware — **roughly 38% faster**, not a theoretical advantage.
+
+## <Warning /> Then a Model Swap Took Down the Entire Mac Mini
+
+While testing MLX through Open WebUI, I discovered `mlx_lm.server`'s `/v1/models` endpoint lists _every_ model it can find anywhere in the local Hugging Face cache, not just the one actually loaded in memory. Selecting one of two stale, unrelated cached models sitting there from months earlier triggered the server to attempt loading a full unquantized vision-language model **in addition to** the one already resident — blowing straight past the Mac Mini's 16GB unified memory pool with a Metal out-of-memory error.
+
+That crash cascaded hard: the LaunchAgent left a stale "running" state with no matching process, then Ollama (on a completely different port, untouched by any of this) started timing out, then SSH stopped responding, then Tailscale hit 100% packet loss. The actual panic log confirmed the mechanism precisely: a macOS watchdog force-panic after `watchdogd` got no checkins for 91 seconds — the system was too overwhelmed by memory pressure to answer its own health monitor, one step removed from a direct OOM kill.
+
+No data was lost. Every Docker container came back up healthy on its own restart policy once the machine rebooted, and all of Ollama's models were intact — the outage was purely a symptom of the whole machine being unresponsive, not anything actually breaking.
+
+**Hardening applied afterward:**
+
+- Deleted the two stale, unrelated cached models, freeing 29GB and removing the accidental-second-load hazard entirely.
+- Changed the LaunchAgent's restart policy from an unconditional always-restart to "only on genuine crash, minimum 60 seconds between attempts" — so a future failure can't rapid-cycle and pile more load onto an already-stressed machine.
+
+## <Target /> A Real Architectural Limitation, Not a Bug
+
+The deeper issue behind the crash: `mlx_lm.server` has no model-swap logic at all. It loads exactly one model at startup and stays locked to it for its entire process lifetime. Ollama, by contrast, is architecturally a model _manager_ — it dynamically loads and evicts models per request. `mlx_lm.server` is just a thin HTTP wrapper around one statically-loaded model; that's simply not what it was built to do.
+
+I checked whether the community had solved this. No single tracked upstream issue exists, but several independent third-party servers have grown up around `mlx-lm`. Comparing them by real GitHub activity (not marketing) instead of taking search results at face value:
+
+| Project                      | Stars | Last updated | Notes                                                             |
+| ---------------------------- | ----- | ------------ | ----------------------------------------------------------------- |
+| `cubist38/mlx-openai-server` | 351   | 1 day old    | Most mature, documents the exact Metal OOM crash pattern hit here |
+| `ddalcu/mlx-serve`           | 250   | Same day     | Native macOS app, no Python                                       |
+| `raspoli/mlx-serve`          | 12    | Recent       | Small, young                                                      |
+| `henrybravo/mlx-router`      | 6     | Older        | Small, low adoption                                               |
+
+`mlx_lm.server`, the one actually in use, is Apple's own official tool from their `ml-explore` GitHub org. The decision was to stay on official tooling rather than adopt a community wrapper for hot-swap convenience — a deliberate tradeoff, revisited only if multi-model MLX support becomes worth moving off the maintained path.
+
+## <BarChart /> What This Session Actually Proved
+
+- A single misconfigured default (context length) was hiding an 8.5x speedup that had nothing to do with hardware limits.
+- Short-prompt benchmarks lie; always check the live GPU/CPU split under a longer real generation.
+- Cross-validating one benchmarking method against an independent tool is cheap insurance against a flawed methodology.
+- MLX has a genuine ~38% speed advantage over GGUF on identical Apple Silicon hardware, worth the extra setup friction.
+- A single misbehaving endpoint (listing unloaded models as if they were safe to select) can escalate into a full-system crash if there's no memory-availability check before a load attempt.
+- Sometimes the right call is staying on the official, less-convenient tool rather than chasing a community patch for a known limitation.
+
+---
+
+**Running local models across mixed hardware?** I'd like to compare notes on routing strategy and benchmarking methodology. Find me at [jay739.dev](https://jay739.dev) or reach out directly.
+
+**Related posts:**
+
+- [The Freeze Wasn't Memory: Tracing a Homelab Server's Root Cause Through Three Wrong Turns](/blog/batcave-usb-nic-root-cause)
+- [What Running a Homelab Actually Teaches You That Work Doesn't](/blog/homelab-lessons)
