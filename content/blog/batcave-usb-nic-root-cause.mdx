@@ -1,0 +1,83 @@
+---
+title: "The Freeze Wasn't Memory: Tracing a Homelab Server's Root Cause Through Three Wrong Turns"
+date: "2026-07-16"
+description: "Batcave kept freezing solid, unreachable except for a still-green Tailscale status. Memory looked guilty. It wasn't. The real culprit was a flaky USB hub carrying the server's only network connection."
+tags:
+  [
+    "Homelab",
+    "Debugging",
+    "Linux",
+    "Networking",
+    "Infrastructure",
+    "Self-Hosted",
+  ]
+---
+
+# <Search /> The Freeze Wasn't Memory: Tracing a Homelab Server's Root Cause Through Three Wrong Turns
+
+Batcave, my home server, kept freezing. Not crashing — freezing. Tailscale would still report it as "active/Online," but `tailscale ping` got no reply, SSH timed out, and the only fix was walking over and hitting the power button.
+
+That specific symptom — alive enough to hold a status flag, dead enough to answer nothing — is what sent this debugging session in the wrong direction for longer than it should have.
+
+## <Warning /> Suspect #1: Memory
+
+The obvious read was memory pressure. Batcave runs about 40 Docker services, and `free -h` showed only 11GiB usable RAM with swap already half full. Swappiness was set to 60, so the kernel was thrashing swap instead of triggering the OOM killer quickly. No `earlyoom`, no `systemd-oomd` — nothing was backstopping it. A clean shutdown log even seemed to confirm it: journald just stopped, no OOM trace, which reads like "ran out of memory, spiraled, died."
+
+So I built the fix that theory called for: installed `earlyoom` tuned to protect `sshd`/`tailscaled`/`dockerd` and prefer killing Chromium (an idle kiosk process) first, dropped swappiness to 10, added a local watcher on batcave that reads `/proc/pressure/memory` every 60 seconds and posts an early warning to a Telegram bot before things get bad enough to freeze.
+
+All of that shipped and was worth doing. None of it was the actual cause.
+
+## <Bulb /> The Detail That Didn't Fit
+
+While chasing an unrelated slow-boot problem (~90 seconds stuck early in the kernel phase), I found something in `dmesg`: a USB port on an internal hub — `1-1.4` — flapping. `device descriptor read/64, error -110`, four times. Then `xhci_hcd: Timeout while waiting for setup device command`, four times. Then `device not accepting address, error -62`.
+
+And then, while I was actively looking at that port, batcave froze again. Same signature — Tailscale green, ping dead, SSH dead, self-recovered in about three minutes with no physical reboot. No earlyoom kill. No PSI pressure spike. 4.4GB free at the time. Memory was completely uninvolved in this specific freeze, caught in the act.
+
+The kernel log showed the xHCI timeout landing in the exact same window as the freeze.
+
+## <Brain /> Root Cause: A Wedged USB Controller, Not Starved RAM
+
+Here's the mechanism: a misbehaving USB device can wedge the host controller (xHCI) itself, not just its own port. When that happens, the controller can hold kernel-level locks that stall unrelated I/O and networking, while the rest of the box stays technically "up" — which is exactly why Tailscale's own heartbeat kept reporting "Online" even as everything else went unresponsive. It also explains the missing OOM trace: there was never an OOM event to log.
+
+The deeper problem was topology, not just one flaky port. Batcave's onboard 2.5GbE NIC was down with no link lights, so at some point the network had been moved onto a USB Ethernet adapter — sitting on the _same physical hub_ as the flaky port. The one piece of hardware I couldn't afford to lose was plugged in next to the one piece of hardware that was actively degrading, sharing a controller.
+
+Digging into boot history made the degradation pattern impossible to ignore: carrier-off counts (link drops) per boot going back five boots were 48, 415, 407, 589, then 23 — hundreds of link drops per boot, trending worse. Zero over-current events the entire time, which matters: over-current means a power problem, and there wasn't one. This was signal and enumeration, not power.
+
+## <Wrench /> Chasing the Onboard NIC Instead
+
+Rather than just disabling the bad port and hoping, the better fix was removing the hub from the critical path entirely. The onboard NIC had been written off as dead weeks earlier. Testing it properly — `ethtool -s enp2s0 wol d` to disarm Wake-on-LAN, then reseating the cable — brought it straight back to life. It wasn't dead. It had been parked by a WoL setting from an earlier experiment, and nobody had gone back to check.
+
+Link lights came on immediately. NetworkManager auto-connected, DHCP handed out an address, the default route moved itself onto the onboard NIC without any manual intervention.
+
+With that confirmed working, the USB Ethernet adapter came out, and the hub it shared with the flaky port got unplugged entirely — nothing else on it needed to survive.
+
+## <Network /> The IP Cleanup That Followed
+
+Pulling the USB NIC had one side effect worth mentioning: the router's DHCP reservation was tied to the _old_ MAC address, so batcave came up on a different pool IP than every port-forward and internal config expected. Rather than fight a flaky router-side reservation again later, I set a static IP directly on the box via NetworkManager and pinned DNS to the router. Anything depending on batcave's LAN address stayed valid, and this class of problem can't recur from a router-side reservation going stale again.
+
+Through all of the IP churn, SSH over the Tailscale address never blinked — a good reminder that the overlay network is worth treating as the stable point of contact precisely because it doesn't care what's happening at the physical layer underneath it.
+
+## <Chart /> What Was Actually True, Once Untangled
+
+Three separate problems had been tangled into one scary symptom:
+
+1. **The freezes** — a flaky USB hub wedging the xHCI controller, fixed by moving the network onto the (actually fine) onboard NIC and removing the hub.
+2. **"Low memory"** — partly real, partly a red herring. A closer look at where the RAM was going turned up a 4GB BIOS-level iGPU frame buffer carve-out on the mini PC, silently eating usable memory that was never actually unavailable to begin with.
+3. **An earlier, unrelated RAM fault** — a genuinely bad stick from months prior, already pulled and discarded, unrelated to either of the above.
+
+The memory hardening — earlyoom, lower swappiness, the local pressure watcher — stayed in place as a real safety net. It just wasn't guarding against the thing that was actually happening.
+
+## <Target /> The Lesson
+
+"Alive enough to answer a status check, dead enough to answer nothing else" is a networking-stack symptom, not a memory symptom — and it's worth checking `dmesg` for USB/xHCI errors before reaching for `free -h`, especially on a box where "the network" quietly turns out to mean "one USB hub."
+
+The instinct to fix the first plausible cause is strong, especially at 1am with a server down. The more useful instinct is to keep asking whether the fix actually explains every symptom, including the ones that don't fit the story yet.
+
+---
+
+**Debugged a ghost-in-the-machine freeze of your own?** I'd like to hear what it turned out to be. Find me at [jay739.dev](https://jay739.dev) or reach out directly.
+
+**Related posts:**
+
+- [What Running a Homelab Actually Teaches You That Work Doesn't](/blog/homelab-lessons)
+- [Monitoring 40+ Services with Telegram Alerts](/blog/monitoring-infrastructure-with-telegram)
