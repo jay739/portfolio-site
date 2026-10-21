@@ -1,10 +1,16 @@
 # Dependabot configuration.
 #
-# Updates target the `dev` branch (the integration branch) so dependency PRs
-# batch there and promote to the protected `main` in a single deploy, rather
+# VERSION updates target the `dev` branch (the integration branch) so dependency
+# PRs batch there and promote to the protected `main` in a single deploy, rather
 # than each one redeploying main. Grouped where possible = fewer PRs/rebases.
-# Major version bumps for npm/docker are ignored — those are breaking and done
-# deliberately (e.g. Next.js or the node base image), not as routine PRs.
+#
+# SECURITY updates do NOT honour `target-branch`; Dependabot always opens those
+# against the default branch, `main`. So alert-driven PRs land straight on the
+# deploy branch and never flow back into `dev`, which is why `dev` drifts behind
+# `main` over time. Sync `main` into `dev` rather than assuming dev is ahead.
+#
+# Major version bumps for npm/docker are ignored, because those are breaking and
+# done deliberately (e.g. Next.js or the node base image), not as routine PRs.
 # Each PR still runs the required `validate` check before it can be merged.
 
 version: 2
@@ -24,10 +30,25 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # sharp must stay at 0.32.6 for the arm64 deploy. The runtime copy is built
+      # in an isolated Dockerfile stage pinned to 0.32.6 (see Dockerfile), and
+      # 0.33+ changed packaging to per-platform @img/* binaries, so a bumped
+      # package.json desyncs from that stage.
+      #
+      # The semver-major rule above does NOT cover this: sharp is a 0.x package,
+      # so 0.32 -> 0.35 is a MINOR bump, not a major one. That gap is why it was
+      # re-bumped and reverted four times (PR #38, PR #47, commit 92b14e0, PR
+      # #79). Pin by version range so both version and security updates skip it.
+      #
+      # Trade-off, accepted deliberately: this also suppresses sharp SECURITY
+      # PRs, so sharp advisories stay open in the alert list until someone does
+      # the real 0.34+ migration (new @img/* deps, musl/arm64 variants).
+      - dependency-name: "sharp"
+        versions: [">0.32.6"]
     commit-message:
       prefix: "deps(npm)"
 
-  # ── Docker base image (node:20-alpine in the Dockerfile) ───────────────
+  # ── Docker base image (node:22-alpine in the Dockerfile) ───────────────
   - package-ecosystem: docker
     directory: "/"
     target-branch: "dev"

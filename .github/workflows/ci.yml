@@ -87,3 +87,83 @@ jobs:
           NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
           NODE_OPTIONS: --max-old-space-size=4096
         run: npm run build
+
+  # Builds the actual arm64 image and loads sharp inside it.
+  #
+  # Why this exists: `validate` above runs lint/test/build on the runner host and
+  # passes happily on changes that break the container. That blind spot is how
+  # four separate sharp bumps reached main (PR #38, PR #47, commit 92b14e0, PR
+  # #79): sharp's native binary has to load against the libvips present in the
+  # runner stage, and nothing in `npm run build` exercises that path.
+  #
+  # Gated on `changes` like `validate`, so a docs-only PR does not pay for a
+  # 25-minute arm64 image build. A job skipped by a job-level `if` still reports
+  # as successful, so this stays safe to promote to a required check, whereas a
+  # `paths-ignore` filter would leave it "Expected" forever and block the merge.
+  docker-arm64:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-24.04-arm # Native arm64, matches the VPS target, no QEMU
+    timeout-minutes: 30
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v6
+
+      # Cheap and first, so a desync fails in seconds instead of after a build.
+      # The runtime sharp is built by an isolated Dockerfile stage with its own
+      # hardcoded version, so package.json and that stage are two separate
+      # sources of truth. If they disagree, the image ships a different sharp
+      # than the app was built and traced against.
+      - name: 🔒 Dockerfile sharp pin matches package.json
+        run: |
+          docker_pin=$(grep -oE 'sharp@[0-9]+\.[0-9]+\.[0-9]+' Dockerfile | head -1 | cut -d@ -f2)
+          pkg_range=$(node -p "require('./package.json').dependencies.sharp")
+          override=$(node -p "require('./package.json').overrides.next.sharp")
+          echo "Dockerfile stage: $docker_pin | package.json: $pkg_range | overrides.next.sharp: $override"
+          if [ -z "$docker_pin" ]; then
+            echo "::error::could not find a pinned sharp@x.y.z in the Dockerfile"
+            exit 1
+          fi
+          if [ "$pkg_range" != "^$docker_pin" ] || [ "$override" != "^$docker_pin" ]; then
+            echo "::error::sharp pin desync. Dockerfile builds $docker_pin but package.json says $pkg_range and overrides.next.sharp says $override. Update all three together."
+            exit 1
+          fi
+
+      - name: 🔧 Set up Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: 🐳 Build arm64 image (no push)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true # Keep it in the local daemon so the next step can run it
+          platforms: linux/arm64
+          tags: portfolio:ci-${{ github.sha }}
+          # Read the deploy job's cache for speed, but write to a separate scope
+          # so PR builds never evict layers that main's deploy depends on.
+          cache-from: |
+            type=gha
+            type=gha,scope=ci-arm64
+          cache-to: type=gha,mode=max,scope=ci-arm64
+          build-args: |
+            NODE_OPTIONS=--max-old-space-size=4096
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+          provenance: false
+
+      # Loading sharp is not enough on its own: a broken libvips link can import
+      # fine and then fail on first use, so this runs a real encode.
+      - name: 🖼️ Smoke test sharp inside the image
+        run: |
+          docker run --rm portfolio:ci-${{ github.sha }} node -e "
+            const sharp = require('sharp');
+            console.log('sharp', sharp.versions.sharp, '| libvips', sharp.versions.vips);
+            if (!sharp.versions.vips) throw new Error('libvips did not load');
+            sharp({ create: { width: 8, height: 8, channels: 3, background: { r: 1, g: 2, b: 3 } } })
+              .png()
+              .toBuffer()
+              .then((b) => console.log('encoded', b.length, 'bytes, libvips is working'))
+              .catch((e) => { console.error('sharp failed at runtime:', e.message); process.exit(1); });
+          "

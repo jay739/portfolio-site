@@ -112,8 +112,5 @@
     "node-domexception": {
       "dom-exception": "^1.0.1"
     }
-  },
-  "resolutions": {
-    "next": "^14.2.29"
   }
 }
