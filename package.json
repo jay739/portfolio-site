@@ -59,7 +59,7 @@
     "@babel/plugin-transform-private-property-in-object": "^7.27.1",
     "@babel/plugin-transform-runtime": "^7.27.4",
     "@playwright/test": "^1.59.1",
-    "@sentry/nextjs": "^10.8.0",
+    "@sentry/nextjs": "^10.75.2",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.3",
