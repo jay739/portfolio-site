@@ -4,7 +4,7 @@ import { BATCAVE_CONTAINERS } from '@/data/homelab-stats';
 export const projects: Project[] = [
   {
     title: 'AI Platform Infrastructure: "Batcave" Personal ML Cloud',
-    description: `Solo-built private AI cloud on a Beelink mini PC: ${BATCAVE_CONTAINERS} containers, 36+ self-hosted services, 99.9% uptime. Runs local LLMs via Ollama, RAG pipelines, Authentik SSO, Tailscale VPN, and full Netdata monitoring.`,
+    description: `Solo-built private AI cloud on a Beelink mini PC: ${BATCAVE_CONTAINERS} containers and 36+ self-hosted services. Runs local LLMs via Ollama, RAG pipelines, Authentik SSO, Tailscale VPN, and full Netdata monitoring.`,
     tags: ['Docker', 'Kubernetes', 'LLM', 'RAG', 'Python', 'DevOps', 'Infrastructure', 'Security', 'Authentik', 'Tailscale', 'Netdata'],
     demo: 'https://homarr.jay739.dev',
     year: '2023-Present',
@@ -27,7 +27,7 @@ export const projects: Project[] = [
       'Security engineering with SSO, VPN, and vulnerability assessment'
     ],
     lifecycle: ['Idea', 'Built', 'Deployed', 'Maintained'],
-    proofPoints: [`${BATCAVE_CONTAINERS} containers`, '36+ services', '99.9% uptime', '60% lower hybrid-cloud latency'],
+    proofPoints: [`${BATCAVE_CONTAINERS} containers`, '36+ services', '60% lower hybrid-cloud latency'],
     problemAreas: ['Private AI infrastructure', 'Security hardening', 'Zero-trust access', 'Observability'],
     featured: true,
   },
