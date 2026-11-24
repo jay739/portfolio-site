@@ -96,7 +96,7 @@ export const CHIP_CASES: EvalCase[] = [
       formatterPolicy: 'structured',
       inScope: true,
       mustContain: [/ml|nlp|genai|rag|python|pytorch|skills/i],
-      mustNotContain: [/out of my scope/i, /batcave|56-container/i],
+      mustNotContain: [/out of my scope/i, /batcave|\d+-container/i],
     },
   },
   {
@@ -176,7 +176,7 @@ export const CHIP_CASES: EvalCase[] = [
       formatterPolicy: 'ux',
       inScope: true,
       mustContain: [/ux|interactive|feedback|chatbot|chip|interface/i],
-      mustNotContain: [/out of my scope/i, /batcave|56-container/i],
+      mustNotContain: [/out of my scope/i, /batcave|\d+-container/i],
     },
   },
   {
@@ -226,7 +226,7 @@ export const NATURAL_CASES: EvalCase[] = [
       formatterPolicy: 'extractive',
       inScope: true,
       mustContain: [/umbc|master|m\.s\.|data science|gpa/i],
-      mustNotContain: [/batcave|56-container|docker|out of my scope/i],
+      mustNotContain: [/batcave|\d+-container|docker|out of my scope/i],
     },
   },
   {
@@ -415,7 +415,7 @@ export const EDGE_CASES: EvalCase[] = [
       formatterPolicy: 'extractive',
       inScope: true,
       mustContain: [/umbc|gpa|3\.91|master|data science/i],
-      mustNotContain: [/batcave|56-container|docker|container/i],
+      mustNotContain: [/batcave|\d+-container|docker|container/i],
     },
   },
   {
@@ -430,7 +430,7 @@ export const EDGE_CASES: EvalCase[] = [
       formatterPolicy: 'star',
       inScope: true,
       mustContain: [/project|pipeline|result|outcome|improv|deploy/i],
-      mustNotContain: [/batcave|56-container|177gb|hybrid-cloud/i],
+      mustNotContain: [/batcave|\d+-container|177gb|hybrid-cloud/i],
     },
   },
 ];

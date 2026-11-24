@@ -10,6 +10,8 @@ import {
   FaBrain, FaCloud, FaCogs, FaDatabase, FaFire,
   FaCheckCircle, FaChartLine, FaServer,
 } from 'react-icons/fa';
+
+import { BATCAVE_CONTAINERS } from '@/data/homelab-stats';
 import type { IconType } from 'react-icons';
 
 if (typeof window !== 'undefined') {
@@ -76,9 +78,9 @@ const stats: Stat[] = [
   },
   {
     title: 'Batcave Containers',
-    value: '56',
+    value: String(BATCAVE_CONTAINERS),
     icon: FaDocker,
-    summary: 'Solo-built 56-container private AI cloud running LLMs, RAG pipelines, media, monitoring, and automation at 99.9% uptime.',
+    summary: `Solo-built ${BATCAVE_CONTAINERS}-container private AI cloud running LLMs, RAG pipelines, media, monitoring, and automation at 99.9% uptime.`,
     signal: 'Ops Reliability',
     track: 'ops',
   },
