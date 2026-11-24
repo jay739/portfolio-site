@@ -3,8 +3,8 @@ import { BATCAVE_CONTAINERS } from '@/data/homelab-stats';
 
 export const projects: Project[] = [
   {
-    title: 'AI Platform Infrastructure — "Batcave" Personal ML Cloud',
-    description: `Solo-built private AI cloud on a Beelink mini PC — ${BATCAVE_CONTAINERS} containers, 36+ self-hosted services, 99.9% uptime. Runs local LLMs via Ollama, RAG pipelines, Authentik SSO, Tailscale VPN, and full Netdata monitoring.`,
+    title: 'AI Platform Infrastructure: "Batcave" Personal ML Cloud',
+    description: `Solo-built private AI cloud on a Beelink mini PC: ${BATCAVE_CONTAINERS} containers, 36+ self-hosted services, 99.9% uptime. Runs local LLMs via Ollama, RAG pipelines, Authentik SSO, Tailscale VPN, and full Netdata monitoring.`,
     tags: ['Docker', 'Kubernetes', 'LLM', 'RAG', 'Python', 'DevOps', 'Infrastructure', 'Security', 'Authentik', 'Tailscale', 'Netdata'],
     demo: 'https://homarr.jay739.dev',
     year: '2023-Present',
@@ -32,7 +32,7 @@ export const projects: Project[] = [
     featured: true,
   },
   {
-    title: 'Global YouTube Statistics — EDA & Earnings Analysis',
+    title: 'Global YouTube Statistics: EDA & Earnings Analysis',
     description: 'Exploratory data analysis on 995 top YouTube creators using the Kaggle Global YouTube Statistics dataset. Uncovered subscriber trends, earnings by channel type, country distributions, and sentiment patterns using NLP and regression.',
     tags: ['Python', 'EDA', 'NLP', 'Data Analysis', 'Pandas', 'Matplotlib', 'scikit-learn'],
     images: [
@@ -48,7 +48,7 @@ export const projects: Project[] = [
     learnings: [
       'Entertainment and Music channels dominate top earnings despite fewer uploads',
       'US, India, and Brazil account for majority of top global creators',
-      'Subscriber count alone is a weak predictor of earnings — upload frequency matters more',
+      'Subscriber count alone is a weak predictor of earnings, and upload frequency matters more',
     ],
     lifecycle: ['Built', 'Analyzed', 'Documented'],
     proofPoints: ['995 creators', '28 features', 'NLP + regression workflow'],
@@ -56,8 +56,8 @@ export const projects: Project[] = [
     year: '2023',
   },
   {
-    title: 'Anti-Money Laundering Detection — IBM HI-Medium',
-    description: 'PySpark ML pipeline on IBM\'s 32M+ synthetic AML transaction dataset. Engineered temporal features, handled severe class imbalance (0.23% laundering), and compared Logistic Regression vs Random Forest — achieving 99.94% accuracy and 0.998 F1.',
+    title: 'Anti-Money Laundering Detection: IBM HI-Medium',
+    description: 'PySpark ML pipeline on IBM\'s 32M+ synthetic AML transaction dataset. Engineered temporal features, handled severe class imbalance (0.23% laundering), and compared Logistic Regression vs Random Forest, achieving 99.94% accuracy and 0.998 F1.',
     tags: ['PySpark', 'Machine Learning', 'Financial AI', 'Python', 'EDA', 'Classification'],
     github: 'https://github.com/jay739/anti-money-laundering-detection',
     images: [
@@ -66,14 +66,14 @@ export const projects: Project[] = [
     ],
     techStack: ['Python', 'PySpark', 'Pandas', 'NumPy', 'Matplotlib'],
     challenges: [
-      'Severe class imbalance — only 0.23% of 32M transactions are laundering',
+      'Severe class imbalance: only 0.23% of 32M transactions are laundering',
       'Processing 32M rows required distributed computing with PySpark + 6GB executor memory',
       'Feature engineering temporal patterns (transaction duration, frequency) from timestamps',
     ],
     learnings: [
       'PySpark MLlib pipelines for scalable ML on large financial datasets',
       'Cross-currency transaction patterns are strong laundering indicators',
-      'AUC is misleading with severe imbalance — F1 and precision-recall are more reliable',
+      'AUC is misleading with severe imbalance, so F1 and precision-recall are more reliable',
     ],
     lifecycle: ['Built', 'Benchmarked', 'Validated'],
     proofPoints: ['32M+ transactions', '0.998 F1', '0.23% fraud class'],
@@ -105,7 +105,7 @@ export const projects: Project[] = [
     year: '2023',
   },
   {
-    title: 'Wildfire Detection — Dual-Stream CNN on FLAME Dataset',
+    title: 'Wildfire Detection: Dual-Stream CNN on FLAME Dataset',
     description: 'Benchmarked 8 CNN architectures on the FLAME dataset using RGB+IR dual-stream fusion for wildfire detection. Best model (ResNet18) achieved 0.94 micro-F1.',
     tags: ['CNN', 'Computer Vision', 'Satellite Imagery', 'Deep Learning', 'Python', 'Data Science'],
     github: 'https://github.com/jay739/forest-fire-detection',
@@ -228,7 +228,7 @@ export const projects: Project[] = [
   },
   {
     title: 'Email Box Analyzer',
-    description: 'Ongoing — Python-based mailbox analysis utility that parses large inbox exports, groups conversations by sender/topic, and surfaces actionable insights like response latency, high-priority threads, and communication trends.',
+    description: 'Ongoing: Python-based mailbox analysis utility that parses large inbox exports, groups conversations by sender/topic, and surfaces actionable insights like response latency, high-priority threads, and communication trends.',
     tags: ['Email', 'NLP', 'Data Analysis', 'Python'],
     github: 'https://github.com/jay739/email-box-analyzer',
     images: [],

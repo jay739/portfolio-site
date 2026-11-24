@@ -53,26 +53,26 @@ const highlights = [
     ],
   },
   {
-    role: 'Batcave — Private AI Cloud',
+    role: 'Batcave: Private AI Cloud',
     org: 'Personal Infrastructure',
     period: '2023 – Present',
     icon: <FaDocker className="text-amber-400" />,
     color: 'orange',
     points: [
       `${BATCAVE_CONTAINERS}-container production platform: LLMs (LLaMA, Mistral, Phi, DeepSeek via Ollama), RAG pipelines, media, monitoring`,
-      '177 GB multi-database data layer — PostgreSQL, MariaDB, Redis, SQLite, Meilisearch',
+      '177 GB multi-database data layer: PostgreSQL, MariaDB, Redis, SQLite, Meilisearch',
       '99.9% uptime; Authentik SSO, Tailscale VPN, Netdata + Telegram real-time alerting',
       'Immich ML photo platform (401 GB, face recognition + object detection), Paperless-NGX OCR',
     ],
   },
   {
     role: 'Wildfire Detection CNN',
-    org: 'Academic Project — UMBC',
+    org: 'Academic Project, UMBC',
     period: '2024',
     icon: <FaFire className="text-amber-400" />,
     color: 'amber',
     points: [
-      '91% accuracy and 88% F1-score — AllCNN on Sentinel-2 multispectral satellite imagery',
+      '91% accuracy and 88% F1-score, AllCNN on Sentinel-2 multispectral satellite imagery',
       '2,400+ image patches processed with NDVI and NBR spectral indices for burn severity quantification',
       'Ablation studies and k-fold cross-validation for rigorous model evaluation',
     ],
@@ -97,7 +97,7 @@ export default function ImpactPage() {
       <RecentViewTracker item={{ id: 'page:impact', title: 'Impact Signals', href: '/impact', kind: 'page', description: 'Measured AI, infra, and engineering outcomes' }} />
       <NeuralPageIntro
         title="Impact Signals"
-        subtitle="Evidence-driven outcomes across production ML delivery, infrastructure engineering, and applied AI research — measured, not estimated."
+        subtitle="Evidence-driven outcomes across production ML delivery, infrastructure engineering, and applied AI research, measured, not estimated."
         chips={['Production Results', 'Real Metrics', 'Verified Outcomes']}
         theme="impact"
       />
@@ -110,7 +110,7 @@ export default function ImpactPage() {
         <p className="neural-kicker mb-2">Career Impact</p>
         <h2 className="neural-section-title mb-1">Highlights by Role</h2>
         <p className="neural-section-copy mb-6 max-w-2xl">
-          Specific, verifiable outcomes from each position and project — numbers pulled directly from deliverables.
+          Specific, verifiable outcomes from each position and project, with numbers pulled directly from deliverables.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

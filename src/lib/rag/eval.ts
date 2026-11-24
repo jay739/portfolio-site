@@ -1,5 +1,5 @@
 /**
- * Offline Eval Set — ground truth for the intent-driven RAG pipeline.
+ * Offline Eval Set: ground truth for the intent-driven RAG pipeline.
  *
  * Each case specifies:
  *   - input:    the raw message + optional chip/source
@@ -53,7 +53,7 @@ export type EvalCase = {
 export const CHIP_CASES: EvalCase[] = [
   {
     id: 'chip_01_milestones',
-    description: 'Timeline chip — should return career stage summary',
+    description: 'Timeline chip: should return career stage summary',
     input: {
       message: 'List the key career milestones in Jayakrishna Konda\'s timeline, including major roles, transitions, and impact.',
       chip: 'milestones',
@@ -69,7 +69,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_02_journey_map',
-    description: 'Journey map chip — career transitions narrative',
+    description: 'Journey map chip: career transitions narrative',
     input: {
       message: 'Summarize Jayakrishna Konda\'s career journey and major transitions across Infosys, Cognizant, R/SEEK UMBC, and Enigma Technologies.',
       chip: 'journey map',
@@ -85,7 +85,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_03_neural_radar',
-    description: 'Neural Radar chip — skills/tech strengths',
+    description: 'Neural Radar chip: skills/tech strengths',
     input: {
       message: 'Which technical strengths stand out most in Jayakrishna Konda\'s skills graph and project portfolio?',
       chip: 'neural radar',
@@ -101,7 +101,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_04_real_time_signals',
-    description: 'Real-time signals chip — infra monitoring',
+    description: 'Real-time signals chip: infra monitoring',
     input: {
       message: 'What real-time telemetry signals and monitoring metrics does Jayakrishna Konda track in his home server setup?',
       chip: 'real-time signals',
@@ -117,7 +117,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_05_live_feed',
-    description: 'Live feed chip — AI research currency',
+    description: 'Live feed chip: AI research currency',
     input: {
       message: 'How does Jayakrishna Konda stay current with AI news and apply research trends in practical projects?',
       chip: 'live feed',
@@ -133,7 +133,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_06_rag_demo',
-    description: 'RAG Demo chip — RAG workflow explanation',
+    description: 'RAG Demo chip: RAG workflow explanation',
     input: {
       message: 'How does Jayakrishna Konda implement and demonstrate RAG workflows in his projects?',
       chip: 'rag demo',
@@ -149,7 +149,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_07_case_studies',
-    description: 'Case Studies chip — STAR project stories',
+    description: 'Case Studies chip: STAR project stories',
     input: {
       message: 'What are Jayakrishna Konda\'s strongest project case studies and why are they impactful?',
       chip: 'case studies',
@@ -165,7 +165,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_08_interactive_ux',
-    description: 'Interactive UX chip — UX pattern answer',
+    description: 'Interactive UX chip: UX pattern answer',
     input: {
       message: 'How does Jayakrishna Konda apply interactive UX patterns in AI tools and portfolio experiences?',
       chip: 'interactive ux',
@@ -181,7 +181,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_09_articles',
-    description: 'Articles chip — blog content themes',
+    description: 'Articles chip: blog content themes',
     input: {
       message: 'What technical article themes does Jayakrishna Konda write about in his knowledge graph?',
       chip: 'articles',
@@ -197,7 +197,7 @@ export const CHIP_CASES: EvalCase[] = [
   },
   {
     id: 'chip_10_metrics',
-    description: 'Metrics chip — measurable outcomes',
+    description: 'Metrics chip: measurable outcomes',
     input: {
       message: 'What measurable metrics does Jayakrishna Konda highlight across delivery, ML impact, and engineering outcomes?',
       chip: 'metrics',
@@ -219,7 +219,7 @@ export const CHIP_CASES: EvalCase[] = [
 export const NATURAL_CASES: EvalCase[] = [
   {
     id: 'nat_01_education',
-    description: 'Education question — must return UMBC/GPA, not infra content',
+    description: 'Education question: must return UMBC/GPA, not infra content',
     input: { message: 'What is his educational background?', source: 'chat' },
     expected: {
       intent: 'general-profile',
@@ -231,7 +231,7 @@ export const NATURAL_CASES: EvalCase[] = [
   },
   {
     id: 'nat_02_home_server',
-    description: 'Home server question — must return infra content',
+    description: 'Home server question: must return infra content',
     input: { message: 'Tell me about his home server setup.', source: 'chat' },
     expected: {
       intent: 'infra',
@@ -243,7 +243,7 @@ export const NATURAL_CASES: EvalCase[] = [
   },
   {
     id: 'nat_03_companies',
-    description: 'Employer question — career intent',
+    description: 'Employer question: career intent',
     input: { message: 'Which companies has he worked at?', source: 'chat' },
     expected: {
       intent: 'career',
@@ -255,7 +255,7 @@ export const NATURAL_CASES: EvalCase[] = [
   },
   {
     id: 'nat_04_python_skills',
-    description: 'Python skills question — skills intent',
+    description: 'Python skills question: skills intent',
     input: { message: 'Does he know Python and machine learning frameworks?', source: 'chat' },
     expected: {
       intent: 'skills',
@@ -267,7 +267,7 @@ export const NATURAL_CASES: EvalCase[] = [
   },
   {
     id: 'nat_05_star_incident',
-    description: 'STAR incident question — projects intent with star formatter',
+    description: 'STAR incident question: projects intent with star formatter',
     input: { message: 'Describe a production incident he debugged and resolved.', source: 'chat' },
     expected: {
       intent: 'projects',
@@ -291,7 +291,7 @@ export const NATURAL_CASES: EvalCase[] = [
   },
   {
     id: 'nat_07_rag_implementation',
-    description: 'RAG implementation question — ai-research intent',
+    description: 'RAG implementation question: ai-research intent',
     input: { message: 'How does he build RAG pipelines?', source: 'chat' },
     expected: {
       intent: 'ai-research',
@@ -303,7 +303,7 @@ export const NATURAL_CASES: EvalCase[] = [
   },
   {
     id: 'nat_08_latency_improvement',
-    description: 'Specific metric question — pronouns sufficient for scope',
+    description: 'Specific metric question: pronouns sufficient for scope',
     input: { message: 'What latency improvements has he achieved?', source: 'chat' },
     expected: {
       intent: 'general-profile',
@@ -321,7 +321,7 @@ export const NATURAL_CASES: EvalCase[] = [
 export const OOS_CASES: EvalCase[] = [
   {
     id: 'oos_01_weather',
-    description: 'Weather question — pure OOS',
+    description: 'Weather question: pure OOS',
     input: { message: "What's the weather in Baltimore?", source: 'chat' },
     expected: {
       intent: 'out-of-scope',
@@ -332,7 +332,7 @@ export const OOS_CASES: EvalCase[] = [
   },
   {
     id: 'oos_02_recipe',
-    description: 'Recipe question — pure OOS',
+    description: 'Recipe question: pure OOS',
     input: { message: 'Give me a recipe for pasta.', source: 'chat' },
     expected: {
       intent: 'out-of-scope',
@@ -343,7 +343,7 @@ export const OOS_CASES: EvalCase[] = [
   },
   {
     id: 'oos_03_stock_price',
-    description: 'Stock price — OOS even though tech-adjacent',
+    description: 'Stock price: OOS even though tech-adjacent',
     input: { message: "What's the current NVIDIA stock price?", source: 'chat' },
     expected: {
       intent: 'out-of-scope',
@@ -354,7 +354,7 @@ export const OOS_CASES: EvalCase[] = [
   },
   {
     id: 'oos_04_another_person',
-    description: 'Another person — must not hallucinate Jayakrishna profile',
+    description: 'Another person: must not hallucinate Jayakrishna profile',
     input: { message: "What is Andrej Karpathy's experience?", source: 'chat' },
     expected: {
       intent: 'out-of-scope',
@@ -371,7 +371,7 @@ export const OOS_CASES: EvalCase[] = [
 export const EDGE_CASES: EvalCase[] = [
   {
     id: 'edge_01_greeting',
-    description: 'Greeting — short-circuits to greeting fallback',
+    description: 'Greeting: short-circuits to greeting fallback',
     input: { message: 'Hi', source: 'chat' },
     expected: {
       intent: 'greeting',
@@ -382,7 +382,7 @@ export const EDGE_CASES: EvalCase[] = [
   },
   {
     id: 'edge_02_ambiguous_pronoun',
-    description: 'Pronoun-only question — in-scope via pronoun reference rule',
+    description: 'Pronoun-only question: in-scope via pronoun reference rule',
     input: { message: 'What has he built recently?', source: 'chat' },
     expected: {
       intent: 'projects',
@@ -393,7 +393,7 @@ export const EDGE_CASES: EvalCase[] = [
   },
   {
     id: 'edge_03_chip_not_in_lookup',
-    description: 'Unknown chip name — falls through to keyword scoring',
+    description: 'Unknown chip name: falls through to keyword scoring',
     input: {
       message: 'In the context of AI Tools Lab, how does Jayakrishna demonstrate interactive UX through projects?',
       chip: 'unknown-chip-xyz',

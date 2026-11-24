@@ -2,8 +2,8 @@
  * Intent-family formatters.
  *
  * Each export formats a structured answer for one intent family using
- * extracted sentences from RAG context. Formatters never call Ollama —
- * they compose answers from the retrieved document text.
+ * extracted sentences from RAG context. Formatters never call Ollama and
+ * instead compose answers from the retrieved document text.
  *
  * Pattern: selectEvidence(contextText, regex, max) → top sentences → labelled lines.
  */
@@ -84,7 +84,7 @@ export function formatCareerTimeline(contextText: string): string {
     ?? 'Currently at Enigma Technologies building GenAI and RAG production systems.';
 
   return [
-    'Direct Answer: Career spans four stages — software engineering foundation, ML production scale-up, graduate research transition, and GenAI specialization.',
+    'Direct Answer: Career spans four stages, namely software engineering foundation, ML production scale-up, graduate research transition, and GenAI specialization.',
     `Foundation: ${milestone}`,
     `Progression: ${progression}`,
     `Current Stage: ${current}`,
