@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { BATCAVE_CONTAINERS } from "@/data/homelab-stats";
 import {
   FaServer,
   FaWrench,
@@ -823,7 +824,7 @@ export default function BatcaveTools() {
             <p className="neural-section-copy max-w-2xl mt-1">
               Selected tools from my{" "}
               <span className="text-amber-400 font-semibold">
-                56-container Batcave
+                {BATCAVE_CONTAINERS}-container Batcave
               </span>{" "}
               server — a private self-hosted infrastructure stack running 24/7.
               Processing happens on Batcave.

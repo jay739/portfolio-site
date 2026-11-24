@@ -10,6 +10,8 @@ import {
   FaBrain, FaDocker, FaFire, FaRobot, FaServer, FaShieldAlt,
 } from 'react-icons/fa';
 
+import { BATCAVE_CONTAINERS } from '@/data/homelab-stats';
+
 const highlights = [
   {
     role: 'Data Scientist — GenAI & ML',
@@ -57,7 +59,7 @@ const highlights = [
     icon: <FaDocker className="text-amber-400" />,
     color: 'orange',
     points: [
-      '56-container production platform: LLMs (LLaMA, Mistral, Phi, DeepSeek via Ollama), RAG pipelines, media, monitoring',
+      `${BATCAVE_CONTAINERS}-container production platform: LLMs (LLaMA, Mistral, Phi, DeepSeek via Ollama), RAG pipelines, media, monitoring`,
       '177 GB multi-database data layer — PostgreSQL, MariaDB, Redis, SQLite, Meilisearch',
       '99.9% uptime; Authentik SSO, Tailscale VPN, Netdata + Telegram real-time alerting',
       'Immich ML photo platform (401 GB, face recognition + object detection), Paperless-NGX OCR',
@@ -82,7 +84,7 @@ const highlights = [
     icon: <FaShieldAlt className="text-amber-400" />,
     color: 'orange',
     points: [
-      'Automated security scanner across 56-container production stack using Python & Docker SDK',
+      `Automated security scanner across ${BATCAVE_CONTAINERS}-container production stack using Python & Docker SDK`,
       '27 hardcoded credential exposures identified and remediated across services',
       'CWE/CVE-aligned reporting with severity scoring and automated remediation recommendations',
     ],

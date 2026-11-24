@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 
+import { BATCAVE_CONTAINERS } from '@/data/homelab-stats';
+
 // ─── Category colors ─────────────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, { base: string; glow: string; r: number; g: number; b: number }> = {
   genai:    { base: '#F97316', glow: '#FDBA74', r: 249, g: 115, b: 22  },
@@ -39,7 +41,7 @@ const NODE_DEFS: NodeDef[] = [
   { id: 'ollama',     label: 'Ollama',      category: 'genai',    icon: 'OL', layer: 0,
     tooltip: { title: 'Ollama', desc: 'Self-hosted LLM inference — LLaMA, Mistral, Phi, DeepSeek on Batcave', tags: ['LLM', 'Self-hosted', 'Inference'] } },
   { id: 'docker',     label: 'Docker',      category: 'devops',   icon: 'DK', layer: 0,
-    tooltip: { title: 'Docker', desc: '56-container production orchestration on Batcave ML cloud', tags: ['Containers', 'CI/CD', 'Compose'] } },
+    tooltip: { title: 'Docker', desc: `${BATCAVE_CONTAINERS}-container production orchestration on Batcave ML cloud`, tags: ['Containers', 'CI/CD', 'Compose'] } },
   { id: 'linux',      label: 'Linux',       category: 'devops',   icon: 'LX', layer: 0,
     tooltip: { title: 'Linux / Shell', desc: 'Kernel-level tuning, shell automation, and server administration', tags: ['Bash', 'Kernel', 'Server Admin'] } },
   { id: 'postgres',   label: 'PostgreSQL',  category: 'database', icon: 'PG', layer: 0,
@@ -73,7 +75,7 @@ const NODE_DEFS: NodeDef[] = [
 
   // ── Layer 2 — Projects ────────────────────────────────────────────────────
   { id: 'batcave',      label: 'Batcave',        category: 'project', icon: 'BC', layer: 2,
-    tooltip: { title: 'Batcave AI Platform', desc: 'Solo-built private ML cloud · 56 containers · 99.9% uptime · LLMs, RAG, media, monitoring', tags: ['Docker', 'LLM', 'RAG', 'Authentik', 'Tailscale'] } },
+    tooltip: { title: 'Batcave AI Platform', desc: `Solo-built private ML cloud · ${BATCAVE_CONTAINERS} containers · 99.9% uptime · LLMs, RAG, media, monitoring`, tags: ['Docker', 'LLM', 'RAG', 'Authentik', 'Tailscale'] } },
   { id: 'forestfire',   label: 'Wildfire CNN',   category: 'project', icon: 'FF', layer: 2,
     tooltip: { title: 'Wildfire Detection', desc: 'AllCNN on Sentinel-2 satellite imagery · 91% accuracy · 88% F1 · NDVI/NBR spectral indices', tags: ['AllCNN', 'Sentinel-2', 'TensorFlow', 'NDVI'] } },
   { id: 'ragpodcast',   label: 'RAG Podcast',    category: 'project', icon: 'RP', layer: 2,
