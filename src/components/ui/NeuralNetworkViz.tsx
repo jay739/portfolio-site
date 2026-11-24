@@ -45,7 +45,7 @@ const NODE_DEFS: NodeDef[] = [
   { id: 'linux',      label: 'Linux',       category: 'devops',   icon: 'LX', layer: 0,
     tooltip: { title: 'Linux / Shell', desc: 'Kernel-level tuning, shell automation, and server administration', tags: ['Bash', 'Kernel', 'Server Admin'] } },
   { id: 'postgres',   label: 'PostgreSQL',  category: 'database', icon: 'PG', layer: 0,
-    tooltip: { title: 'PostgreSQL', desc: 'Primary production SQL: part of 177 GB multi-DB architecture', tags: ['SQL', 'Vector Store', 'Redis'] } },
+    tooltip: { title: 'PostgreSQL', desc: 'Primary production SQL, part of the multi-database architecture', tags: ['SQL', 'Vector Store', 'Redis'] } },
   { id: 'typescript', label: 'TypeScript',  category: 'frontend', icon: 'TS', layer: 0,
     tooltip: { title: 'TypeScript', desc: 'Type-safe full-stack web development', tags: ['Next.js', 'React'] } },
   { id: 'nextjs',     label: 'Next.js',     category: 'frontend', icon: 'NX', layer: 0,
@@ -75,7 +75,7 @@ const NODE_DEFS: NodeDef[] = [
 
   // ── Layer 2: Projects ────────────────────────────────────────────────────
   { id: 'batcave',      label: 'Batcave',        category: 'project', icon: 'BC', layer: 2,
-    tooltip: { title: 'Batcave AI Platform', desc: `Solo-built private ML cloud · ${BATCAVE_CONTAINERS} containers · 99.9% uptime · LLMs, RAG, media, monitoring`, tags: ['Docker', 'LLM', 'RAG', 'Authentik', 'Tailscale'] } },
+    tooltip: { title: 'Batcave AI Platform', desc: `Solo-built private ML cloud · ${BATCAVE_CONTAINERS} containers · LLMs, RAG, media, monitoring`, tags: ['Docker', 'LLM', 'RAG', 'Authentik', 'Tailscale'] } },
   { id: 'forestfire',   label: 'Wildfire CNN',   category: 'project', icon: 'FF', layer: 2,
     tooltip: { title: 'Wildfire Detection', desc: 'AllCNN on Sentinel-2 satellite imagery · 91% accuracy · 88% F1 · NDVI/NBR spectral indices', tags: ['AllCNN', 'Sentinel-2', 'TensorFlow', 'NDVI'] } },
   { id: 'ragpodcast',   label: 'RAG Podcast',    category: 'project', icon: 'RP', layer: 2,

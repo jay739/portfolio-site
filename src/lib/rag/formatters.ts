@@ -148,7 +148,7 @@ export function formatInfraOps(contextText: string): string {
     ?? 'Reliability practices include monitoring, fallback handling, and operational discipline.';
 
   return [
-    `Direct Answer: Containerized self-hosted AI and operations platform (Batcave) with ${BATCAVE_CONTAINERS} containers, 36+ services, and 177 GB data footprint.`,
+    `Direct Answer: Containerized self-hosted AI and operations platform (Batcave) with ${BATCAVE_CONTAINERS} containers and 36+ services.`,
     `Stack: ${stack}`,
     `Services: ${services}`,
     `Reliability: ${reliability}`,

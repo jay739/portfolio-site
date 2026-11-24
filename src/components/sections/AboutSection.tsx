@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
-  FaBrain, FaCogs, FaSatelliteDish, FaRocket,
+  FaBrain, FaCogs, FaRocket,
   FaChartLine, FaBullseye, FaLaptopCode, FaStar
 } from 'react-icons/fa';
 
@@ -12,7 +12,6 @@ import { BATCAVE_CONTAINERS } from '@/data/homelab-stats';
 const expertiseSignals = [
   { label: 'Production AI', value: '5+ yrs', icon: <FaBrain className="text-amber-400" /> },
   { label: 'MLOps + DevOps', value: 'End-to-End', icon: <FaCogs className="text-amber-400" /> },
-  { label: 'Batcave Uptime', value: '99.9%', icon: <FaSatelliteDish className="text-amber-400" /> },
   { label: 'LLMs Self-Hosted', value: '5+ Models', icon: <FaRocket className="text-amber-400" /> },
 ];
 
@@ -24,7 +23,7 @@ const focusTracks = [
     items: [
       '5 years delivering production ML/AI systems at Cognizant, UMBC R/SEEK, and Enigma Technologies',
       'Expert in Python, deep learning, NLP, LangChain, RAG pipelines, and GenAI systems',
-      `Built and operated Batcave, a solo-managed, ${BATCAVE_CONTAINERS}-container private AI server at 99.9% uptime`,
+      `Built and operated Batcave, a solo-managed, ${BATCAVE_CONTAINERS}-container private AI server`,
       'End-to-end cloud-native MLOps on AWS (SageMaker, Lambda, S3) and Oracle Cloud (OCI)',
       'Edge AI engineer: TensorFlow Lite on ESP32; custom Android ROM and kernel developer',
     ],
@@ -48,7 +47,7 @@ const focusTracks = [
       'Repurposed Android device as low-power edge node with kernel-level CPU tuning (custom ROM)',
       'Built a fallback control plane: DDNS updater, Wake-on-LAN trigger, and Telegram webhook notifier',
       'Immich ML photo platform (401 GB, face recognition + object detection) and Paperless-NGX OCR',
-      '177 GB multi-database data layer: PostgreSQL, MariaDB, Redis, SQLite, and Meilisearch',
+      'Multi-database data layer: PostgreSQL, MariaDB, Redis, SQLite, and Meilisearch',
     ],
   },
   {
@@ -56,7 +55,7 @@ const focusTracks = [
     icon: <FaStar className="text-amber-400" />,
     marker: '★',
     items: [
-      `Batcave: solo-built ${BATCAVE_CONTAINERS}-container AI platform with LLMs, RAG, ML inference, 99.9% uptime (5-part blog series)`,
+      `Batcave: solo-built ${BATCAVE_CONTAINERS}-container AI platform with LLMs, RAG, and ML inference (5-part blog series)`,
       'RAG Podcast Generator: PDF → LLM → TTS pipeline, 98% OCR accuracy, 4× throughput via LoRA fine-tuning',
       'Autonomous RC car: YOLOv8 object detection (95% accuracy) + TFLite on ESP32, no cloud dependency',
       `Infrastructure Security Audit: automated scanner across ${BATCAVE_CONTAINERS} containers, identified 27 credential exposures`,

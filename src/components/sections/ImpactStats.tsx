@@ -80,7 +80,7 @@ const stats: Stat[] = [
     title: 'Batcave Containers',
     value: String(BATCAVE_CONTAINERS),
     icon: FaDocker,
-    summary: `Solo-built ${BATCAVE_CONTAINERS}-container private AI cloud running LLMs, RAG pipelines, media, monitoring, and automation at 99.9% uptime.`,
+    summary: `Solo-built ${BATCAVE_CONTAINERS}-container private AI cloud running LLMs, RAG pipelines, media, monitoring, and automation.`,
     signal: 'Ops Reliability',
     track: 'ops',
   },

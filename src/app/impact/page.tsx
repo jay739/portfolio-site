@@ -60,8 +60,8 @@ const highlights = [
     color: 'orange',
     points: [
       `${BATCAVE_CONTAINERS}-container production platform: LLMs (LLaMA, Mistral, Phi, DeepSeek via Ollama), RAG pipelines, media, monitoring`,
-      '177 GB multi-database data layer: PostgreSQL, MariaDB, Redis, SQLite, Meilisearch',
-      '99.9% uptime; Authentik SSO, Tailscale VPN, Netdata + Telegram real-time alerting',
+      'Multi-database data layer: PostgreSQL, MariaDB, Redis, SQLite, Meilisearch',
+      'Authentik SSO, Tailscale VPN, Netdata and Telegram real-time alerting',
       'Immich ML photo platform (401 GB, face recognition + object detection), Paperless-NGX OCR',
     ],
   },
