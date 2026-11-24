@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { BATCAVE_CONTAINERS } from "@/data/homelab-stats";
 import {
   FaServer,
   FaWrench,
@@ -234,7 +235,7 @@ function HashTool() {
   return (
     <div className="space-y-3">
       <p className="text-xs text-slate-400">
-        SHA-256 hash computation — same cryptographic functions powering
+        SHA-256 hash computation, the same cryptographic functions powering
         Batcave&apos;s internal services.
       </p>
       <textarea
@@ -286,7 +287,7 @@ function Base64Tool() {
   return (
     <div className="space-y-3">
       <p className="text-xs text-slate-400">
-        Encode or decode Base64 — supports Unicode (UTF-8 safe).
+        Encode or decode Base64. Supports Unicode (UTF-8 safe).
       </p>
       <div className="flex gap-2">
         {(["encode", "decode"] as const).map((m) => (
@@ -747,7 +748,7 @@ const SUITES = [
     name: "IT Tools",
     tagline: "60+ developer & sysadmin utilities",
     description:
-      "Developer toolkit running on Batcave — UUID generator, Base64, hash functions, password generator, JWT decoder, regex tester, and more. Powered by the same infrastructure behind my self-hosted services.",
+      "Developer toolkit running on Batcave: UUID generator, Base64, hash functions, password generator, JWT decoder, regex tester, and more. Powered by the same infrastructure behind my self-hosted services.",
     icon: <FaWrench className="text-amber-400" />,
     tools: IT_TOOLS,
     stack: ["Vue.js", "Docker", "nginx"],
@@ -757,7 +758,7 @@ const SUITES = [
     name: "OmniTools",
     tagline: "30+ conversion & utility tools",
     description:
-      "Multi-format conversion suite on Batcave — color spaces, text case transformers, temperature converter, word counter, and more. Part of my self-hosted utility stack.",
+      "Multi-format conversion suite on Batcave: color spaces, text case transformers, temperature converter, word counter, and more. Part of my self-hosted utility stack.",
     icon: <FaLayerGroup className="text-amber-400" />,
     tools: OMNI_TOOLS,
     stack: ["React", "FFmpeg", "Docker", "nginx"],
@@ -823,9 +824,9 @@ export default function BatcaveTools() {
             <p className="neural-section-copy max-w-2xl mt-1">
               Selected tools from my{" "}
               <span className="text-amber-400 font-semibold">
-                56-container Batcave
+                {BATCAVE_CONTAINERS}-container Batcave
               </span>{" "}
-              server — a private self-hosted infrastructure stack running 24/7.
+              server, a private self-hosted infrastructure stack running 24/7.
               Processing happens on Batcave.
             </p>
           </div>
@@ -909,7 +910,7 @@ export default function BatcaveTools() {
           <FaShieldAlt className="text-amber-400 mt-0.5 shrink-0" />
           <span>
             These tools are part of a larger self-hosted utility stack running
-            on Batcave — a private infrastructure accessible over a secure VPN.
+            on Batcave, a private infrastructure accessible over a secure VPN.
             The demos above showcase a selection of what&apos;s available on the
             server.
           </span>

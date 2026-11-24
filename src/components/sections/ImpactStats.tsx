@@ -10,6 +10,8 @@ import {
   FaBrain, FaCloud, FaCogs, FaDatabase, FaFire,
   FaCheckCircle, FaChartLine, FaServer,
 } from 'react-icons/fa';
+
+import { BATCAVE_CONTAINERS } from '@/data/homelab-stats';
 import type { IconType } from 'react-icons';
 
 if (typeof window !== 'undefined') {
@@ -70,15 +72,15 @@ const stats: Stat[] = [
     title: 'Wildfire CNN Accuracy',
     value: '91%',
     icon: FaFire,
-    summary: 'AllCNN classifier on Sentinel-2 multispectral satellite imagery with NDVI/NBR spectral indices — 88% F1-score on held-out test data.',
+    summary: 'AllCNN classifier on Sentinel-2 multispectral satellite imagery with NDVI/NBR spectral indices, with 88% F1-score on held-out test data.',
     signal: 'Computer Vision',
     track: 'engineering',
   },
   {
     title: 'Batcave Containers',
-    value: '56',
+    value: String(BATCAVE_CONTAINERS),
     icon: FaDocker,
-    summary: 'Solo-built 56-container private AI cloud running LLMs, RAG pipelines, media, monitoring, and automation at 99.9% uptime.',
+    summary: `Solo-built ${BATCAVE_CONTAINERS}-container private AI cloud running LLMs, RAG pipelines, media, monitoring, and automation.`,
     signal: 'Ops Reliability',
     track: 'ops',
   },
@@ -110,7 +112,7 @@ const stats: Stat[] = [
     title: 'ML Release Cycles Cut',
     value: '30%',
     icon: FaCogs,
-    summary: 'Enterprise MLOps CI/CD with Jenkins — automated retraining, model versioning, drift alerting, and production incident reduction.',
+    summary: 'Enterprise MLOps CI/CD with Jenkins: automated retraining, model versioning, drift alerting, and production incident reduction.',
     signal: 'MLOps Velocity',
     track: 'engineering',
   },
@@ -118,7 +120,7 @@ const stats: Stat[] = [
     title: 'LLMs Self-Hosted',
     value: '5+',
     icon: FaTrophy,
-    summary: 'LLaMA, Mistral, Phi, DeepSeek, and more — locally running via Ollama on Batcave with FAISS-backed RAG and semantic caching.',
+    summary: 'LLaMA, Mistral, Phi, DeepSeek, and more, running locally via Ollama on Batcave with FAISS-backed RAG and semantic caching.',
     signal: 'Local AI Stack',
     track: 'ops',
   },

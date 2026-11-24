@@ -2,13 +2,14 @@
  * Intent-family formatters.
  *
  * Each export formats a structured answer for one intent family using
- * extracted sentences from RAG context. Formatters never call Ollama —
- * they compose answers from the retrieved document text.
+ * extracted sentences from RAG context. Formatters never call Ollama and
+ * instead compose answers from the retrieved document text.
  *
  * Pattern: selectEvidence(contextText, regex, max) → top sentences → labelled lines.
  */
 
 import { Intent } from './intents';
+import { BATCAVE_CONTAINERS } from '@/data/homelab-stats';
 
 // ─── Shared Helpers ───────────────────────────────────────────────────────────
 
@@ -83,7 +84,7 @@ export function formatCareerTimeline(contextText: string): string {
     ?? 'Currently at Enigma Technologies building GenAI and RAG production systems.';
 
   return [
-    'Direct Answer: Career spans four stages — software engineering foundation, ML production scale-up, graduate research transition, and GenAI specialization.',
+    'Direct Answer: Career spans four stages, namely software engineering foundation, ML production scale-up, graduate research transition, and GenAI specialization.',
     `Foundation: ${milestone}`,
     `Progression: ${progression}`,
     `Current Stage: ${current}`,
@@ -134,7 +135,7 @@ export function formatProjects(contextText: string, isStarQuery = false): string
 export function formatInfraOps(contextText: string): string {
   const all = dedup(splitSentences(contextText).map(toStandalone));
 
-  const stack = pick(all, /(batcave|56-container|hybrid.cloud|platform|infrastructure|docker|kubernetes|container)/i)
+  const stack = pick(all, /(batcave|\d+-container|hybrid.cloud|platform|infrastructure|docker|kubernetes|container)/i)
     ?? all[0]
     ?? 'Self-hosted, containerized AI platform with hybrid-cloud architecture.';
 
@@ -147,7 +148,7 @@ export function formatInfraOps(contextText: string): string {
     ?? 'Reliability practices include monitoring, fallback handling, and operational discipline.';
 
   return [
-    'Direct Answer: Containerized self-hosted AI and operations platform (Batcave) with 56 containers, 36+ services, and 177 GB data footprint.',
+    `Direct Answer: Containerized self-hosted AI and operations platform (Batcave) with ${BATCAVE_CONTAINERS} containers and 36+ services.`,
     `Stack: ${stack}`,
     `Services: ${services}`,
     `Reliability: ${reliability}`,
@@ -181,7 +182,7 @@ export function formatAIResearch(contextText: string, chip?: string): string {
   const c = (chip ?? '').toLowerCase();
 
   // Sentences to exclude from ai-research answers
-  const isInfraHeavy   = (s: string) => /(batcave|56-container|containerized|hybrid-cloud|177gb|services across|infrastructure stack|home.?server|self.host)/i.test(s);
+  const isInfraHeavy   = (s: string) => /(batcave|\d+-container|containerized|hybrid-cloud|177gb|services across|infrastructure stack|home.?server|self.host)/i.test(s);
   const isDanglingRef  = (s: string) => /^this trend|^this signal|^this map/i.test(s.trim());
   const isHeadline     = (s: string) => /\d\+\s*years?\s*of\s*experience\s*building\s*production|^ml engineer|^data scientist/i.test(s.trim());
   const aiFilter       = (s: string) => !isInfraHeavy(s) && !isDanglingRef(s) && !isHeadline(s);
