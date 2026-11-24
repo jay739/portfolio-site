@@ -29,7 +29,7 @@ interface NodeDef {
 }
 
 const NODE_DEFS: NodeDef[] = [
-  // ── Layer 0 — Input: Core skills & tools ──────────────────────────────────
+  // ── Layer 0, Input: Core skills & tools ──────────────────────────────────
   { id: 'python',     label: 'Python',      category: 'backend',  icon: 'PY', layer: 0,
     tooltip: { title: 'Python', desc: 'Primary language for AI/ML, automation & scripting', tags: ['ML', 'Automation', 'Data'] } },
   { id: 'pytorch',    label: 'PyTorch',     category: 'genai',    icon: 'PT', layer: 0,
@@ -39,41 +39,41 @@ const NODE_DEFS: NodeDef[] = [
   { id: 'langchain',  label: 'LangChain',   category: 'genai',    icon: 'LC', layer: 0,
     tooltip: { title: 'LangChain', desc: 'LLM orchestration, agent graphs & FAISS-backed RAG pipelines', tags: ['RAG', 'LLM', 'Agents', 'LangGraph'] } },
   { id: 'ollama',     label: 'Ollama',      category: 'genai',    icon: 'OL', layer: 0,
-    tooltip: { title: 'Ollama', desc: 'Self-hosted LLM inference — LLaMA, Mistral, Phi, DeepSeek on Batcave', tags: ['LLM', 'Self-hosted', 'Inference'] } },
+    tooltip: { title: 'Ollama', desc: 'Self-hosted LLM inference: LLaMA, Mistral, Phi, DeepSeek on Batcave', tags: ['LLM', 'Self-hosted', 'Inference'] } },
   { id: 'docker',     label: 'Docker',      category: 'devops',   icon: 'DK', layer: 0,
     tooltip: { title: 'Docker', desc: `${BATCAVE_CONTAINERS}-container production orchestration on Batcave ML cloud`, tags: ['Containers', 'CI/CD', 'Compose'] } },
   { id: 'linux',      label: 'Linux',       category: 'devops',   icon: 'LX', layer: 0,
     tooltip: { title: 'Linux / Shell', desc: 'Kernel-level tuning, shell automation, and server administration', tags: ['Bash', 'Kernel', 'Server Admin'] } },
   { id: 'postgres',   label: 'PostgreSQL',  category: 'database', icon: 'PG', layer: 0,
-    tooltip: { title: 'PostgreSQL', desc: 'Primary production SQL — part of 177 GB multi-DB architecture', tags: ['SQL', 'Vector Store', 'Redis'] } },
+    tooltip: { title: 'PostgreSQL', desc: 'Primary production SQL: part of 177 GB multi-DB architecture', tags: ['SQL', 'Vector Store', 'Redis'] } },
   { id: 'typescript', label: 'TypeScript',  category: 'frontend', icon: 'TS', layer: 0,
     tooltip: { title: 'TypeScript', desc: 'Type-safe full-stack web development', tags: ['Next.js', 'React'] } },
   { id: 'nextjs',     label: 'Next.js',     category: 'frontend', icon: 'NX', layer: 0,
-    tooltip: { title: 'Next.js', desc: 'Full-stack React framework — App Router, Server Components, API routes', tags: ['SSR', 'API Routes', 'RSC'] } },
+    tooltip: { title: 'Next.js', desc: 'Full-stack React framework: App Router, Server Components, API routes', tags: ['SSR', 'API Routes', 'RSC'] } },
   { id: 'aws',        label: 'AWS / OCI',   category: 'cloud',    icon: 'CL', layer: 0,
     tooltip: { title: 'Cloud Platforms', desc: 'SageMaker, Lambda, S3, ECR; Oracle Cloud for VPS hosting', tags: ['SageMaker', 'Lambda', 'OCI', 'ECR'] } },
 
-  // ── Layer 1 — Hidden: Derived capabilities ────────────────────────────────
+  // ── Layer 1, Hidden: Derived capabilities ────────────────────────────────
   { id: 'nlp',        label: 'NLP',         category: 'genai',    icon: 'NLP', layer: 1,
     tooltip: { title: 'NLP & Text AI', desc: 'Entity extraction, classification, FinBERT sentiment, legal/healthcare text intelligence', tags: ['Transformers', 'FinBERT', 'SpaCy', 'NLTK'] } },
   { id: 'rag',        label: 'RAG Pipelines', category: 'genai',  icon: 'RAG', layer: 1,
-    tooltip: { title: 'RAG Pipelines', desc: 'Retrieval-Augmented Generation — FAISS vector search, semantic chunking, reranking', tags: ['FAISS', 'Embeddings', 'Semantic Search', 'LangChain'] } },
+    tooltip: { title: 'RAG Pipelines', desc: 'Retrieval-Augmented Generation: FAISS vector search, semantic chunking, reranking', tags: ['FAISS', 'Embeddings', 'Semantic Search', 'LangChain'] } },
   { id: 'cv',         label: 'Computer Vision', category: 'genai', icon: 'CV', layer: 1,
     tooltip: { title: 'Computer Vision', desc: 'CNN architectures, YOLOv8 object detection, satellite imagery analysis', tags: ['YOLOv8', 'AllCNN', 'Sentinel-2', 'NDVI'] } },
   { id: 'mlops',      label: 'MLOps',       category: 'genai',    icon: 'OPS', layer: 1,
-    tooltip: { title: 'MLOps', desc: 'End-to-end ML pipelines — MLflow, GitHub Actions CI/CD, drift detection, model versioning', tags: ['MLflow', 'GitHub Actions', 'Jenkins', 'Drift'] } },
+    tooltip: { title: 'MLOps', desc: 'End-to-end ML pipelines: MLflow, GitHub Actions CI/CD, drift detection, model versioning', tags: ['MLflow', 'GitHub Actions', 'Jenkins', 'Drift'] } },
   { id: 'k8s',        label: 'Kubernetes',  category: 'devops',   icon: 'K8', layer: 1,
     tooltip: { title: 'Kubernetes', desc: 'Container orchestration, Portainer management & autoscaling', tags: ['Helm', 'Portainer', 'Autoscaling'] } },
   { id: 'nginx',      label: 'Nginx',       category: 'devops',   icon: 'NG', layer: 1,
     tooltip: { title: 'Nginx', desc: 'Reverse proxy, SSL termination, Authentik SSO integration', tags: ['SSL/TLS', 'Proxy', 'Authentik'] } },
   { id: 'monitoring', label: 'Monitoring',  category: 'devops',   icon: 'MON', layer: 1,
-    tooltip: { title: 'Infrastructure Monitoring', desc: 'Real-time observability — Netdata, Uptime Kuma, Telegram alerts, Prometheus metrics', tags: ['Netdata', 'Prometheus', 'Telegram', 'Alerting'] } },
+    tooltip: { title: 'Infrastructure Monitoring', desc: 'Real-time observability: Netdata, Uptime Kuma, Telegram alerts, Prometheus metrics', tags: ['Netdata', 'Prometheus', 'Telegram', 'Alerting'] } },
   { id: 'react',      label: 'React',       category: 'frontend', icon: 'RX', layer: 1,
     tooltip: { title: 'React / UI', desc: 'Component-driven interfaces with Framer Motion and Tailwind CSS', tags: ['Tailwind', 'Framer Motion', 'Shadcn'] } },
   { id: 'redis',      label: 'Redis',       category: 'database', icon: 'RD', layer: 1,
     tooltip: { title: 'Redis', desc: 'In-memory cache, session store, LLM semantic cache, and pub/sub', tags: ['Cache', 'Pub/Sub', 'Semantic Cache'] } },
 
-  // ── Layer 2 — Projects ────────────────────────────────────────────────────
+  // ── Layer 2: Projects ────────────────────────────────────────────────────
   { id: 'batcave',      label: 'Batcave',        category: 'project', icon: 'BC', layer: 2,
     tooltip: { title: 'Batcave AI Platform', desc: `Solo-built private ML cloud · ${BATCAVE_CONTAINERS} containers · 99.9% uptime · LLMs, RAG, media, monitoring`, tags: ['Docker', 'LLM', 'RAG', 'Authentik', 'Tailscale'] } },
   { id: 'forestfire',   label: 'Wildfire CNN',   category: 'project', icon: 'FF', layer: 2,
@@ -87,7 +87,7 @@ const NODE_DEFS: NodeDef[] = [
   { id: 'portfolio',    label: 'Portfolio Site', category: 'project', icon: 'PF', layer: 2,
     tooltip: { title: 'Portfolio Site', desc: 'This site · Next.js App Router · neural map · Sentry monitoring · Google Analytics', tags: ['Next.js', 'TypeScript', 'AI Chatbot', 'Sentry'] } },
 
-  // ── Layer 3 — Outcomes ────────────────────────────────────────────────────
+  // ── Layer 3: Outcomes ────────────────────────────────────────────────────
   { id: 'aiplatform',     label: 'AI Platform',  category: 'outcome', icon: 'AI', layer: 3,
     tooltip: { title: 'Production AI Systems', desc: 'End-to-end LLM platforms, RAG services, and ML inference at scale', tags: ['LLM', 'RAG', 'MLOps', 'GenAI'] } },
   { id: 'devopsplatform', label: 'DevOps Infra', category: 'outcome', icon: 'DV', layer: 3,
@@ -217,17 +217,17 @@ interface NeuralNetworkVizProps {
 
 // Node IDs that link to pages on click
 const NODE_LINKS: Record<string, string> = {
-  // Layer 0 — skills page
+  // Layer 0: skills page
   python: '/skills', pytorch: '/skills', tensorflow: '/skills', langchain: '/skills',
   ollama: '/skills', docker: '/skills', linux: '/skills', postgres: '/skills',
   typescript: '/skills', nextjs: '/skills', aws: '/skills',
-  // Layer 1 — skills page
+  // Layer 1: skills page
   nlp: '/skills', rag: '/skills', cv: '/skills', mlops: '/skills',
   k8s: '/skills', nginx: '/skills', monitoring: '/skills', react: '/skills', redis: '/skills',
-  // Layer 2 — projects page
+  // Layer 2: projects page
   batcave: '/projects', forestfire: '/projects', ragpodcast: '/projects',
   'financial-risk': '/projects', 'edge-node': '/projects', portfolio: '/projects',
-  // Layer 3 — impact page
+  // Layer 3: impact page
   aiplatform: '/impact', devopsplatform: '/impact', datascience: '/impact', fullstack: '/impact',
 };
 
@@ -268,7 +268,7 @@ export default function NeuralNetworkViz({
   activeRef.current = isActive;
   const modeRef = useRef(mode);
   modeRef.current = mode;
-  // Live theme flag — read inside the rAF draw loop so a theme switch
+  // Live theme flag: read inside the rAF draw loop so a theme switch
   // recolors the canvas without restarting the animation.
   const { resolvedTheme } = useTheme();
   const darkRef = useRef(isDark);
@@ -490,11 +490,11 @@ export default function NeuralNetworkViz({
       ctx.globalAlpha = mapOpacity;
 
       if (!transparentBackground) {
-        // Theme base — pitch black for dark, soft light grey for light
+        // Theme base: pitch black for dark, soft light grey for light
         ctx.fillStyle = dark ? 'rgba(0, 0, 0, 1)' : 'rgba(238, 241, 246, 1)';
         ctx.fillRect(0, 0, w, h);
 
-        // Subtle vignette — bright at center, dark at edges
+        // Subtle vignette: bright at center, dark at edges
         const vignette = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.72);
         if (dark) {
           vignette.addColorStop(0,   'rgba(30, 12, 0, 0.55)');
@@ -672,7 +672,7 @@ export default function NeuralNetworkViz({
         const pulse = Math.sin(node.pulsePhase) * 0.12 + 1;
         const r = node.baseRadius * (node.hovered ? 1.25 : pulse) * (categoryVisible ? 1 : 0.93);
 
-        // Outer glow — large diffuse halo behind node
+        // Outer glow: large diffuse halo behind node
         const glowLayers = node.hovered ? 5 : 3;
         for (let g = glowLayers; g >= 1; g--) {
           const glowR = r * (1 + g * 0.65);
@@ -696,7 +696,7 @@ export default function NeuralNetworkViz({
         ctx.lineWidth = node.hovered ? 2 : 1.2;
         ctx.stroke();
 
-        // Node fill — bright radial gradient, strong at center
+        // Node fill: bright radial gradient, strong at center
         const nodeFill = ctx.createRadialGradient(
           node.x - r * 0.28, node.y - r * 0.28, r * 0.05,
           node.x, node.y, r
@@ -713,7 +713,7 @@ export default function NeuralNetworkViz({
         ctx.fillStyle = nodeFill;
         ctx.fill();
 
-        // Specular highlight — top-left bright spot
+        // Specular highlight: top-left bright spot
         const specR = r * 0.45;
         const specGrad = ctx.createRadialGradient(
           node.x - r * 0.3, node.y - r * 0.3, 0,
@@ -734,7 +734,7 @@ export default function NeuralNetworkViz({
         ctx.stroke();
         ctx.shadowBlur = 0;
 
-        // Icon text — dark for contrast against bright node fill
+        // Icon text: dark for contrast against bright node fill
         const iconSize = Math.max(9, node.baseRadius * 0.55);
         ctx.font = `800 ${iconSize}px 'JetBrains Mono', monospace`;
         ctx.textAlign = 'center';
@@ -742,7 +742,7 @@ export default function NeuralNetworkViz({
         ctx.fillStyle = 'rgba(4, 6, 14, 0.92)';
         ctx.fillText(node.icon, node.x, node.y - 1);
 
-        // Label below node — bright on black
+        // Label below node: bright on black
         const labelR = r + 9;
         ctx.font = `${node.hovered ? 'bold 13px' : 'bold 10px'} Inter, sans-serif`;
         ctx.textAlign = 'center';
@@ -918,10 +918,10 @@ export default function NeuralNetworkViz({
           onMouseLeave={interactive ? handleMouseLeave : undefined}
           onClick={interactive ? () => handleClick() : undefined}
           onDoubleClick={interactive ? handleDoubleClick : undefined}
-          aria-label="Interactive neural network visualization — hover nodes for details, click to pin, double-click to navigate"
+          aria-label="Interactive neural network visualization: hover nodes for details, click to pin, double-click to navigate"
         />
 
-        {/* Tooltip — stays as canvas overlay */}
+        {/* Tooltip: stays as canvas overlay */}
         {interactive && tooltip && (
           <div
             className="absolute z-30 pointer-events-none"
