@@ -34,8 +34,11 @@ const serverEnvSchema = commonEnvSchema.extend({
   
   // Other optional configurations
   CORS_ORIGINS: z.string().optional(),
-  MAX_REQUESTS_PER_MINUTE: z.string().transform(Number).default('60'),
-  SESSION_MAX_AGE: z.string().transform(Number).default('86400'), // 24 hours in seconds
+  // zod 4 applies .default() to the OUTPUT of the pipe, so these defaults are
+  // numbers rather than the strings zod 3 fed through .transform(Number).
+  // Same values result; .prefault() is the escape hatch for an input-side default.
+  MAX_REQUESTS_PER_MINUTE: z.string().transform(Number).default(60),
+  SESSION_MAX_AGE: z.string().transform(Number).default(86400), // 24 hours in seconds
 });
 
 
