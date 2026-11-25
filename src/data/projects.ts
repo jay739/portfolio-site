@@ -123,7 +123,7 @@ export const projects: Project[] = [
   },
   {
     title: 'RAG-powered Podcast Generator',
-    description: 'AI podcast engine that turns PDFs into multi-host audio with transcripts. Flask + Ollama for transcript generation, FAISS retrieval, MARS5-TTS on Apple M4 Metal for voices. Live as the "PDF to Podcast" tool in the AI Lab.',
+    description: 'AI podcast engine that turns PDFs into multi-host audio with transcripts. Flask + Ollama for transcript generation, FAISS retrieval, Piper TTS on Apple M4 for voices. Live as the "PDF to Podcast" tool in the AI Lab.',
     tags: ['RAG', 'NLP', 'OCR', 'TTS', 'LangChain', 'Ollama', 'Data Science', 'Python'],
     github: 'https://github.com/jay739/PodcastAI',
     demo: 'https://jay739.dev/ai-tools?tool=podcast-generator',
@@ -134,7 +134,7 @@ export const projects: Project[] = [
       '/images/projects/podcast-3.png',
       '/images/projects/podcast-4.png',
     ],
-    techStack: ['Python', 'Flask', 'Ollama', 'FAISS', 'MARS5-TTS', 'PyMuPDF', 'pydub', 'Next.js'],
+    techStack: ['Python', 'Flask', 'Ollama', 'FAISS', 'Piper TTS', 'PyMuPDF', 'pydub', 'Next.js'],
     challenges: ['Extracting clean text from PDFs', 'Voice assignment to characters', 'Bounding generation time on a single-GPU host', 'Safely exposing a Mac Mini service to a public web tool'],
     learnings: ['Text-to-speech synthesis on Metal', 'Prompt engineering for dialogue', 'Single-tenant job queueing across HTTP', 'CORS + Tailscale-fronted private services'],
     lifecycle: ['Idea', 'Built', 'Deployed'],
