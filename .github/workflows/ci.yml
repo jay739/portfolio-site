@@ -71,8 +71,40 @@ jobs:
           node-version: 20
           cache: npm
 
+      # sharp fetches its libvips binary from a GitHub release in a postinstall
+      # script and caches it under ~/.npm/_libvips. The setup-node cache above
+      # already covers that directory, but it is keyed on package-lock.json, so
+      # any unrelated dependency bump discards the tarball and the next run has
+      # to download it again. This second cache is keyed on the sharp version,
+      # which is pinned and almost never moves, so the binary survives lockfile
+      # churn.
+      - name: 🔖 Read the sharp pin
+        id: sharp
+        run: echo "version=$(node -p "require('./package.json').overrides.next.sharp")" >> "$GITHUB_OUTPUT"
+
+      - name: 🗃️ Cache sharp libvips binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm/_libvips
+          key: libvips-${{ runner.os }}-${{ runner.arch }}-${{ steps.sharp.outputs.version }}
+
+      # Retried, because the libvips fetch is a network call to GitHub releases
+      # and a single timeout there fails this REQUIRED check on code that is
+      # fine. That happened on PR #98: validate died in 40s during npm ci while
+      # docker-arm64 passed, and an unchanged rerun went green.
       - name: 📥 Install dependencies
-        run: npm ci --legacy-peer-deps --no-audit --no-fund
+        run: |
+          for attempt in 1 2 3; do
+            if npm ci --legacy-peer-deps --no-audit --no-fund; then
+              exit 0
+            fi
+            echo "::warning::npm ci failed on attempt $attempt of 3"
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 15))
+            fi
+          done
+          echo "::error::npm ci failed three times; this is not a flake"
+          exit 1
 
       - name: 🔍 Lint
         run: npm run lint
