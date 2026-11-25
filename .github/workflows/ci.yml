@@ -25,7 +25,7 @@ jobs:
     outputs:
       code: ${{ steps.diff.outputs.code }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: diff
@@ -63,10 +63,10 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: ⬢ Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -108,7 +108,7 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Cheap and first, so a desync fails in seconds instead of after a build.
       # The runtime sharp is built by an isolated Dockerfile stage with its own
