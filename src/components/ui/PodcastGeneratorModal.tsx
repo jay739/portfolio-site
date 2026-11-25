@@ -238,7 +238,7 @@ export default function PodcastGeneratorModal({ open, onClose }: Props) {
                   <FaMicrophone className="text-amber-400" /> PDF to Podcast
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Ollama + MARS5-TTS · Apple M4 Metal · Self-hosted (PodcastAI backend)
+                  Ollama + Piper TTS · Apple M4 · Self-hosted (PodcastAI backend)
                 </p>
               </div>
               <button

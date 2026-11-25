@@ -49,7 +49,7 @@ const tools: Tool[] = [
   {
     title: "PDF to Podcast",
     description:
-      "Upload a PDF, get back a multi-host podcast with transcript. Ollama + MARS5-TTS on Apple M4.",
+      "Upload a PDF, get back a multi-host podcast with transcript. Ollama + Piper TTS on Apple M4.",
     action: "open-podcast-generator",
     enabled: true,
   },

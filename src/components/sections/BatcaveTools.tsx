@@ -765,13 +765,25 @@ const SUITES = [
   },
 ];
 
-export default function BatcaveTools() {
+interface BatcaveToolsProps {
+  /**
+   * Live container count from the published homelab stats, supplied by the
+   * server component that renders this. Defaults to the compiled-in constant so
+   * the component still renders correctly on its own.
+   */
+  containerCount?: number;
+}
+
+export default function BatcaveTools({
+  containerCount = BATCAVE_CONTAINERS,
+}: BatcaveToolsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [activeSuite, setActiveSuite] = useState(SUITES[0].id);
   const [activeTool, setActiveTool] = useState(IT_TOOLS[0].id);
   const [urlStateReady, setUrlStateReady] = useState(false);
   const suite = SUITES.find((s) => s.id === activeSuite)!;
+
 
   // No modals in this component but keep consistent scroll behaviour
   useScrollLock(false);
@@ -824,7 +836,7 @@ export default function BatcaveTools() {
             <p className="neural-section-copy max-w-2xl mt-1">
               Selected tools from my{" "}
               <span className="text-amber-400 font-semibold">
-                {BATCAVE_CONTAINERS}-container Batcave
+                {containerCount}-container Batcave
               </span>{" "}
               server, a private self-hosted infrastructure stack running 24/7.
               Processing happens on Batcave.
