@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect, useMemo, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
+import { consumePendingChatbotOpen } from '@/lib/ai-tools-deeplink';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lottie from 'lottie-react';
 import chatAnim from '../../../public/lottie-chat.json';
@@ -156,6 +157,14 @@ export default function ChatbotWidget() {
     };
     window.addEventListener('chatbot:open', onOpen as EventListener);
     window.addEventListener('chatbot:ask', onAsk as EventListener);
+
+    // Claim an open requested before this widget mounted. A deep link such as
+    // /ai-tools?tool=chatbot is handled by the page, which may run its mount
+    // effect before the listeners above exist; the dispatched event would then
+    // reach nobody. Nothing pending means nothing happens, so the widget never
+    // springs open on an ordinary page load.
+    if (consumePendingChatbotOpen()) setOpen(true);
+
     return () => {
       window.removeEventListener('chatbot:open', onOpen as EventListener);
       window.removeEventListener('chatbot:ask', onAsk as EventListener);
