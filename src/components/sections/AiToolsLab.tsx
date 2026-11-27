@@ -12,6 +12,10 @@ import { copyToClipboard } from "@/lib/clipboard";
 import OnboardingHint from "@/components/ui/OnboardingHint";
 import PodcastGeneratorModal from "@/components/ui/PodcastGeneratorModal";
 import {
+  parseToolParam,
+  requestChatbotOpen,
+} from "@/lib/ai-tools-deeplink";
+import {
   FaBolt,
   FaBalanceScale,
   FaGem,
@@ -326,8 +330,20 @@ export default function AiToolsLab() {
     if (params.get("advanced") === "1") {
       setImgAdvanced(true);
     }
-    if (tool === "image-generator") {
-      setImgModalOpen(true);
+    // A deep link only opens a tool; it never starts a job. An unknown value
+    // parses to null and the page renders normally.
+    switch (parseToolParam(tool)) {
+      case "image-generator":
+        setImgModalOpen(true);
+        break;
+      case "podcast-generator":
+        setPodcastOpen(true);
+        break;
+      case "chatbot":
+        requestChatbotOpen();
+        break;
+      default:
+        break;
     }
     setUrlStateReady(true);
   }, []);
@@ -391,8 +407,8 @@ export default function AiToolsLab() {
 
   const handleToolClick = (tool: Tool) => {
     if (!tool.enabled) return;
-    if (tool.action === "open-chatbot" && typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("chatbot:open"));
+    if (tool.action === "open-chatbot") {
+      requestChatbotOpen();
     }
     if (tool.action === "open-image-generator") {
       setImgResult(null);
@@ -676,7 +692,19 @@ export default function AiToolsLab() {
       } else {
         params.delete("advanced");
       }
+    } else if (podcastOpen) {
+      // Mirrors the image modal: the param is present while the modal is open
+      // and removed when it closes, so the URL always reflects what is on
+      // screen. No generation settings here, because the podcast modal keeps
+      // its own and a deep link must not preload a job.
+      params.set("tool", "podcast-generator");
+      params.delete("speed");
+      params.delete("quality");
+      params.delete("aspect");
+      params.delete("style");
+      params.delete("advanced");
     } else {
+      // Also what clears ?tool=chatbot once the widget has taken the request.
       params.delete("tool");
       params.delete("speed");
       params.delete("quality");
@@ -697,6 +725,7 @@ export default function AiToolsLab() {
     imgSpeedMode,
     imgStyle,
     pathname,
+    podcastOpen,
     router,
     toolFilter,
     urlStateReady,
